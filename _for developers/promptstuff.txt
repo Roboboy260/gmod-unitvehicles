@@ -1,0 +1,71 @@
+﻿uv.prompt.toggle=[+attack] Przełącz
+uv.prompt.open=[+attack] Otwórz
+uv.prompt.open.menu=[+attack] Otwórz okno
+uv.prompt.select=[+attack] Wybierz
+uv.prompt.confirm=[+attack] Potwierdź
+uv.prompt.return=[+attack] Powrót
+uv.prompt.close=[+attack] Zamknij
+uv.prompt.load=[+attack] Wczytaj
+uv.prompt.export=[+attack] Eksportuj
+uv.prompt.remove=[+attack] Usuń
+uv.prompt.filter=[+attack] Filtruj
+
+
+uv.prompt.tab=[+attack] Przełącz zakładkę
+
+
+uv.prompt.keybind=[+attack] Zmień przypisanie klawisza
+uv.prompt.reset=[+attack2] Resetuj ustawienie
+uv.prompt.clear=[+attack2] Wyczyść ustawienie
+uv.prompt.clear.list=[+attack2] Wyczyść listę
+
+
+uv.prompt.presetd=[+attack] Usuń ustawienie wstępne
+uv.prompt.presets=[+attack] Zapisz ustawienie wstępne
+uv.prompt.presetl=[+attack] Wczytaj ustawienie wstępne
+uv.prompt.presetr=[+attack2] Skopiuj ustawienie wstępne
+
+
+uv.prompt.unitselect=[+attack] Przełącz Jednostkę
+
+
+uv.prompt.incdec=[invnext][invprev] Dostosuj wartość
+
+
+uv.prompt.bindoverridel=[+attack] Wybierz glif
+uv.prompt.bindoverridel=[+attack] Wybierz glif
+
+
+uv.prompt.previewtrack=[+attack2] Podgląd utworu
+uv.prompt.toggletracks=[+attack2] Przełącz wszystkie utwory
+
+
+uv.credits.contributors=Twórcy
+
+
+uv.ui.menu.hideprompts=Wymuś ukrycie podpowiedzi
+uv.ui.menu.hideprompts.desc=Wymusza ukrycie podpowiedzi w każdej zakładce okna UV.\n\nTrzeba na nowo załadować okno by zastosować zmiany.
+
+
+uv.audio.uvtrax.shuffle=Przetasowanie UVTrax™
+uv.audio.uvtrax.shuffle.desc=Jeśli włączone, UVTrax™ będzie tasować playlistę utworów przy każdym jej wczytywaniu.
+
+
+uv.audio.uvtrax.editor=Menadżer playlisty UVTrax™
+uv.audio.uvtrax.editor.desc=Twórz i zarządzaj własne playlisty, dodawaj i usuwaj utwory, i przełączaj ich odtwarzanie w każdej playliście.
+
+
+uv.audio.uvtrax.profiles=Profile
+uv.audio.uvtrax.profiles.desc=Przełącz utwory które mają grać dla każdego profilu UVTrax™.
+uv.audio.uvtrax.profiles.loaded=Ilość utworów załadowana dla tego profilu, i ile jest ich ogółem.
+
+
+uv.audio.uvtrax.tracks=Utwory
+
+
+uv.audio.pursuit.sfx=Efekty dźwiękowe Pościgów
+uv.audio.pursuit.sfx.desc=Odtwarza efekty dźwiękowe podczas Pościgów.
+
+
+uv.keybind.prevsong=Poprzedni utwór
+uv.keybind.prevsong.desc=Odtwarza poprzedni utwór UVTrax™.

@@ -1,0 +1,46 @@
+﻿uv.ft=Konfiguracja po raz pierwszy
+
+
+uv.ft.title=Witamy w Unit Vehicles!
+uv.ft.desc=Unit Vehicles to dodatek do trybu Sandbox który pozwala dowolnej ilości graczy lub SI brać udział w Pościgach policyjnych po stronie policji lub uciekinierów, a także Wyścigach na każdej mapie.\n\nTa podstawowa konfiguracja pomoże Ci dopasować ustawienia tak, aby twoje doświadczenie było jak najlepsze.
+uv.ft.preset.title=Wybierz Ustawienie Wstępne
+uv.ft.preset.desc=Unit Vehicles pozwala Ci brać udział w Pościgach z lub przeciwko SI a także innym graczom. Możesz zmieniać każdą wartość, np. ile Jednostek może brać udział w Pościgu naraz, jak często wzywane są posiłki, lub czy mogą pojawiać się Helikoptery i Blokady..\n\nWybierz Ustawienie Wstępne dowolnego Poziomu Obławy aby przejść dalej..
+uv.ft.preset.desc2=Znajdziesz te ustawienia w [string:uv.pm] -- [string:uv.hm].
+
+
+uv.ft.bases=Bazy Pojazdów
+uv.ft.bases.desc=Unit Vehicles wspiera kilka baz pojazdów, lecz SI mogą pojawiać się tylko w pojazdach z jednej z nich.\n\nWybierz którą bazę pojazdów będzie używać SI.
+
+
+uv.ft.bases.units=Baza Jednostek
+uv.ft.bases.airacer=Baza Zawodników
+uv.ft.bases.traffic=Baza Ruchu Drogowego
+
+
+uv.ft.general.desc=Unit Vehicles pozwala Ci zmieniać wiele różnych ustawień.\n\nOceń i wybierz niektóre z nich, tak jak styl twojego HUDu, Profil UVTrax™ i podobne.
+
+
+uv.ft.racing.desc=Unit Vehicles pozwala Ci ścigać się na trasach stworzonych przez różnych użytkowników z SI lub innymi graczami.\n\nDopasuj ustawienia Wyścigów pod siebie.
+uv.ft.racing.desc2=Znajdziesz te ustawienia w [string:uv.rm] -- [string:uv.rm.options], po wczytaniu Wyścigu.
+
+
+uv.ft.racing.ai.title=Ściganie się z SI
+uv.ft.racing.ai.desc=Możesz ścigać się z Zawodnikami SI, są na to dwa sposoby:
+uv.ft.racing.ai.desc2=1) Zaznacz przycisk [string:uv.airacer.override] poniżej, następnie wybierz pojazdy jakich ma używać SI używając [+attack2].\n2) Zostaw przycisk odznaczony, i manualnie stwórz pojazdy dla SI używając narzędzia [string:tool.uvracermanager.name]. \n\nZnajdziesz to ustawienie w [string:uv.airacer].
+
+
+uv.ft.end.title=GOTOWE
+uv.ft.end.desc=To na tyle!\n\nLeć teraz ścigać się z policją lub innymi zawodnikami na dowolnej mapie którą sobie wybierzesz!
+uv.ft.end.desc2=Przeczytaj [string:uv.faq] jeśli jeszcze masz jakieś pytania.\n\nJeśli znajdziesz błąd lub potrzebujesz pomocy z czymś o czym [string:uv.faq] nie mówi, znajdziesz nas na naszym serwerze Discord!
+
+
+uv.ft.next=Następne
+uv.ft.prev=Poprzednie
+uv.ft.finish=Ukończ
+
+
+uv.ft.force=Powtórz pierwszą konfigurację
+uv.ft.force.desc=Jeśli włączone, następnym razem jak otworzysz okno UV, przejdziesz jeszcze raz przez pierwszą konfigurację.
+
+
+uv.ft.skip=Pomiń (nie zalecane)

@@ -1,0 +1,25 @@
+﻿```lua
+["Racing.SpawnAI"] = [[
+# -- Jak mogę ścigać się z SI?
+
+
+Są dwa sposoby na to:
+
+
+**Opcja 1**
+ |-- 1. Pojaw dowolny pojazd z Glide, Simfphys lub bazy Jeepa z HL2.
+ |-- 2. Wyciągnij narzędzie [string:tool.uvracermanager.name].
+ |-- 3. Naciśnij [+attack2] na pojazd.
+ |-- 4. Doprecyzuj ustawienia według uznania, następnie wciśnij [string:uv.tool.create].
+ |-- 5. Powtórz dla każdego pojazdu jakiego ma używać SI.
+ 
+**Opcja 2 (Zalecana)**
+ |-- 1. Otwórz okno [string:uv.airacer].
+ |-- 2. Włącz [string:uv.airacer.override].
+ |-- 3. W liście pod ustawieniem, otwórz okno zawierające pojazdy i wciśnij [+attack2] aby dodać pojazd do listy pojazdów dla SI.
+
+
+**Uwagi**
+ |-- Upewnij się że zmienna [string:uv.tool.base.title] zgadza się z wybraną przez Ciebie bazą pojazdów.
+]],
+```

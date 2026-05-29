@@ -2,7 +2,7 @@ AddCSLuaFile()
 
 ENT.Type = "anim"
 ENT.Base = "base_glide_car"
-ENT.Author = "Sergeant Armstrong"
+ENT.Author = "Unit Vehicles Police Department"
 
 ENT.PrintName = "#uv.veh.chrbee"
 

@@ -4,7 +4,7 @@ local modelpath = "models/unitvehiclescars/uv_viperelite/"
 
 ENT.Type = "anim"
 ENT.Base = "base_glide_car"
-ENT.Author = "Sergeant Armstrong"
+ENT.Author = "Unit Vehicles Police Department"
 
 -- ENT.PrintName = "Dodge Viper SRT-10 Pursuit Commander"
 ENT.PrintName = "#uv.veh.viper"

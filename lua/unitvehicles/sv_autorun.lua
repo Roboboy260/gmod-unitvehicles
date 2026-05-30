@@ -198,6 +198,7 @@ NETWORK_STRINGS = {
 	"UVUnitManagerGetUnitAssignment",
 	"UVUnitManagerSaveUnit",
 	"UVUnitManagerDeleteFile",
+	"UVUnitManagerAddAirModel",
 
 	-- Traffic Manager
 	"UVTrafficManagerAdjustTraffic",

@@ -45,59 +45,36 @@ end
 
 function ENT:Initialize()
 
-	local modeltable = {
-		["Default"] = "models/uvair_default.mdl",
-		["NFS Hot Pursuit 2"] = "models/hp2heliai/hp2heliai.mdl",
-		["NFS Most Wanted"] = "models/nfs_mwpolhel/nfs_mwpolhel.mdl",
-		["NFS Undercover"] = "models/nfs_ucpolhel/nfs_ucpolhel.mdl",
-		["NFS Undercover PS2"] = "models/nfsu_copheli/nfsu_copheli.mdl",
-		["NFS Hot Pursuit 2010"] = "models/nfs_hppolhel/nfs_hppolhel.mdl",
-		["NFS No Limits"] = "models/nfs_nlpolhel/nfs_nlpolhel.mdl",
-		["NFS Rivals, Payback & Heat"] = "models/nfs_paybackpolhel/nfs_paybackpolhel.mdl",
-		["NFS Unbound"] = "models/unboundheli/unboundheli.mdl",
-		["The Crew"] = "models/thecrewheli/thecrewheli.mdl"
-	}
+	local config = UVUHelicopterModel:GetString()
+	local configtable = UVAirModelsData[config] or UVAirModelsData["Default"]
 
-	self.Model = modeltable[UVUHelicopterModel:GetString()] or "models/uvair_default.mdl"
+	if configtable then
+		for k,v in pairs(configtable) do
+			self[k] = v
+		end
+	end
 
-	self:SetModel(self.Model)
-	self:SetSkin(math.random(0,self:SkinCount()-1))
+	self:SetModel(self.Model or "models/uvair_default.mdl")
+	self:SetSkin(self.Skin or math.random(0,self:SkinCount()-1))
+
+	if self.Bodygroups then
+		for k,v in pairs(self.Bodygroups) do
+			self:SetBodygroup(k, v)
+		end
+	end
+
 	self:PhysicsInit(SOLID_VPHYSICS)
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
 	
 	self.phys = self:GetPhysicsObject()
 	self.phys:EnableGravity(false)
-	self.phys:SetMass(5000)
+	self.phys:SetMass(self.Mass or 5000)
 	self.phys:Wake()
-
-	--Compensation for the model's volume (volume * 2)
-	if self.Model == "models/uvair_default.mdl" then
-		self.phys:SetMass(32764)
-	elseif self.Model == "models/hp2heliai/hp2heliai.mdl" then
-		self.phys:SetMass(30830)
-	elseif self.Model == "models/nfs_mwpolhel/nfs_mwpolhel.mdl" then
-		self.phys:SetMass(5026)
-	elseif self.Model == "models/nfs_ucpolhel/nfs_ucpolhel.mdl" then
-		self.phys:SetMass(45556)
-	elseif self.Model == "models/nfs_hppolhel/nfs_hppolhel.mdl" then
-		self.phys:SetMass(45154)
-	elseif self.Model == "models/nfs_nlpolhel/nfs_nlpolhel.mdl" then
-		self.phys:SetMass(42382)
-	elseif self.Model == "models/nfs_paybackpolhel/nfs_paybackpolhel.mdl" then
-		self.phys:SetMass(85322)
-	elseif self.Model == "models/unboundheli/unboundheli.mdl" then
-		self.phys:SetMass(123078)
-	elseif self.Model == "models/thecrewheli/thecrewheli.mdl" then
-		self.phys:SetMass(5026)
-	elseif self.Model == "models/NFSU_COPHELI/NFSU_COPHELI.mdl" then
-		self.phys:SetMass(24242)
-	end
 	
 	self.bountytimer = CurTime()
 	self.callsign = "#uv.unit.helicopter"
 	self.type = "air"
-
 
 	local selectedVoice = GetConVar("unitvehicle_unit_air_voice"):GetString()
 	local splittedText = string.Explode( ",", selectedVoice )
@@ -891,11 +868,14 @@ function ENT:Explode()
 	wreck:SetPos(self:GetPos())
 	wreck:SetAngles(self.phys:GetAngles())
 	for k,v in pairs(wreck:GetBodyGroups()) do
-		wreck:SetBodygroup(k, wreck:GetBodygroup(k)+1)
+		wreck:SetBodygroup(k, self:GetBodygroup(k))
 	end
 	wreck:SetSkin(self:GetSkin())
 	for k, v in pairs(self:GetMaterials()) do
-		wreck:SetSubMaterial( k, self:GetSubMaterial( k ) )
+		wreck:SetSubMaterial( k, self:GetSubMaterial(k))
+	end
+	if isfunction(self.OnWreck) then
+		self.OnWreck(wreck)
 	end
 	wreck:Spawn()
 	wreck:GetPhysicsObject():EnableMotion(true)

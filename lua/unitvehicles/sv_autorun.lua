@@ -4436,6 +4436,23 @@ function UVDetachWheels(vehicle, location)
 	
 end
 
+function UVAddAirModel(name, data)
+	UVAirModelsData = UVAirModelsData or {}
+	UVAirModelsData[name] = data
+
+	local senddata = {}
+	for k,v in pairs(data) do
+		if type(v) != "function" then
+			senddata[k] = v
+		end
+	end
+	
+	net.Start("UVUnitManagerAddAirModel")
+		net.WriteString(name)
+		net.WriteTable(senddata)
+	net.Broadcast()
+end
+
 function UVCFEligibleToUse(NPC)
 	local vehicle = NPC.v
 	return (vehicle.RacerVehicle and UseNitrousRacer:GetBool()) or (vehicle.UnitVehicle and not vehicle.roadblocking and UseNitrousUnit:GetBool())

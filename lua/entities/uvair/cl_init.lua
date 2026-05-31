@@ -6,14 +6,7 @@ local Headlights = GetConVar("unitvehicle_enableheadlights")
 
 function ENT:Initialize()
 	
-	local config = UVUHelicopterModel:GetString()
-	local configtable = UVAirModelsData[config] or UVAirModelsData["Default"]
-
-	if configtable then
-		for k,v in pairs(configtable) do
-			self[k] = v
-		end
-	end
+	self:GetModelData()
 
 	if not self.RotorSounds then
 		self.RotorSounds = {
@@ -82,6 +75,8 @@ function ENT:Draw()
 
 	self:EnableMatrix("RenderMultiply",matr)
 	self:DrawModel()
+
+	if not self.GotAllLights then return end
 	
 	local spotpos = self.Spotlight:GetPos()
 	local strobepos = LocalToWorld(self.StrobePos*self.Scale,Angle(),self:GetPos(),self:GetAngles())
@@ -160,14 +155,16 @@ function ENT:Think()
 		self["RotorSound"..i]:ChangePitch(100+math.Round(math.Clamp(speed/80,0,5),1),1)
 	end
 	
-	self.Spotlight:SetPos(LocalToWorld(self.SpotlightPos*self.Scale,Angle(),self:GetPos(),self:GetAngles()))
-	if IsValid(self:GetTarget()) and self.canusespotlight then
-		self.Spotlight:SetBrightness(10)
-		self.Spotlight:SetAngles((self:GetTargetPos()-self.Spotlight:GetPos()):Angle())
-	else
-		self.Spotlight:SetBrightness(0)
+	if self.GotAllLights then
+		self.Spotlight:SetPos(LocalToWorld(self.SpotlightPos*self.Scale,Angle(),self:GetPos(),self:GetAngles()))
+		if IsValid(self:GetTarget()) and self.canusespotlight then
+			self.Spotlight:SetBrightness(10)
+			self.Spotlight:SetAngles((self:GetTargetPos()-self.Spotlight:GetPos()):Angle())
+		else
+			self.Spotlight:SetBrightness(0)
+		end
+		self.Spotlight:Update()
 	end
-	self.Spotlight:Update()
 
 	if not self.NextGroundFX then self.NextGroundFX = 0 end
 
@@ -207,5 +204,7 @@ function ENT:OnRemove()
 		self["RotorSound"..i]:Stop()
 	end
 	
-	self.Spotlight:Remove()
+	if self.Spotlight and IsValid(self.Spotlight) then
+		self.Spotlight:Remove()
+	end
 end

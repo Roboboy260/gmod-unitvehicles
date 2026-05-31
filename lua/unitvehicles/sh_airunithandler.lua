@@ -2,47 +2,32 @@ AddCSLuaFile()
 
 --[[
 
-UVAddAirModel(string, {
-	["Model"] = string,
-	["Skin"] = number, --remove this for random skin
-	["Bodygroups"] = {
-		[0] = number, --specify bodygroups if you want
-	},
-	["Mass"] = number, --(volume * 2)
-	["SpotlightPos"] = Vector,
-	["StrobePos"] = Vector, --top of the fuselage
-	["StrobePos2"] = Vector, --bottom of the fuselage
-	["PortPos"] = Vector, --left side
-	["StarboardPos"] = Vector, --right side
-	["SternPos"] = Vector, --rear
-	["RotorSounds"] = {
-		string, --Add as many rotor sounds as you want
-	}
-	["OnWreck"] = function(wreck)
-		--Change bodygroups or whatever you want when the helicopter gets wrecked
-	end,
-})
+timer.Simple(5, function()
+	UVAddAirModel(uniquenamestring, {
+		["Model"] = string,
+		["Skin"] = number, --remove this for random skin
+		["Bodygroups"] = {
+			[0] = number, --specify bodygroups if you want
+		},
+		["Mass"] = number, --(volume * 2)
+		["SpotlightPos"] = Vector,
+		["StrobePos"] = Vector, --top of the fuselage
+		["StrobePos2"] = Vector, --bottom of the fuselage
+		["PortPos"] = Vector, --left side
+		["StarboardPos"] = Vector, --right side
+		["SternPos"] = Vector, --rear
+		["RotorSounds"] = {
+			string, --Add as many rotor sounds as you want
+		}
+		["OnWreck"] = function(wreck)
+			--Change bodygroups or whatever you want when the helicopter gets wrecked
+		end,
+	})
+end)
 
 ]]
 
 if SERVER then
-		
-	function UVAddAirModel(name, data)
-		UVAirModelsData = UVAirModelsData or {}
-		UVAirModelsData[name] = data
-
-		local senddata = {}
-		for k,v in pairs(data) do
-			if type(v) != "function" then
-				senddata[k] = v
-			end
-		end
-
-		net.Start("UVUnitManagerAddAirModel")
-			net.WriteString(name)
-			net.WriteTable(senddata)
-		net.Broadcast()
-	end
 	
 	local airtable = {
 		["Default"] = {
@@ -280,9 +265,11 @@ if SERVER then
 		},
 	}
 	
-	for name, data in pairs(airtable) do
-		UVAddAirModel(name, data)
-	end
+	timer.Simple(5, function()
+		for name, data in pairs(airtable) do
+			UVAddAirModel(name, data)
+		end
+	end)
 
 else
 

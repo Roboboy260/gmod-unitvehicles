@@ -45,14 +45,7 @@ end
 
 function ENT:Initialize()
 
-	local config = UVUHelicopterModel:GetString()
-	local configtable = UVAirModelsData[config] or UVAirModelsData["Default"]
-
-	if configtable then
-		for k,v in pairs(configtable) do
-			self[k] = v
-		end
-	end
+	self:GetModelData()
 
 	self:SetModel(self.Model or "models/uvair_default.mdl")
 	self:SetSkin(self.Skin or math.random(0,self:SkinCount()-1))

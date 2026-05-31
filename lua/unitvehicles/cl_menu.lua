@@ -1514,7 +1514,7 @@ UVMenu.HeatManager = function()
 		{ type = "slider", text = "uv.hm.commander.health", desc = "uv.hm.commander.health.desc", convar = "unitvehicle_unit_onecommanderhealth", min = 1000, max = 10000, sv = true },
 		
 		{ type = "label", text = "uv.hm.air" },
-		{ type = "combo", text = "uv.hm.air.model", desc = "uv.hm.air.model.desc", convar = "unitvehicle_unit_helicoptermodel", sv = true, content = UVAirModelsList },
+		{ type = "combo", text = "uv.hm.air.model", desc = "uv.hm.air.model.desc", convar = "unitvehicle_unit_helicoptermodel", sv = true, content = UVAirModelsList or {} },
 		{ type = "bool", text = "uv.hm.air.canbust", desc = "uv.hm.air.canbust.desc", convar = "unitvehicle_unit_helicopterbusting", sv = true },
 		{ type = "bool", text = "uv.hm.air.pt.exp", desc = "uv.hm.air.pt.desc", convar = "unitvehicle_unit_helicopterbarrels", sv = true },
 		{ type = "bool", text = "uv.hm.air.pt.spikes", desc = "uv.hm.air.pt.desc", convar = "unitvehicle_unit_helicopterspikestrip", sv = true },

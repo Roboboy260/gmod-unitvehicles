@@ -584,11 +584,6 @@ if CLIENT then
         UVFreezeTime = RealTime() + effectDuration
         transitionStart = RealTime()
 
-        -- LocalPlayer():SetNoDraw(true)
-        -- local hands = LocalPlayer():GetHands()
-        -- if IsValid(hands) then
-        --     hands:SetNoDraw(true)
-        -- end
         if Glide then
             if Glide.Camera.isActive and IsValid(Glide.Camera.vehicle) then
                 _OldGlideCameraFunction = Glide.Camera.ShouldBeActive
@@ -604,11 +599,6 @@ if CLIENT then
     net.Receive("UVSpottedUnfreeze", function()
         IsUVFrozen = false
 
-        -- LocalPlayer():SetNoDraw(false)
-        -- local hands = LocalPlayer():GetHands()
-        -- if IsValid(hands) then
-        --     hands:SetNoDraw(false)
-        -- end
         if Glide then
             if not Glide.Camera.isActive and IsValid(Glide.Camera.vehicle) and _OldGlideCameraFunction then
                 Glide.Camera.ShouldBeActive = _OldGlideCameraFunction

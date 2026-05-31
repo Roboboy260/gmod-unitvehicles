@@ -1376,6 +1376,17 @@ CanExitVehicle = CreateConVar("unitvehicle_canexitvehicle", 0, {FCVAR_ARCHIVE, F
 UnitDifficulty = CreateConVar( "unitvehicle_unitdifficulty", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Increases Unit AI difficulty." )
 UnitCatchup = CreateConVar( "unitvehicle_unitcatchup", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit AI catch-up." )
 
+ActionCam = CreateConVar("unitvehicle_actioncam", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show dramatic angles during certain events. Gameplay may slow down.")
+ActionCamWrecked = CreateConVar("unitvehicle_actioncam_wrecked", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you get wrecked, busted or killed.")
+ActionCamRaceStart = CreateConVar("unitvehicle_actioncam_racestart", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you start a race.")
+ActionCamRaceFinish = CreateConVar("unitvehicle_actioncam_racefinish", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you finish a race.")
+ActionCamCrash = CreateClientConVar("unitvehicle_actioncam_crash", 1, true, false, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you crash your vehicle.")
+ActionCamJumps = CreateConVar("unitvehicle_actioncam_jumps", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit a jump.")
+ActionCamSpottedFreeze = CreateConVar("unitvehicle_actioncam_spottedfreezecam", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the game will slow down and the camera will point to the closest Unit when starting a pursuit (single-player only).")
+ActionCamRoadblock = CreateConVar("unitvehicle_actioncam_roadblock", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit roadblocks.")
+ActionCamTakedown = CreateConVar("unitvehicle_actioncam_takedown", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you take down Racers or Units.")
+ActionCamPursuitBreaker = CreateConVar("unitvehicle_actioncam_pursuitbreaker", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit Pursuit Breakers. Your vehicle will be taken over by an AI temporarily.")
+
 UVUOneCommanderHealth = CreateConVar("unitvehicle_unit_onecommanderhealth", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUCommanderRepair = CreateConVar("unitvehicle_unit_commanderrepair", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED},"Unit Vehicles: If set to 1, Commander Units can utilize the Repair Shop to repair themselves.")
 

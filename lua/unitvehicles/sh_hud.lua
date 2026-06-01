@@ -566,38 +566,8 @@ if CLIENT then
 		end
 	end )
 
-    IsUVFrozen = false
-    local effectDuration = 0
-    local UVFreezeTime = 0
-
-    local spottedCameraView = {}
-    local cameraTransitionTime = 2
-    local transitionStart = 0
-
-    local copEnt = nil
-
-    net.Receive("UVSpottedFreeze", function()
-        effectDuration = net.ReadFloat()
-        copEnt = net.ReadEntity()
-
-        IsUVFrozen = true
-        UVFreezeTime = RealTime() + effectDuration
-        transitionStart = RealTime()
-
-        if Glide then
-            if Glide.Camera.isActive and IsValid(Glide.Camera.vehicle) then
-                _OldGlideCameraFunction = Glide.Camera.ShouldBeActive
-                Glide.Camera.ShouldBeActive = function()
-                    return false
-                end
-            end
-        end
-
-        RunConsoleCommand("cl_drawhud", 0)
-    end)
-
-    net.Receive("UVSpottedUnfreeze", function()
-        IsUVFrozen = false
+    net.Receive("UVActionCamStop", function()
+        UVActionCam = false
 
         if Glide then
             if not Glide.Camera.isActive and IsValid(Glide.Camera.vehicle) and _OldGlideCameraFunction then
@@ -618,18 +588,71 @@ if CLIENT then
         end
     end )
 
-    hook.Add("CalcView", "UVCalcView", function(ply, origin, angles, fov, znear, zfar)
+	--General
+	UVActionCam = false
+    local UVActionCamTime = 0
+    local transitionStart = 0
+	local effectDuration = 0
+	local camLocation = Vector(0, 0, 0)
+
+	--Spotted
+    local copEnt = nil
+
+	--Crash
+	local isCrashing = false
+	local crashCamPos = Vector(0, 0, 0)
+	local crashTargetPos = Vector(0, 0, 0)
+	local crashStartTime = 0
+	local CRASH_DURATION = 2.5
+
+	local ActionCamSFX = {
+		["Spotted"] = {
+			"ui/pursuit/spottedfreezecam.wav",
+		}
+	}
+
+    net.Receive("UVActionCamStart", function()
+		UVActionCam = net.ReadString()
+        effectDuration = net.ReadFloat()
+        copEnt = net.ReadEntity()
+
+		print("Received UVActionCamStart: ", UVActionCam, effectDuration, copEnt)
+
+        UVActionCamTime = RealTime() + effectDuration
+        transitionStart = RealTime()
+
+		if UVActionCam == "Crash" then
+			camLocation = Vector(math.random(-1000, 1000), math.random(-1000, 1000), math.random(100, 300))
+			isCrashing = false
+		end
+
+        if Glide then
+            if Glide.Camera.isActive and IsValid(Glide.Camera.vehicle) then
+                _OldGlideCameraFunction = Glide.Camera.ShouldBeActive
+                Glide.Camera.ShouldBeActive = function()
+                    return false
+                end
+            end
+        end
+
+        RunConsoleCommand("cl_drawhud", 0)
+
+		if ActionCamSFX[UVActionCam] then
+			surface.PlaySound(ActionCamSFX[UVActionCam][math.random(1, #ActionCamSFX[UVActionCam])])
+		end
+    end)
+
+    hook.Add("CalcView", "UVActionCam", function(ply, origin, angles, fov, znear, zfar)
         
-        UVLastVehicleDriven = IsValid(UVGetVehicle(ply)) and UVGetVehicle(ply) or UVLastVehicleDriven
-        local isVehicleValid = IsValid(UVLastVehicleDriven)
+        UVLastVehicleDriven = IsValid(UVGetVehicle(ply)) and UVGetVehicle(ply) or UVLastVehicleDriven or ply
 
-        --Spotted (SINGLEPLAYER)
-        if IsUVFrozen and IsValid(copEnt) then
+        if UVActionCam == "Spotted" and IsValid(copEnt) then --Spotted (SINGLEPLAYER)
 
+			local cameraTransitionTime = 2
             local t = math.Clamp((RealTime() - transitionStart) / cameraTransitionTime, 0, 1)
 
             local copPos = copEnt:WorldSpaceCenter() or copEnt:GetPos()
-            local plyPos = ply:GetPos()
+            local plyPos = UVLastVehicleDriven:WorldSpaceCenter()
             local dist = plyPos:Distance(copPos)
             
             local camPos = plyPos + ply:GetForward() * -300 + Vector(0, 0, 100)
@@ -653,17 +676,61 @@ if CLIENT then
             spottedCameraView.fov = Lerp(t, currentView.fov, camFov)
 
             return spottedCameraView
+
+		elseif UVActionCam == "Crash" then -- Crash (SINGLEPLAYER)
+			local veh = UVLastVehicleDriven
+    		if not IsValid(veh) then 
+    		    isCrashing = false
+    		    return 
+    		end
+		
+    		local targetEnt = veh
+		
+    		if not isCrashing then
+    		    isCrashing = true
+    		    crashStartTime = CurTime()
+			
+    		    crashCamPos = UVLastVehicleDriven:LocalToWorld(camLocation)
+    		end
+		
+    		-- Handle the cinematic camera view
+    		if isCrashing then
+    		    if CurTime() - crashStartTime > CRASH_DURATION then
+    		        isCrashing = false -- Reset camera after duration ends
+    		        return
+    		    end
+			
+    		    -- Smoothly track the vehicle as it rolls or spins
+    		    crashTargetPos = targetEnt:WorldSpaceCenter()
+    		    local viewAngles = (crashTargetPos - crashCamPos):Angle()
+			
+    		    -- Prevent camera from clipping through world geometry
+    		    local tr = util.TraceLine({
+    		        start = crashTargetPos,
+    		        endpos = crashCamPos,
+    		        mask = MASK_NPCWORLDSTATIC
+    		    })
+    		    local finalCamPos = tr.HitPos + (tr.HitNormal * 10)
+			
+    		    local view = {
+    		        origin = finalCamPos,
+    		        angles = viewAngles,
+    		        fov = 50,
+    		        drawviewer = true -- Required to see your own car/character
+    		    }
+    		    return view
+    		end
         end
 
         -- Dead
-        if not ply:Alive() and isVehicleValid then
+        if not ply:Alive() and UVLastVehicleDriven ~= ply then
             local orbitDistance = 200
 
             local orbitSpeed = 45 
 
             orbitYaw = orbitYaw + (FrameTime() * orbitSpeed)
             
-            local targetPos = UVLastVehicleDriven:GetPos()
+            local targetPos = UVLastVehicleDriven:WorldSpaceCenter()
 
             local camAngles = Angle(0, orbitYaw, 0)
             
@@ -681,10 +748,6 @@ if CLIENT then
         end
 
     end)
-
-    if not isVehicleValid then
-        UVLastVehicleDriven = nil
-    end
 	
 	local HUDCountdownTick = nil
 

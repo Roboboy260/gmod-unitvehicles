@@ -1368,7 +1368,6 @@ RacerPursuitTech = CreateConVar("unitvehicle_racerpursuittech", 1, {FCVAR_ARCHIV
 RacerFriendlyFire = CreateConVar("unitvehicle_racerfriendlyfire", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, Racers will be able to attack eachother with Pursuit Tech.")
 OptimizeRespawn = CreateConVar("unitvehicle_optimizerespawn", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, Units will be teleported ahead of the suspect instead of despawning (does not work with simfphys).")
 TrafficStreaming = CreateConVar("unitvehicle_trafficstreaming", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, Traffic and patrolling Units will despawn when they are too far away from the player, thus allowing new ones to spawn.")
-SpottedFreezeCam = CreateConVar("unitvehicle_spottedfreezecam", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the game will freeze and the camera will point to the closest Unit when starting a pursuit (single-player only).")
 RandomPlayerUnits = CreateConVar("unitvehicle_randomplayerunits", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, player-controlled Units will be chosen randomly from the available units.")
 TractionControl = CreateConVar("unitvehicle_tractioncontrol", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, Units and Racer Vehicles will apply reduced throttle when wheel spinning.")
 DisengageOnHeatChange = CreateConVar("unitvehicle_disengageonheatchange", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, AI Units will fall back if their vehicle does not match any assigned vehicles when Heat Level changes.")
@@ -1381,8 +1380,8 @@ ActionCamWrecked = CreateConVar("unitvehicle_actioncam_wrecked", 1, {FCVAR_ARCHI
 ActionCamRaceStart = CreateConVar("unitvehicle_actioncam_racestart", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you start a race.")
 ActionCamRaceFinish = CreateConVar("unitvehicle_actioncam_racefinish", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you finish a race.")
 ActionCamCrash = CreateClientConVar("unitvehicle_actioncam_crash", 1, true, false, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you crash your vehicle.")
-ActionCamJumps = CreateConVar("unitvehicle_actioncam_jumps", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit a jump.")
-ActionCamSpottedFreeze = CreateConVar("unitvehicle_actioncam_spottedfreezecam", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the game will slow down and the camera will point to the closest Unit when starting a pursuit (single-player only).")
+ActionCamJump = CreateConVar("unitvehicle_actioncam_jump", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit a jump.")
+ActionCamSpotted = CreateConVar("unitvehicle_actioncam_spotted", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the game will slow down and the camera will point to the closest Unit when starting a pursuit (single-player only).")
 ActionCamRoadblock = CreateConVar("unitvehicle_actioncam_roadblock", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit roadblocks.")
 ActionCamTakedown = CreateConVar("unitvehicle_actioncam_takedown", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you take down Racers or Units.")
 ActionCamPursuitBreaker = CreateConVar("unitvehicle_actioncam_pursuitbreaker", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit Pursuit Breakers. Your vehicle will be taken over by an AI temporarily.")
@@ -2413,6 +2412,7 @@ if SERVER then
 	UVLoadedRoadblocksLoc = {}
 	UVWreckedVehicles = {}
 	UVUnitVehicles = {}
+	UVPlayersInActionCam = {}
 
 	hook.Add('UV_Event', 'onPursuitEvent', function( type, result )
 		if type == 'onPursuitEnd' then
@@ -3005,35 +3005,24 @@ if SERVER then
 			end
 		end
 
-		--SPOTTED CAMERA
-		local FREEZE_DURATION = 2.7
+		--Players in Action Cam
+		for _, ply in pairs(UVPlayersInActionCam) do
+			if not IsValid(ply) then 
+				table.RemoveByValue(UVPlayersInActionCam, ply)
+				continue 
+			end
 
-		if game.SinglePlayer() and SpottedFreezeCam:GetBool() then
-			local ply = Entity(1)
+			if ply.ActionCam and RealTime() >= ply.ActionCamTime then
+				table.RemoveByValue(UVPlayersInActionCam, ply)
 
-			if ply.isUVFrozen and RealTime() >= ply.isUVFreezeTime then
-        	    net.Start("UVSpottedUnfreeze")
-        	    net.Send(ply)
+				net.Start("UVActionCamStop")
+				net.Send(ply)
 
-        	    ply.isUVFrozen = nil
-				--ply:Freeze(false)
+				ply.ActionCam = nil
 
-				-- if IsValid(ply.UVLastVehicleDriven) then
-				-- 	if ply.UVLastVehicleDriven.IsSimfphyscar then
-				-- 		ply:EnterVehicle( ply.UVLastVehicleDriven.DriverSeat )
-				-- 	elseif ply.UVLastVehicleDriven.IsGlideVehicle then
-				-- 		local seat = ply.UVLastVehicleDriven.seats[1]
-				-- 		if IsValid(seat) then
-				-- 			ply:EnterVehicle(seat)
-				-- 		end
-				-- 	elseif ply.UVLastVehicleDriven:GetClass() == "prop_vehicle_jeep" then
-				-- 		ply:EnterVehicle(ply.UVLastVehicleDriven)
-				-- 	end
-				-- end
-
-        	    game.SetTimeScale(1.0)
+				game.SetTimeScale(1.0)
 				CF_CanSetTimeScale = true
-        	end
+			end
 		end
 
 		--HUD Triggers
@@ -3041,7 +3030,7 @@ if SERVER then
 
 			if not UVHUDPursuit then
 				UVRestoreResourcePoints()
-				if game.SinglePlayer() and SpottedFreezeCam:GetBool() then --SPOTTED CAMERA
+				if game.SinglePlayer() and ActionCamSpotted:GetBool() then --SPOTTED CAMERA
 					local ply = Entity(1)
 					local v = UVGetVehicle(ply)
 					local vScope = UVGetScope(v)
@@ -3072,24 +3061,7 @@ if SERVER then
 						end
 	
 						if closestunit then
-							ply.isUVFrozen = true
-							ply.isUVFreezeTime = RealTime() + FREEZE_DURATION
-	
-							-- if IsValid(UVGetVehicle(ply)) then
-							-- 	ply.UVLastVehicleDriven = UVGetVehicle(ply)
-							-- 	ply:ExitVehicle()
-							-- end
-						
-							--ply:Freeze(true)
-							net.Start("UVSpottedFreeze")
-							net.WriteFloat(FREEZE_DURATION)
-							net.WriteEntity(closestunit)
-							net.Send(ply)
-							CF_CanSetTimeScale = false
-							game.SetTimeScale(0.001) --Source dosen't like it if you set it to 0
-	
-	
-							UVRelaySoundToClients("ui/pursuit/spottedfreezecam.wav", false)
+							UVActionCam(ply, "Spotted", closestunit)
 						end	
 					end
 				end
@@ -4628,7 +4600,7 @@ else -- CLIENT Settings | HUD/Options
 			UVHUDDisplayPursuit = nil
 		end
 
-		if IsUVFrozen then
+		if UVActionCam then
 			local isInRaceMusic = (not RacingMusicPriority:GetBool()) and RacingMusic:GetBool() and UVHUDDisplayRacing
 			local isOutsideRaceMusic = RacingThemeOutsideRace:GetBool() and RacingMusic:GetBool()
 			
@@ -5576,7 +5548,7 @@ else -- CLIENT Settings | HUD/Options
 
 	net.Receive('UV_Sound', function()
 		local array = net.ReadTable()
-		if not PursuitSFX:GetBool() and not string.match( array.FileName, "spottedfreezecam" ) then return end
+		if not PursuitSFX:GetBool() then return end
 
 		local audio_file = "sound/"..array.FileName
 		local parameters = array.Parameter

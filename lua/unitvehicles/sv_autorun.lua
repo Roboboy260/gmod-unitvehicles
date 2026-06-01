@@ -257,8 +257,8 @@ NETWORK_STRINGS = {
 	'UVResetPosition',
 	"UVRace_BeginEndCountdown",
 	"UVRace_StopEndCountdown",
-	"UVSpottedFreeze",
-	"UVSpottedUnfreeze",
+	"UVActionCamStart",
+	"UVActionCamStop",
 
 	-- Race List
 	"UVRace_RaceList_Set",
@@ -1102,8 +1102,15 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 			dot = math.abs(dot) / 2
 			local dmg = resultVel * dot
 
-			if car.wrecked and dmg >= 100 then
-				UVDetachWheels(car, coldata.HitPos)
+			if dmg >= 100 then
+				local driver = UVGetDriver(car)
+				if driver then
+					UVActionCam(driver, "Crash")
+				end
+
+				if car.wrecked then
+					UVDetachWheels(car, coldata.HitPos)
+				end
 			end
 
 			if coldata.HitEntity.PursuitBreakerActive then
@@ -1351,8 +1358,15 @@ hook.Add("simfphysPhysicsCollide", "UVCollisionSimfphys", function(car, coldata,
 	dot = math.abs(dot) / 2
 	local dmg = resultVel * dot
 
-	if car.wrecked and dmg >= 100 then
-		UVDetachWheels(car, coldata.HitPos)
+	if dmg >= 100 then
+		local driver = UVGetDriver(car)
+		if driver then
+			UVActionCam(driver, "Crash")
+		end
+
+		if car.wrecked then
+			UVDetachWheels(car, coldata.HitPos)
+		end
 	end
 
 	if car.DecentVehicle or car.TrafficVehicle then
@@ -1893,8 +1907,15 @@ hook.Add("OnEntityCreated", "UVCollisionLVS", function(lvsvehicle)
 			dot = math.abs(dot) / 2
 			local dmg = resultVel * dot
 
-			if car.wrecked and dmg >= 100 then
-				UVDetachWheels(car, coldata.HitPos)
+			if dmg >= 100 then
+				local driver = UVGetDriver(car)
+				if driver then
+					UVActionCam(driver, "Crash")
+				end
+
+				if car.wrecked then
+					UVDetachWheels(car, coldata.HitPos)
+				end
 			end
 
 			if coldata.HitEntity.PursuitBreakerActive then
@@ -4451,6 +4472,44 @@ function UVAddAirModel(name, data)
 		net.WriteString(name)
 		net.WriteTable(senddata)
 	net.Broadcast()
+end
+
+local ActionCamDuration = {
+	["Crash"] = 3,
+	["Jump"] = 3,
+	["Spotted"] = 2.7,
+	["Roadblock"] = 3,
+	["Takedown"] = 3,
+}
+
+local ActionCamTimeScale = {
+	["Crash"] = 0.5,
+	["Jump"] = 0.5,
+	["Spotted"] = 0.001,
+	["Roadblock"] = 0.5,
+	["Takedown"] = 0.5,
+}
+
+function UVActionCam(ply, type, entity)
+	if not IsValid(ply) or not ply:IsPlayer() or ply.ActionCam then return end
+
+	--Add to table
+	UVPlayersInActionCam = UVPlayersInActionCam or {}
+	table.insert(UVPlayersInActionCam, ply)
+
+	ply.ActionCam = true
+	ply.ActionCamTime = RealTime() + ActionCamDuration[type] or 5
+
+	net.Start("UVActionCamStart")
+		net.WriteString(type)
+		net.WriteFloat(ActionCamDuration[type] or 5)
+		net.WriteEntity(entity)
+	net.Send(ply)
+
+	if ActionCamTimeScale[type] then
+		CF_CanSetTimeScale = false
+		game.SetTimeScale(ActionCamTimeScale[type])
+	end
 end
 
 function UVCFEligibleToUse(NPC)

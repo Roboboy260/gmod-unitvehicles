@@ -703,8 +703,8 @@ UVMenu.Settings = function()
 				{ type = "bool", text = "uv.camera.actioncam.racestart", desc = "uv.camera.actioncam.racestart.desc", convar = "unitvehicle_actioncam_racestart", sv = true, requireparentconvar = "unitvehicle_actioncam" },
 				{ type = "bool", text = "uv.camera.actioncam.racefinish", desc = "uv.camera.actioncam.racefinish.desc", convar = "unitvehicle_actioncam_racefinish", sv = true, requireparentconvar = "unitvehicle_actioncam" },
 				{ type = "bool", text = "uv.camera.actioncam.crash", desc = "uv.camera.actioncam.crash.desc", convar = "unitvehicle_actioncam_crash", sv = true, requireparentconvar = "unitvehicle_actioncam" },
-				{ type = "bool", text = "uv.camera.actioncam.jumps", desc = "uv.camera.actioncam.jumps.desc", convar = "unitvehicle_actioncam_jumps", sv = true, sp = true, requireparentconvar = "unitvehicle_actioncam" },
-				{ type = "bool", text = "uv.camera.actioncam.spottedfreezecam", desc = "uv.camera.actioncam.spottedfreezecam.desc", convar = "unitvehicle_actioncam_spottedfreezecam", sv = true, sp = true, requireparentconvar = "unitvehicle_actioncam" },
+				{ type = "bool", text = "uv.camera.actioncam.jump", desc = "uv.camera.actioncam.jump.desc", convar = "unitvehicle_actioncam_jump", sv = true, sp = true, requireparentconvar = "unitvehicle_actioncam" },
+				{ type = "bool", text = "uv.camera.actioncam.spotted", desc = "uv.camera.actioncam.spotted.desc", convar = "unitvehicle_actioncam_spotted", sv = true, sp = true, requireparentconvar = "unitvehicle_actioncam" },
 				{ type = "bool", text = "uv.camera.actioncam.roadblock", desc = "uv.camera.actioncam.roadblock.desc", convar = "unitvehicle_actioncam_roadblock", sv = true, sp = true, requireparentconvar = "unitvehicle_actioncam" },
 				{ type = "bool", text = "uv.camera.actioncam.takedown", desc = "uv.camera.actioncam.takedown.desc", convar = "unitvehicle_actioncam_takedown", sv = true, sp = true, requireparentconvar = "unitvehicle_actioncam" },
 				{ type = "bool", text = "uv.camera.actioncam.pursuitbreaker", desc = "uv.camera.actioncam.pursuitbreaker.desc", convar = "unitvehicle_actioncam_pursuitbreaker", sv = true, sp = true, requireparentconvar = "unitvehicle_actioncam" },
@@ -721,7 +721,6 @@ UVMenu.Settings = function()
 				
 				{ type = "label", text = "uv.settings.general", sv = true },
 				{ type = "bool", text = "uv.pursuit.canexitvehicle", desc = "uv.pursuit.canexitvehicle.desc", convar = "unitvehicle_canexitvehicle", sv = true },
-				{ type = "bool", text = "uv.pursuit.spottedfreezecam", desc = "uv.pursuit.spottedfreezecam.desc", convar = "unitvehicle_spottedfreezecam", sv = true, sp = true },
 				{ type = "bool", text = "uv.pursuit.randomplayerunits", desc = "uv.pursuit.randomplayerunits.desc", convar = "unitvehicle_randomplayerunits", sv = true },
 				{ type = "bool", text = "uv.pursuit.autohealth", desc = "uv.pursuit.autohealth.desc", convar = "unitvehicle_autohealth", sv = true },
 				{ type = "bool", text = "uv.pursuit.wheelsdetaching", desc = "uv.pursuit.wheelsdetaching.desc", convar = "unitvehicle_wheelsdetaching", sv = true },

@@ -2331,10 +2331,6 @@ if SERVER then
             end
         end
 
-        if next(UVLoadedPursuitBreakers) == nil then --No PB
-            return WreckClosestUnit(car)
-        end
-
         local closest_ent
         local shortest_distance = math.huge
         local maximum_distance = 75000000
@@ -2353,9 +2349,11 @@ if SERVER then
         end
         
         if IsValid(closest_ent) then
+            local driver = UVGetDriver(car)
+            if driver then
+                UVActionCam(driver, "PursuitBreaker", nil, closest_ent.PursuitBreakerData)
+            end
             return UVTriggerPursuitBreaker(closest_ent, car)
-        -- else --It can happen :3
-        --     return WreckClosestUnit(car)
         else
             if isfunction(car.GetDriver) and IsValid(UVGetDriver(car)) and UVGetDriver(car):IsPlayer() then 
                 if not car.uvNextNoPBTime or car.uvNextNoPBTime < CurTime() then

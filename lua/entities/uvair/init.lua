@@ -443,7 +443,7 @@ function ENT:PhysicsUpdate()
 		self:ApplyAngles()
 		self:ApplyHeight()
 		
-		if GetConVar("ai_ignoreplayers"):GetBool() then
+		if GetConVar("ai_disabled"):GetBool() then
 			self:SlowDown()
 			self:StopRotating()
 			

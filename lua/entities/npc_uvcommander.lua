@@ -1152,7 +1152,7 @@ if SERVER then
 
 			self:ApplyUnitDifficulty(1)
 
-			if (UVEnemyBusted and #UVWantedTableVehicle == 0) or self.stopped then --Stop moving
+			if (UVEnemyBusted and #UVWantedTableVehicle == 0) or self.stopped or GetConVar("ai_disabled"):GetBool() then --Stop moving
 				self:Stop()
 			else --Patrol
 				self:Patrol()
@@ -1509,7 +1509,12 @@ if SERVER then
 			
 			--Roadblocking
 			if self.v.roadblocking then
+				if not self.v.UVRoadblock then
+					self.v.UVRoadblock = self.v
+				end
+
 				self:UVHandbrakeOn()
+
 				if not self.v.roadblockingmissed and eeevectdot > 0 and self.v.roadblocking and straightToEnemy then
 					self.v.roadblockingmissed = true
 					
@@ -1520,6 +1525,10 @@ if SERVER then
 					if Chatter:GetBool() then
 						UVChatterRoadblockMissed(self)
 					end
+				end
+			else
+				if self.v.UVRoadblock then
+					self.v.UVRoadblock = nil
 				end
 			end
 		

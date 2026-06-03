@@ -1091,6 +1091,7 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 			local ourOldVel = coldata.OurOldVelocity:Length()
 			local ourNewVel = coldata.OurNewVelocity:Length()
 			local resultVel = ourOldVel
+			local object = coldata.HitEntity
 
 			if ourOldVel > ourNewVel then --slowed
 				resultVel = ourOldVel - ourNewVel
@@ -1102,18 +1103,18 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 			dot = math.abs(dot) / 2
 			local dmg = resultVel * dot
 
-			if dmg >= 100 then
+			if dmg >= 500 then
 				local driver = UVGetDriver(car)
-				if driver then
+				if driver and not object.PursuitBreaker and not object.UVRoadblock then
 					UVActionCam(driver, "Crash")
 				end
-
+			elseif dmg >= 100 then
 				if car.wrecked then
 					UVDetachWheels(car, coldata.HitPos)
 				end
 			end
 
-			if coldata.HitEntity.PursuitBreakerActive then
+			if object.PursuitBreakerActive then
 				local driver = car.UnitVehicle or car.TrafficVehicle
                     
 				if driver then
@@ -1125,8 +1126,6 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 			if car.DecentVehicle or car.TrafficVehicle then
 				UVRamVehicle(car)
 			end
-
-			local object = coldata.HitEntity
 
 			if car.grappleron and object.UVWanted then --Grappler
 				UVGrapple(car, object)
@@ -1253,6 +1252,12 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 				end
 				if object.UVRoadblock and not object.UVRoadblock.RoadBlockHit then --Crashed into roadblock
 					object.UVRoadblock.RoadBlockHit = true
+
+					local driver = UVGetDriver(car)
+					if driver and ourOldVel > 1000 then
+						UVActionCam(driver, "Roadblock")
+					end
+
 					if Chatter:GetBool() and UVTargeting and next(ents.FindByClass("npc_uv*")) ~= nil then
 						local units = ents.FindByClass("npc_uv*")
 						local random_entry = math.random(#units)	
@@ -1347,6 +1352,7 @@ hook.Add("simfphysPhysicsCollide", "UVCollisionSimfphys", function(car, coldata,
 	local ourOldVel = coldata.OurOldVelocity:Length()
 	local ourNewVel = coldata.OurNewVelocity:Length()
 	local resultVel = ourOldVel
+	local object = coldata.HitEntity
 
 	if ourOldVel > ourNewVel then --slowed
 		resultVel = ourOldVel - ourNewVel
@@ -1358,12 +1364,12 @@ hook.Add("simfphysPhysicsCollide", "UVCollisionSimfphys", function(car, coldata,
 	dot = math.abs(dot) / 2
 	local dmg = resultVel * dot
 
-	if dmg >= 100 then
+	if dmg >= 500 then
 		local driver = UVGetDriver(car)
-		if driver then
+		if driver and not object.PursuitBreaker and not object.UVRoadblock then
 			UVActionCam(driver, "Crash")
 		end
-
+	elseif dmg >= 100 then
 		if car.wrecked then
 			UVDetachWheels(car, coldata.HitPos)
 		end
@@ -1372,8 +1378,6 @@ hook.Add("simfphysPhysicsCollide", "UVCollisionSimfphys", function(car, coldata,
 	if car.DecentVehicle or car.TrafficVehicle then
 		UVRamVehicle(car)
 	end
-
-	local object = coldata.HitEntity
 
 	if object.PursuitBreakerActive then
 		local driver = car.UnitVehicle or car.TrafficVehicle
@@ -1504,6 +1508,12 @@ hook.Add("simfphysPhysicsCollide", "UVCollisionSimfphys", function(car, coldata,
 
 		if object.UVRoadblock and not object.UVRoadblock.RoadBlockHit then --Crashed into roadblock
 			object.UVRoadblock.RoadBlockHit = true
+
+			local driver = UVGetDriver(car)
+			if driver then
+				UVActionCam(driver, "Roadblock")
+			end
+
 			if Chatter:GetBool() and UVTargeting and next(ents.FindByClass("npc_uv*")) ~= nil then
 				local units = ents.FindByClass("npc_uv*")
 				local random_entry = math.random(#units)	
@@ -1599,6 +1609,7 @@ hook.Add("OnEntityCreated", "UVCollisionJeep", function(vehicle)
 		local ourOldVel = coldata.OurOldVelocity:Length()
 		local ourNewVel = coldata.OurNewVelocity:Length()
 		local resultVel = ourOldVel
+		local object = coldata.HitEntity
 
 		if ourOldVel > ourNewVel then --slowed
 			resultVel = ourOldVel - ourNewVel
@@ -1619,8 +1630,6 @@ hook.Add("OnEntityCreated", "UVCollisionJeep", function(vehicle)
 		if car.DecentVehicle or car.TrafficVehicle then
 			UVRamVehicle(car)
 		end
-
-		local object = coldata.HitEntity
 
 		if object.PursuitBreakerActive then
 			local driver = car.UnitVehicle or car.TrafficVehicle
@@ -1667,6 +1676,7 @@ hook.Add("OnEntityCreated", "UVCollisionJeep", function(vehicle)
 		end
 
 		if car.juggernauton and not object:IsWorld() then --Juggernaut
+			local ourOldVel = coldata.OurOldVelocity
 			local ourOldAngVel = coldata.OurOldAngularVelocity
 			local objectPhys = object:GetPhysicsObject()
 			local Phys = car:GetPhysicsObject()
@@ -1776,6 +1786,12 @@ hook.Add("OnEntityCreated", "UVCollisionJeep", function(vehicle)
 			end
 			if object.UVRoadblock and not object.UVRoadblock.RoadBlockHit then --Crashed into roadblock
 				object.UVRoadblock.RoadBlockHit = true
+
+				local driver = UVGetDriver(car)
+				if driver then
+					UVActionCam(driver, "Roadblock")
+				end
+
 				if Chatter:GetBool() and UVTargeting and next(ents.FindByClass("npc_uv*")) ~= nil then
 					local units = ents.FindByClass("npc_uv*")
 					local random_entry = math.random(#units)	
@@ -1896,6 +1912,7 @@ hook.Add("OnEntityCreated", "UVCollisionLVS", function(lvsvehicle)
 			local ourOldVel = coldata.OurOldVelocity:Length()
 			local ourNewVel = coldata.OurNewVelocity:Length()
 			local resultVel = ourOldVel
+			local object = coldata.HitEntity
 
 			if ourOldVel > ourNewVel then --slowed
 				resultVel = ourOldVel - ourNewVel
@@ -1907,18 +1924,18 @@ hook.Add("OnEntityCreated", "UVCollisionLVS", function(lvsvehicle)
 			dot = math.abs(dot) / 2
 			local dmg = resultVel * dot
 
-			if dmg >= 100 then
+			if dmg >= 500 then
 				local driver = UVGetDriver(car)
-				if driver then
+				if driver and not object.PursuitBreaker and not object.UVRoadblock then
 					UVActionCam(driver, "Crash")
 				end
-
+			elseif dmg >= 100 then
 				if car.wrecked then
 					UVDetachWheels(car, coldata.HitPos)
 				end
 			end
 
-			if coldata.HitEntity.PursuitBreakerActive then
+			if object.PursuitBreakerActive then
 				local driver = car.UnitVehicle or car.TrafficVehicle
                     
 				if driver then
@@ -1930,8 +1947,6 @@ hook.Add("OnEntityCreated", "UVCollisionLVS", function(lvsvehicle)
 			if car.DecentVehicle or car.TrafficVehicle then
 				UVRamVehicle(car)
 			end
-
-			local object = coldata.HitEntity
 
 			if car.grappleron and object.UVWanted then --Grappler
 				UVGrapple(car, object)
@@ -2058,6 +2073,12 @@ hook.Add("OnEntityCreated", "UVCollisionLVS", function(lvsvehicle)
 				end
 				if object.UVRoadblock and not object.UVRoadblock.RoadBlockHit then --Crashed into roadblock
 					object.UVRoadblock.RoadBlockHit = true
+
+					local driver = UVGetDriver(car)
+					if driver then
+						UVActionCam(driver, "Roadblock")
+					end
+
 					if Chatter:GetBool() and UVTargeting and next(ents.FindByClass("npc_uv*")) ~= nil then
 						local units = ents.FindByClass("npc_uv*")
 						local random_entry = math.random(#units)	
@@ -3822,86 +3843,6 @@ function UVCheckIfBeingBusted(enemy)
 		UVBustEnemy(enemy, enemy)
 	end
 	
-	local enemyph = enemy:GetPhysicsObject()
-	if not enemyph then return end
-	
-	local enemyAngles = enemyph:GetAngles()
-	local enemyVelo = enemyph:GetVelocity()
-	local enemyAnglesVelo = enemyph:GetAngleVelocity()
-	
-	--Stunt jump
-	if not scope.EnemyEscaping and scope.InPursuit then
-		if not enemy.UVStuntJump then
-			local onground = util.QuickTrace(enemy:WorldSpaceCenter(), -vector_up * 500, {enemy})
-			
-			if not onground.Hit then
-				enemy.UVStuntJump = true
-				timer.Simple(10, function()
-					enemy.UVStuntJump = nil
-				end)
-				local randomno = math.random(1,2)
-				local airUnits = ents.FindByClass("uvair")
-				if next(airUnits) ~= nil and randomno == 1 then
-					local random_entry = math.random(#airUnits)	
-					local unit = airUnits[random_entry]
-					if unit:GetTarget() == enemy then
-						UVChatterStuntJump(unit)
-					elseif IsValid(closestunit.UnitVehicle) then
-						UVChatterStuntJump(closestunit.UnitVehicle)
-					end
-				elseif IsValid(closestunit.UnitVehicle) then
-					UVChatterStuntJump(closestunit.UnitVehicle)
-				end
-			end
-		end
-		
-		--Stunt roll
-		if not enemy.UVStuntRoll then
-			if enemyAngles.z > 90 and enemyAngles.z < 270 and enemyVelo:LengthSqr() < 10000 then
-				enemy.UVStuntRoll = true
-				timer.Simple(10, function()
-					enemy.UVStuntRoll = nil
-				end)
-				local randomno = math.random(1,2)
-				local airUnits = ents.FindByClass("uvair")
-				if next(airUnits) ~= nil and randomno == 1 then
-					local random_entry = math.random(#airUnits)	
-					local unit = airUnits[random_entry]
-					if unit:GetTarget() == enemy then
-						UVChatterStuntRoll(unit)
-					elseif IsValid(closestunit.UnitVehicle) then
-						UVChatterStuntRoll(closestunit.UnitVehicle)
-					end
-				elseif IsValid(closestunit.UnitVehicle) then
-					UVChatterStuntRoll(closestunit.UnitVehicle)
-				end
-			end
-		end
-		
-		--Stunt roll
-		if not enemy.UVStuntSpin then
-			if enemyAnglesVelo.z > 180 then
-				enemy.UVStuntSpin = true
-				timer.Simple(10, function()
-					enemy.UVStuntSpin = nil
-				end)
-				local randomno = math.random(1,2)
-				local airUnits = ents.FindByClass("uvair")
-				if next(airUnits) ~= nil and randomno == 1 then
-					local random_entry = math.random(#airUnits)	
-					local unit = airUnits[random_entry]
-					if unit:GetTarget() == enemy then
-						UVChatterStuntSpin(unit)
-					elseif IsValid(closestunit.UnitVehicle) then
-						UVChatterStuntSpin(closestunit.UnitVehicle)
-					end
-				elseif IsValid(closestunit.UnitVehicle) then
-					UVChatterStuntSpin(closestunit.UnitVehicle)
-				end
-			end
-		end
-	end
-	
 end
 
 function UVCheckIfWrecked(enemy)
@@ -4480,33 +4421,52 @@ local ActionCamDuration = {
 	["Spotted"] = 2.7,
 	["Roadblock"] = 3,
 	["Takedown"] = 3,
+	["PursuitBreaker"] = 5,
 }
 
 local ActionCamTimeScale = {
 	["Crash"] = 0.5,
 	["Jump"] = 0.5,
 	["Spotted"] = 0.001,
-	["Roadblock"] = 0.5,
+	["Roadblock"] = 0.25,
 	["Takedown"] = 0.5,
 }
 
-function UVActionCam(ply, type, entity)
-	if not IsValid(ply) or not ply:IsPlayer() or ply.ActionCam then return end
+local ActionCamAIControl = {
+	["PursuitBreaker"] = true,
+}
 
-	--Add to table
+function UVActionCam(ply, type, entity, pbdata)
+	if not IsValid(ply) or not ply:IsPlayer() or ply.ActionCam then return end
+	
+	local vehicle = UVGetVehicle(ply)
+	if not IsValid(vehicle) or IsValid(vehicle) and vehicle:GetNWBool( "SpeedbreakerInUse" ) then return end
+
 	UVPlayersInActionCam = UVPlayersInActionCam or {}
 	table.insert(UVPlayersInActionCam, ply)
 
+	if ActionCamAIControl[type] then
+		local uv = ents.Create("npc_racervehicle")
+		uv:SetPos(vehicle:GetPos())
+		uv.temporary = true
+		uv.vehicle = vehicle
+		uv:Spawn()
+		uv:Activate()
+	end
+
 	ply.ActionCam = true
 	ply.ActionCamTime = RealTime() + ActionCamDuration[type] or 5
+	
+	pbdata = pbdata or {}
 
 	net.Start("UVActionCamStart")
 		net.WriteString(type)
 		net.WriteFloat(ActionCamDuration[type] or 5)
 		net.WriteEntity(entity)
+		net.WriteTable(pbdata)
 	net.Send(ply)
 
-	if ActionCamTimeScale[type] then
+	if game.SinglePlayer() and ActionCamTimeScale[type] then
 		CF_CanSetTimeScale = false
 		game.SetTimeScale(ActionCamTimeScale[type])
 	end

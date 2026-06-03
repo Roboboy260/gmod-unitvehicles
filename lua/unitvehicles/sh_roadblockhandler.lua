@@ -85,7 +85,7 @@ if SERVER then
 		end
 		
 		if not manual then
-			if UVHeatLevel < rbdata.HeatLevel then return end
+			if UVHeatLevel < MaxHeatLevel:GetInt() and UVHeatLevel < rbdata.HeatLevel then return end
 		end
 		
 		local gib

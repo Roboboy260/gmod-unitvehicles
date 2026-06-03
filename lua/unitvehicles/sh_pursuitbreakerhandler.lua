@@ -143,6 +143,17 @@ if SERVER then
                 if data.Speed > 10 and not object:IsWorld() and not object.PursuitBreaker then
                     if ent.PursuitBreaker then
                         UVTriggerPursuitBreaker(ent, object, data.TheirOldVelocity)
+
+                        local driver = UVGetDriver(object)
+                        if driver then
+                            local tabledata = {}
+                            tabledata.Name = pbdata.jsonfile
+                            tabledata.Location = pbdata.Location
+                            tabledata.Mins = pbdata.Mins
+                            tabledata.Maxs = pbdata.Maxs
+
+                            UVActionCam(driver, "PursuitBreaker", nil, tabledata)
+                        end
                     elseif not ent.PursuitBreakerActive then
                         return
                     end

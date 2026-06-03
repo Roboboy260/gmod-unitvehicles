@@ -326,21 +326,21 @@ if SERVER then
 				end
 			elseif self.v.IsSimfphyscar then --The vehicle is Simfphys Vehicle.
 				self.v.GetDriver = self.v.OldGetDriver or self.v.GetDriver
-				if not IsValid(self.v:GetDriver()) then --If there's no driver, stop the engine.
-					self.v:StopEngine()
-				end
 				self.v.PressedKeys = self.v.PressedKeys or {} --Reset key states.
 				self.v.PressedKeys["Shift"] = false
-				if self.v.wrecked then
-					local randomno = math.random(1, 3)
-					if randomno == 1 then
-						self.v.PressedKeys["Space"] = false
-					elseif randomno == 2 then
-						self.v.PressedKeys["Space"] = true
-					elseif randomno == 3 then
-						self.v:SetActive(false)
+				if not self.temporary then
+					self.v:StopEngine()
+					if self.v.wrecked then
+						local randomno = math.random(1, 3)
+						if randomno == 1 then
+							self.v.PressedKeys["Space"] = false
+						elseif randomno == 2 then
+							self.v.PressedKeys["Space"] = true
+						elseif randomno == 3 then
+							self.v:SetActive(false)
+						end
+						self.v:PlayerSteerVehicle(self, steerinput < 0 and -steerinput or 0, steerinput > 0 and steerinput or 0)
 					end
-					self.v:PlayerSteerVehicle(self, steerinput < 0 and -steerinput or 0, steerinput > 0 and steerinput or 0)
 				end
 			elseif not IsValid(self.v:GetDriver()) and --The vehicle is normal vehicle.
 			(isfunction(self.v.StartEngine) and isfunction(self.v.SetHandbrake) and 
@@ -357,37 +357,44 @@ if SERVER then
 					end
 				end
 			elseif self.v.IsGlideVehicle then
-				self.v:TurnOff()
 				self.v:TriggerInput("Throttle", 0)
-				if self.v.wrecked then
-					local randomno = math.random(1, 4)
-					if randomno == 1 then
-						self.v:TriggerInput("Handbrake", 0)
-						self.v:TriggerInput("Brake", 0)
-					elseif randomno == 2 then
+				self.v:TriggerInput("Brake", 0)
+				self.v:TriggerInput("Steer", 0)
+				self.v:TriggerInput("Handbrake", 0)
+				if cffunctions then
+					CFtoggleNitrous( self.v, false )
+				end
+				if not self.temporary then
+					self.v:TurnOff()
+					if self.v.wrecked then
+						local randomno = math.random(1, 4)
+						if randomno == 1 then
+							self.v:TriggerInput("Handbrake", 0)
+							self.v:TriggerInput("Brake", 0)
+						elseif randomno == 2 then
+							self.v:TriggerInput("Handbrake", 1)
+							self.v:TriggerInput("Brake", 0)
+						elseif randomno == 3 then
+							self.v:TriggerInput("Handbrake", 0)
+							self.v:TriggerInput("Brake", 1)
+						elseif randomno == 4 then
+							self.v:TriggerInput("Handbrake", 1)
+							self.v:TriggerInput("Brake", 1)
+						end
+						self.v:TriggerInput("Steer", steerinput)
+					else
 						self.v:TriggerInput("Handbrake", 1)
-						self.v:TriggerInput("Brake", 0)
-					elseif randomno == 3 then
-						self.v:TriggerInput("Handbrake", 0)
-						self.v:TriggerInput("Brake", 1)
-					elseif randomno == 4 then
-						self.v:TriggerInput("Handbrake", 1)
-						self.v:TriggerInput("Brake", 1)
 					end
-					self.v:TriggerInput("Steer", steerinput)
-				else
-					self.v:TriggerInput("Handbrake", 1)
-					self.v:TriggerInput("Brake", 0)
 				end
 			end
 
-			-- if self.v.GetIsHonking then
 			self:SetHorn(false)
-			-- end
 			
-			local e = EffectData()
-			e:SetEntity(self.v)
-			util.Effect("entity_remove", e) --Perform an effect.
+			if not self.temporary then
+				local e = EffectData()
+				e:SetEntity(self.v)
+				util.Effect("entity_remove", e) --Perform an effect.4
+			end
 			
 		end
 		
@@ -1634,7 +1641,7 @@ if SERVER then
 			end
 		end
 		
-		if not GetConVar("ai_ignoreplayers"):GetBool() and not self.v.uvenginedisabled then
+		if not GetConVar("ai_disabled"):GetBool() and not self.v.uvenginedisabled then
 			self:Race()
 		else
 			self:Stop()
@@ -1699,72 +1706,82 @@ if SERVER then
 			local v = self.vehicle
 			if v.RacerVehicle and v.RacerVehicle:IsNPC() then return end
 			if v.IsScar then --If it's a SCAR.
-				if not v:HasDriver() then --If driver's seat is empty.
+				if not v:HasDriver() or self.temporary then --If driver's seat is empty.
 					self.v = v
-					v.uvclasstospawnon = self:GetClass()
 					v.RacerVehicle = self
-					v.HasDriver = function() return true end --SCAR script assumes there's a driver.
-					v.SpecialThink = function() end --Tanks or something sometimes make errors so disable thinking.
-					v:StartCar()
+					if not self.temporary then
+						v.uvclasstospawnon = self:GetClass()
+						v.HasDriver = function() return true end --SCAR script assumes there's a driver.
+						v.SpecialThink = function() end --Tanks or something sometimes make errors so disable thinking.
+						v:StartCar()
+					end
 				end
 			elseif v.IsSimfphyscar and v:IsInitialized() then --If it's a Simfphys Vehicle.
-				if not IsValid(v:GetDriver()) then --Fortunately, Simfphys Vehicles can use GetDriver()
+				if not IsValid(v:GetDriver()) or self.temporary then --Fortunately, Simfphys Vehicles can use GetDriver()
 					self.v = v
-					v.uvclasstospawnon = self:GetClass()
 					v.RacerVehicle = self
-					v:SetActive(true)
-					v:StartEngine()
-					if GetConVar("unitvehicle_enableheadlights"):GetInt() == 2 then
-						v:SetLightsEnabled(true)
-					end
-					if GetConVar("unitvehicle_autohealth"):GetBool() or AutoHealthRacer:GetBool() then
-						v:SetMaxHealth(math.huge)
-						v:SetCurHealth(math.huge)
+					if not self.temporary then
+						v.uvclasstospawnon = self:GetClass()
+						v:SetActive(true)
+						v:StartEngine()
+						if GetConVar("unitvehicle_enableheadlights"):GetInt() == 2 then
+							v:SetLightsEnabled(true)
+						end
+						if GetConVar("unitvehicle_autohealth"):GetBool() or AutoHealthRacer:GetBool() then
+							v:SetMaxHealth(math.huge)
+							v:SetCurHealth(math.huge)
+						end
 					end
 				end
 			elseif isfunction(v.EnableEngine) and isfunction(v.StartEngine) and not v.IsGlideVehicle then --Normal vehicles should use these functions. (SCAR and Simfphys cannot.)
-				if isfunction(v.GetWheelCount) and v:GetWheelCount() and not IsValid(v:GetDriver()) then
+				if isfunction(v.GetWheelCount) and v:GetWheelCount() and not IsValid(v:GetDriver()) or self.temporary then
 					self.v = v
-					v.uvclasstospawnon = self:GetClass()
 					v.RacerVehicle = self
-					v:EnableEngine(true)
-					v:StartEngine(true)
-					UVApplyVehiclePrerequisites(v)
-					if GetConVar("unitvehicle_autohealth"):GetBool() or AutoHealthRacer:GetBool() then
-						if vcmod_main and v:GetClass() == "prop_vehicle_jeep" then
-							v:VC_repairFull_Admin()
-							if not v:VC_hasGodMode() then
-								v:VC_setGodMode(true)
+					if not self.temporary then
+						v.uvclasstospawnon = self:GetClass()
+						v:EnableEngine(true)
+						v:StartEngine(true)
+						UVApplyVehiclePrerequisites(v)
+						if GetConVar("unitvehicle_autohealth"):GetBool() or AutoHealthRacer:GetBool() then
+							if vcmod_main and v:GetClass() == "prop_vehicle_jeep" then
+								v:VC_repairFull_Admin()
+								if not v:VC_hasGodMode() then
+									v:VC_setGodMode(true)
+								end
 							end
 						end
 					end
 				end
 			elseif v.IsGlideVehicle then --Glide
-				if not IsValid(v:GetDriver()) then
+				if not IsValid(v:GetDriver()) or self.temporary then
 					self.v = v
-					v.uvclasstospawnon = self:GetClass()
 					v.RacerVehicle = self
-					v:SetEngineState(2)
-					v.inputThrottleModifierMode = 2
-					v.AirControlForce = vector_origin
-					if GetConVar("unitvehicle_enableheadlights"):GetInt() == 2 and v.CanSwitchHeadlights then
-						v:SetHeadlightState(1)
-					end
-					if AutoHealthRacer:GetBool() then
-						v:SetChassisHealth(math.huge)
-						v:SetEngineHealth(math.huge)
-						v:UpdateHealthOutputs()
-						v.FallOnCollision = nil
+					if not self.temporary then
+						v.uvclasstospawnon = self:GetClass()
+						v:SetEngineState(2)
+						v.inputThrottleModifierMode = 2
+						v.AirControlForce = vector_origin
+						if GetConVar("unitvehicle_enableheadlights"):GetInt() == 2 and v.CanSwitchHeadlights then
+							v:SetHeadlightState(1)
+						end
+						if AutoHealthRacer:GetBool() then
+							v:SetChassisHealth(math.huge)
+							v:SetEngineHealth(math.huge)
+							v:UpdateHealthOutputs()
+							v.FallOnCollision = nil
+						end
 					end
 				end
 			elseif v.LVS then
 				if not v:IsInitialized() then return end
-				if IsValid(v:GetDriver()) then return end
+				if IsValid(v:GetDriver()) and not self.temporary then return end
 				self.v = v
-				v.uvclasstospawnon = self:GetClass()
 				v.RacerVehicle = self
-				v:DisableManualTransmission()
-				v:StartEngine()
+				if not self.temporary then
+					v.uvclasstospawnon = self:GetClass()
+					v:DisableManualTransmission()
+					v:StartEngine()
+				end
 			end
 		else
 			local distance = DetectionRange:GetFloat()
@@ -1773,75 +1790,85 @@ if SERVER then
 				if v.RacerVehicle and v.RacerVehicle:IsNPC() then continue end
 				if v.LVS then
 					if not v:IsInitialized() then continue end
-					if IsValid(v:GetDriver()) then continue end
+					if IsValid(v:GetDriver()) and not self.temporary then continue end
 					self.v = v
-					v.uvclasstospawnon = self:GetClass()
 					v.RacerVehicle = self
-					v:DisableManualTransmission()
-					v:StartEngine()
+					if not self.temporary then
+						v.uvclasstospawnon = self:GetClass()
+						v:DisableManualTransmission()
+						v:StartEngine()
+					end
 					break
 				end
 				if v:IsVehicle() then
 					if v.IsScar then --If it's a SCAR.
-						if not v:HasDriver() then --If driver's seat is empty.
+						if not v:HasDriver() or self.temporary then --If driver's seat is empty.
 							self.v = v
-							v.uvclasstospawnon = self:GetClass()
 							v.RacerVehicle = self
-							v.HasDriver = function() return true end --SCAR script assumes there's a driver.
-							v.SpecialThink = function() end --Tanks or something sometimes make errors so disable thinking.
-							v:StartCar()
+							if not self.temporary then
+								v.uvclasstospawnon = self:GetClass()
+								v.HasDriver = function() return true end --SCAR script assumes there's a driver.
+								v.SpecialThink = function() end --Tanks or something sometimes make errors so disable thinking.
+								v:StartCar()
+							end
 							break
 						end
 					elseif v.IsSimfphyscar and v:IsInitialized() then --If it's a Simfphys Vehicle.
-						if not IsValid(v:GetDriver()) then --Fortunately, Simfphys Vehicles can use GetDriver()
+						if not IsValid(v:GetDriver()) or self.temporary then --Fortunately, Simfphys Vehicles can use GetDriver()
 							self.v = v
-							v.uvclasstospawnon = self:GetClass()
 							v.RacerVehicle = self
-							v:SetActive(true)
-							v:StartEngine()
-							if GetConVar("unitvehicle_enableheadlights"):GetInt() == 2 then
-								v:SetLightsEnabled(true)
-							end
-							if GetConVar("unitvehicle_autohealth"):GetBool() or AutoHealthRacer:GetBool() then
-								v:SetMaxHealth(math.huge)
-								v:SetCurHealth(math.huge)
+							if not self.temporary then
+								v.uvclasstospawnon = self:GetClass()
+								v:SetActive(true)
+								v:StartEngine()
+								if GetConVar("unitvehicle_enableheadlights"):GetInt() == 2 then
+									v:SetLightsEnabled(true)
+								end
+								if GetConVar("unitvehicle_autohealth"):GetBool() or AutoHealthRacer:GetBool() then
+									v:SetMaxHealth(math.huge)
+									v:SetCurHealth(math.huge)
+								end
 							end
 							break
 						end
 					elseif isfunction(v.EnableEngine) and isfunction(v.StartEngine) and not v.IsGlideVehicle then --Normal vehicles should use these functions. (SCAR and Simfphys cannot.)
-						if isfunction(v.GetWheelCount) and v:GetWheelCount() and not IsValid(v:GetDriver()) then
+						if isfunction(v.GetWheelCount) and v:GetWheelCount() and not IsValid(v:GetDriver()) or self.temporary then
 							self.v = v
-							v.uvclasstospawnon = self:GetClass()
 							v.RacerVehicle = self
-							v:EnableEngine(true)
-							v:StartEngine(true)
-							UVApplyVehiclePrerequisites(v)
-							if GetConVar("unitvehicle_autohealth"):GetBool() or AutoHealthRacer:GetBool() then
-								if vcmod_main and v:GetClass() == "prop_vehicle_jeep" then
-									v:VC_repairFull_Admin()
-									if not v:VC_hasGodMode() then
-										v:VC_setGodMode(true)
+							if not self.temporary then
+								v.uvclasstospawnon = self:GetClass()
+								v:EnableEngine(true)
+								v:StartEngine(true)
+								UVApplyVehiclePrerequisites(v)
+								if GetConVar("unitvehicle_autohealth"):GetBool() or AutoHealthRacer:GetBool() then
+									if vcmod_main and v:GetClass() == "prop_vehicle_jeep" then
+										v:VC_repairFull_Admin()
+										if not v:VC_hasGodMode() then
+											v:VC_setGodMode(true)
+										end
 									end
 								end
 							end
 							break
 						end
 					elseif v.IsGlideVehicle then --Glide
-						if not IsValid(v:GetDriver()) then
+						if not IsValid(v:GetDriver()) or self.temporary then
 							self.v = v
-							v.uvclasstospawnon = self:GetClass()
 							v.RacerVehicle = self
-							v:TurnOn()
-							v.inputThrottleModifierMode = 2
-							v.AirControlForce = vector_origin
-							if GetConVar("unitvehicle_enableheadlights"):GetInt() == 2 and v.CanSwitchHeadlights then
-								v:SetHeadlightState(1)
-							end
-							if AutoHealthRacer:GetBool() then
-								v:SetChassisHealth(math.huge)
-								v:SetEngineHealth(math.huge)
-								v:UpdateHealthOutputs()
-								v.FallOnCollision = nil
+							if not self.temporary then
+								v.uvclasstospawnon = self:GetClass()
+								v:TurnOn()
+								v.inputThrottleModifierMode = 2
+								v.AirControlForce = vector_origin
+								if GetConVar("unitvehicle_enableheadlights"):GetInt() == 2 and v.CanSwitchHeadlights then
+									v:SetHeadlightState(1)
+								end
+								if AutoHealthRacer:GetBool() then
+									v:SetChassisHealth(math.huge)
+									v:SetEngineHealth(math.huge)
+									v:UpdateHealthOutputs()
+									v.FallOnCollision = nil
+								end
 							end
 							break
 						end
@@ -1851,51 +1878,48 @@ if SERVER then
 		end
 		
 		if not IsValid(self.v) then SafeRemoveEntity(self) return end --When there's no vehicle, remove Racer Vehicle.
-		local e = EffectData()
-		e:SetEntity(self.v)
-		util.Effect("propspawn", e) --Perform a spawn effect.
-		self.v:EmitSound( "beams/beamstart5.wav" )
+
+		if not self.temporary then
+			local e = EffectData()
+			e:SetEntity(self.v)
+			util.Effect("propspawn", e) --Perform a spawn effect.
+			self.v:EmitSound( "beams/beamstart5.wav" )
 		
-		-- if not UVNames then
-		-- 	file.AsyncRead('unitvehicles/names/Names.json', 'DATA', function( _, _, status, data )
-		-- 		UVNames = util.JSONToTable(data)
-		-- 	end, true)
-		-- end
-		
-		if not self.v.racer and UVNames then
-			self.v.racer = UVNames.Racers[math.random(1, #UVNames.Racers)] or "Racer " .. self:EntIndex()
-			local joinmessage = "Racer AI (" .. self.v.racer .. ") has joined the game"
-			
-			net.Start( "UVRacerJoin" )
-			net.WriteString(joinmessage)
-			net.Broadcast()
-		end
+			if not self.v.racer and UVNames then
+				self.v.racer = UVNames.Racers[math.random(1, #UVNames.Racers)] or "Racer " .. self:EntIndex()
+				local joinmessage = "Racer AI (" .. self.v.racer .. ") has joined the game"
 
-		if isfunction(self.v.UVVehicleInitialize) then --For vehicles that has a driver bodygroup
-			self.v:UVVehicleInitialize()
-		end
+				net.Start( "UVRacerJoin" )
+				net.WriteString(joinmessage)
+				net.Broadcast()
+			end
 
-		if cffunctions then
-			UVCFInitialize(self)
-		end
+			if isfunction(self.v.UVVehicleInitialize) then --For vehicles that has a driver bodygroup
+				self.v:UVVehicleInitialize()
+			end
 
-		local function BodygroupDamageScript()
-			return self.v.frontdamaged or self.v.reardamaged or self.v.leftdamaged or self.v.rightdamaged
-		end
+			if cffunctions then
+				UVCFInitialize(self)
+			end
 
-		if CustomizeRacer:GetBool() and not self.restrictedCustomization then
-			local color = Color(math.random(0, 255), math.random(0, 255), math.random(0, 255))
+			local function BodygroupDamageScript()
+				return self.v.frontdamaged or self.v.reardamaged or self.v.leftdamaged or self.v.rightdamaged
+			end
 
-			self.v:SetColor(color)
-			self.v:SetSkin( math.random( 0, self.v:SkinCount() - 1 ) )
+			if CustomizeRacer:GetBool() and not self.restrictedCustomization then
+				local color = Color(math.random(0, 255), math.random(0, 255), math.random(0, 255))
 
-			if not BodygroupDamageScript() then
-				for i = 0, self.v:GetNumBodyGroups() - 1 do
-    			    local bodygroupCount = self.v:GetBodygroupCount( i )
-    			    if bodygroupCount > 0 then
-    			        self.v:SetBodygroup( i, math.random( 0, bodygroupCount - 1 ) )
-    			    end
-    			end
+				self.v:SetColor(color)
+				self.v:SetSkin( math.random( 0, self.v:SkinCount() - 1 ) )
+
+				if not BodygroupDamageScript() then
+					for i = 0, self.v:GetNumBodyGroups() - 1 do
+    				    local bodygroupCount = self.v:GetBodygroupCount( i )
+    				    if bodygroupCount > 0 then
+    				        self.v:SetBodygroup( i, math.random( 0, bodygroupCount - 1 ) )
+    				    end
+    				end
+				end
 			end
 		end
 		

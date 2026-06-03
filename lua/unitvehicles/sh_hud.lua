@@ -566,20 +566,6 @@ if CLIENT then
 		end
 	end )
 
-    net.Receive("UVActionCamStop", function()
-        UVActionCam = false
-
-        if Glide then
-            if not Glide.Camera.isActive and IsValid(Glide.Camera.vehicle) and _OldGlideCameraFunction then
-                Glide.Camera.ShouldBeActive = _OldGlideCameraFunction
-            end
-        end
-
-        RunConsoleCommand("cl_drawhud", 1)
-    end)
-
-    local orbitYaw = 0
-
     gameevent.Listen( "player_spawn" ); hook.Add( "player_spawn", "UVOnLocalPlayerSpawn", function( data ) 
 	    local id = data.userid
 
@@ -588,43 +574,57 @@ if CLIENT then
         end
     end )
 
-	--General
+	--Action Cam Data
 	UVActionCam = false
     local UVActionCamTime = 0
     local transitionStart = 0
 	local effectDuration = 0
-	local camLocation = Vector(0, 0, 0)
+	
+	local camLocal = vector_origin
+	local camActive = false
+	local camPos = vector_origin
+	local camTargetPos = vector_origin
+	local camStartTime = 0
+	local camOrbitYaw = 0
 
-	--Spotted
-    local copEnt = nil
+	local unitEnt = nil
+	local pbData = {}
 
-	--Crash
-	local isCrashing = false
-	local crashCamPos = Vector(0, 0, 0)
-	local crashTargetPos = Vector(0, 0, 0)
-	local crashStartTime = 0
-	local CRASH_DURATION = 2.5
+	UVActionCamOverrideControls = nil
 
-	local ActionCamSFX = {
-		["Spotted"] = {
-			"ui/pursuit/spottedfreezecam.wav",
-		}
+	local ActionCamSFXFolder = {
+		["Crash"] = "sound/ui/action/crash/",
+		["Jump"] = "sound/ui/action/jump/",
+		["Spotted"] = "sound/ui/action/spotted/",
+		["Roadblock"] = "sound/ui/action/roadblock/",
+		["PursuitBreaker"] = "sound/ui/action/pursuitbreaker/",
+	}
+
+	local ActionCamLocal = {
+		["Crash"] = Vector(math.random(-1000, 1000), math.random(-1000, 1000), math.random(50, 300)),
+		["Roadblock"] = Vector(math.random(-2500, 2500), math.random(-2500, 2500), math.random(50, 100)),
+		["Jump"] = Vector(math.random(-2500, 2500), math.random(-2500, 2500), math.random(100, 1000)),
+	}
+
+	local ActionCamOverrideControls = {
+		["PursuitBreaker"] = true,
 	}
 
     net.Receive("UVActionCamStart", function()
 		UVActionCam = net.ReadString()
         effectDuration = net.ReadFloat()
-        copEnt = net.ReadEntity()
+        unitEnt = net.ReadEntity()
+		pbData = net.ReadTable()
 
-		print("Received UVActionCamStart: ", UVActionCam, effectDuration, copEnt)
+		print("Received UVActionCamStart: ", UVActionCam, effectDuration, unitEnt)
 
         UVActionCamTime = RealTime() + effectDuration
         transitionStart = RealTime()
+		camActive = false
 
-		if UVActionCam == "Crash" then
-			camLocation = Vector(math.random(-1000, 1000), math.random(-1000, 1000), math.random(100, 300))
-			isCrashing = false
-		end
+		camLocal = ActionCamLocal[UVActionCam]
+
+		UVActionCamOverrideControls = ActionCamOverrideControls[UVActionCam]
 
         if Glide then
             if Glide.Camera.isActive and IsValid(Glide.Camera.vehicle) then
@@ -637,21 +637,40 @@ if CLIENT then
 
         RunConsoleCommand("cl_drawhud", 0)
 
-		if ActionCamSFX[UVActionCam] then
-			surface.PlaySound(ActionCamSFX[UVActionCam][math.random(1, #ActionCamSFX[UVActionCam])])
+		if ActionCamSFXFolder[UVActionCam] then
+			local files = file.Find(ActionCamSFXFolder[UVActionCam] .. "*", "GAME")
+
+			if files then
+				local soundpath = "ui/action/" .. UVActionCam .. "/" .. files[math.random(1, #files)]
+				surface.PlaySound(soundpath)
+			end
 		end
+    end)
+
+	net.Receive("UVActionCamStop", function()
+        UVActionCam = false
+
+		UVActionCamOverrideControls = nil
+
+        if Glide then
+            if not Glide.Camera.isActive and IsValid(Glide.Camera.vehicle) and _OldGlideCameraFunction then
+                Glide.Camera.ShouldBeActive = _OldGlideCameraFunction
+            end
+        end
+
+        RunConsoleCommand("cl_drawhud", 1)
     end)
 
     hook.Add("CalcView", "UVActionCam", function(ply, origin, angles, fov, znear, zfar)
         
         UVLastVehicleDriven = IsValid(UVGetVehicle(ply)) and UVGetVehicle(ply) or UVLastVehicleDriven or ply
 
-        if UVActionCam == "Spotted" and IsValid(copEnt) then --Spotted (SINGLEPLAYER)
+        if UVActionCam == "Spotted" and IsValid(unitEnt) then --Spotted
 
 			local cameraTransitionTime = 2
             local t = math.Clamp((RealTime() - transitionStart) / cameraTransitionTime, 0, 1)
 
-            local copPos = copEnt:WorldSpaceCenter() or copEnt:GetPos()
+            local copPos = unitEnt:WorldSpaceCenter() or unitEnt:GetPos()
             local plyPos = UVLastVehicleDriven:WorldSpaceCenter()
             local dist = plyPos:Distance(copPos)
             
@@ -659,7 +678,7 @@ if CLIENT then
             local camAng = (copPos - camPos):Angle()
             local camFov
             
-            local normalized_dist = math.Clamp(dist / 5000, 0, 1)
+            local normalized_dist = math.Clamp(dist / 2500, 0, 1)
 
             camFov = Lerp(normalized_dist, 30, 5)
 
@@ -677,37 +696,27 @@ if CLIENT then
 
             return spottedCameraView
 
-		elseif UVActionCam == "Crash" then -- Crash (SINGLEPLAYER)
-			local veh = UVLastVehicleDriven
-    		if not IsValid(veh) then 
-    		    isCrashing = false
-    		    return 
+		elseif UVActionCam == "Crash" then -- Crash
+    		if not camActive then
+    		    camActive = true
+    		    camStartTime = CurTime()
+
+				local tr = util.TraceLine({
+    		        start = UVLastVehicleDriven:WorldSpaceCenter(),
+    		        endpos = UVLastVehicleDriven:LocalToWorld(camLocal),
+    		        mask = MASK_NPCWORLDSTATIC
+    		    })
+			
+    		    camPos = tr.HitPos + (tr.HitNormal * 10)
     		end
 		
-    		local targetEnt = veh
-		
-    		if not isCrashing then
-    		    isCrashing = true
-    		    crashStartTime = CurTime()
+    		if camActive then
+    		    camTargetPos = UVLastVehicleDriven:WorldSpaceCenter()
+    		    local viewAngles = (camTargetPos - camPos):Angle()
 			
-    		    crashCamPos = UVLastVehicleDriven:LocalToWorld(camLocation)
-    		end
-		
-    		-- Handle the cinematic camera view
-    		if isCrashing then
-    		    if CurTime() - crashStartTime > CRASH_DURATION then
-    		        isCrashing = false -- Reset camera after duration ends
-    		        return
-    		    end
-			
-    		    -- Smoothly track the vehicle as it rolls or spins
-    		    crashTargetPos = targetEnt:WorldSpaceCenter()
-    		    local viewAngles = (crashTargetPos - crashCamPos):Angle()
-			
-    		    -- Prevent camera from clipping through world geometry
     		    local tr = util.TraceLine({
-    		        start = crashTargetPos,
-    		        endpos = crashCamPos,
+    		        start = camTargetPos,
+    		        endpos = camPos,
     		        mask = MASK_NPCWORLDSTATIC
     		    })
     		    local finalCamPos = tr.HitPos + (tr.HitNormal * 10)
@@ -716,27 +725,143 @@ if CLIENT then
     		        origin = finalCamPos,
     		        angles = viewAngles,
     		        fov = 50,
-    		        drawviewer = true -- Required to see your own car/character
+    		        drawviewer = true 
     		    }
     		    return view
     		end
+		elseif UVActionCam == "Roadblock" then -- Roadblock
+    		if not camActive then
+    		    camActive = true
+    		    camStartTime = CurTime()
+
+				local tr = util.TraceLine({
+    		        start = UVLastVehicleDriven:WorldSpaceCenter(),
+    		        endpos = UVLastVehicleDriven:LocalToWorld(camLocal),
+    		        mask = MASK_NPCWORLDSTATIC
+    		    })
+			
+    		    camPos = tr.HitPos + (tr.HitNormal * 10)
+    		end
+		
+    		if camActive then
+    		    local carpos = UVLastVehicleDriven:WorldSpaceCenter()
+				local carlocal = UVLastVehicleDriven:WorldToLocal(carpos)
+				camTargetPos = UVLastVehicleDriven:LocalToWorld(carlocal + ( Vector( UVLastVehicleDriven:BoundingRadius() * 0.9, 0, 0 ) ))
+
+    		    local viewAngles = (camTargetPos - camPos):Angle()
+			
+    		    local tr = util.TraceLine({
+    		        start = camTargetPos,
+    		        endpos = camPos,
+    		        mask = MASK_NPCWORLDSTATIC
+    		    })
+    		    local finalCamPos = tr.HitPos + (tr.HitNormal * 10)
+				local distanceToTarget = camTargetPos:Distance(finalCamPos)
+			
+    		    local view = {
+    		        origin = finalCamPos,
+    		        angles = viewAngles,
+    		        fov = math.Clamp(Lerp(distanceToTarget / 2500, 30, 5), 5, 30),
+    		        drawviewer = true 
+    		    }
+    		    return view
+    		end
+		elseif UVActionCam == "Jump" then -- Jump
+    		if not camActive then
+    		    camActive = true
+    		    camStartTime = CurTime()
+
+				local tr = util.TraceLine({
+    		        start = UVLastVehicleDriven:WorldSpaceCenter(),
+    		        endpos = UVLastVehicleDriven:LocalToWorld(camLocal),
+    		        mask = MASK_NPCWORLDSTATIC
+    		    })
+			
+    		    camPos = tr.HitPos + (tr.HitNormal * 10)
+    		end
+		
+    		if camActive then
+    		    camTargetPos = UVLastVehicleDriven:WorldSpaceCenter()
+
+    		    local viewAngles = (camTargetPos - camPos):Angle()
+			
+    		    local tr = util.TraceLine({
+    		        start = camTargetPos,
+    		        endpos = camPos,
+    		        mask = MASK_NPCWORLDSTATIC
+    		    })
+    		    local finalCamPos = tr.HitPos + (tr.HitNormal * 10)
+				local distanceToTarget = camTargetPos:Distance(finalCamPos)
+			
+    		    local view = {
+    		        origin = finalCamPos,
+    		        angles = viewAngles,
+    		        fov = math.Clamp(Lerp(distanceToTarget / 2500, 50, 10), 10, 50),
+    		        drawviewer = true
+    		    }
+    		    return view
+    		end
+		elseif UVActionCam == "PursuitBreaker" then -- Pursuit Breaker
+			local mins = pbData.Mins
+			local maxs = pbData.Maxs
+			local size = pbData.Maxs.z - pbData.Mins.z
+
+            local orbitSpeed = 45
+
+            camOrbitYaw = camOrbitYaw + (FrameTime() * orbitSpeed)
+			local camAngles = Angle(0, camOrbitYaw, 0)
+            
+            local trpb = util.TraceLine({
+    		    start = pbData.Location,
+    		    endpos = pbData.Location - (vector_up * 500),
+    		    mask = MASK_NPCWORLDSTATIC
+    		})
+		
+            local targetPos = trpb.HitPos or pbData.Location or UVLastVehicleDriven:WorldSpaceCenter()
+            local camPos = targetPos + camAngles:Forward() * - size
+
+            camPos = camPos + (vector_up * size)
+
+			local tr = util.TraceLine({
+    		    start = targetPos,
+    		    endpos = camPos,
+    		    mask = MASK_NPCWORLDSTATIC
+    		})
+		
+    		camPos = tr.HitPos + (tr.HitNormal * 10)
+            
+            local view = {}
+            view.origin = camPos
+            view.angles = (targetPos - camPos):Angle()
+            view.fov = 90
+            view.drawviewer = false
+            
+            return view
         end
 
         -- Dead
-        if not ply:Alive() and UVLastVehicleDriven ~= ply then
+        if not ply:Alive() and UVLastVehicleDriven ~= ply and IsValid(UVLastVehicleDriven) and ActionCamWrecked:GetBool() then
             local orbitDistance = 200
 
             local orbitSpeed = 45 
 
-            orbitYaw = orbitYaw + (FrameTime() * orbitSpeed)
+            camOrbitYaw = camOrbitYaw + (FrameTime() * orbitSpeed)
             
             local targetPos = UVLastVehicleDriven:WorldSpaceCenter()
 
-            local camAngles = Angle(0, orbitYaw, 0)
+            local camAngles = Angle(0, camOrbitYaw, 0)
             
             local camPos = targetPos + camAngles:Forward() * - orbitDistance
 
             camPos = camPos + (vector_up * 100)
+
+			local tr = util.TraceLine({
+    		    start = targetPos,
+    		    endpos = camPos,
+    		    mask = MASK_NPCWORLDSTATIC
+    		})
+		
+    		camPos = tr.HitPos + (tr.HitNormal * 10)
             
             local view = {}
             view.origin = camPos

@@ -583,7 +583,11 @@ if SERVER then
 			end
 		end
 		
-		self:Patrol()
+		if not GetConVar("ai_disabled"):GetBool() then
+			self:Patrol()
+		else
+			self:Stop()
+		end
 	end
 	
 	function ENT:Initialize()

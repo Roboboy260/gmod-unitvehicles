@@ -2868,24 +2868,85 @@ if SERVER then
 			if _scope.Hiding then anyHiding = true end
 		end
 
+		for _, v in pairs(UVPotentialSuspects) do
+			local vph = v:GetPhysicsObject()
+			if not vph then return end
 
-		-- --Check if busting/hiding
-		-- if next(UVWantedTableVehicle) ~= nil then
-		-- 	for k, v in pairs(UVWantedTableVehicle) do
-		-- 	end
-		-- 	-- Per-scope hiding computation
-		-- 	local anyHiding = false
-		-- 	for _key, _scope in pairs(UVPursuitScopes) do
-		-- 		local _veh = Entity(_scope.EntIndex)
-		-- 		if IsValid(_veh) and _scope.EnemyEscaping then
-		-- 			_scope.Hiding = UVCheckIfHiding(_veh)
-		-- 		else
-		-- 			_scope.Hiding = false
-		-- 		end
-		-- 		if _scope.Hiding then anyHiding = true end
-		-- 	end
-		-- 	UVHiding = anyHiding
-		-- end
+			local vAngles = vph:GetAngles()
+			local vVelo = vph:GetVelocity()
+			local vAnglesVelo = vph:GetAngleVelocity()
+
+			local scope = UVGetScope(v)
+
+			--Stunt jump
+			if not v.UVStuntJump then
+				local onground = util.QuickTrace(v:WorldSpaceCenter(), -vector_up * 500, {v})
+				if not onground.Hit then
+					v.UVStuntJump = true
+
+					local driver = UVGetDriver(v)
+					if driver then
+						UVActionCam(driver, "Jump")
+					end
+
+					timer.Simple(10, function()
+						v.UVStuntJump = nil
+					end)
+
+					if not scope.vEscaping and scope.InPursuit then
+						local randomno = math.random(1,2)
+						local units = ents.FindByClass("npc_uv*")
+						local airUnits = ents.FindByClass("uvair")
+						table.Merge(units, airUnits)
+
+						local randomUnit = units[math.random(1, #units)]
+						UVChatterStuntJump(randomUnit)
+					end
+				end
+			end
+
+			--Stunt roll
+			if not v.UVStuntRoll then
+				if vAngles.z > 90 and vAngles.z < 270 and vVelo:LengthSqr() < 10000 then
+					v.UVStuntRoll = true
+
+					timer.Simple(10, function()
+						v.UVStuntRoll = nil
+					end)
+
+					if not scope.vEscaping and scope.InPursuit then
+						local randomno = math.random(1,2)
+						local units = ents.FindByClass("npc_uv*")
+						local airUnits = ents.FindByClass("uvair")
+						table.Merge(units, airUnits)
+
+						local randomUnit = units[math.random(1, #units)]
+						UVChatterStuntRoll(randomUnit)
+					end
+				end
+			end
+
+			--Stunt spin
+			if not v.UVStuntSpin then
+				if vAnglesVelo.z > 180 then
+					v.UVStuntSpin = true
+
+					timer.Simple(10, function()
+						v.UVStuntSpin = nil
+					end)
+
+					if not scope.vEscaping and scope.InPursuit then
+						local randomno = math.random(1,2)
+						local units = ents.FindByClass("npc_uv*")
+						local airUnits = ents.FindByClass("uvair")
+						table.Merge(units, airUnits)
+
+						local randomUnit = units[math.random(1, #units)]
+						UVChatterStuntSpin(randomUnit)
+					end
+				end
+			end
+		end
 
 		--Idle chatter
 		if #ents.FindByClass("npc_uv*") > 0 and not UVTargeting then
@@ -3014,6 +3075,11 @@ if SERVER then
 
 			if ply.ActionCam and RealTime() >= ply.ActionCamTime then
 				table.RemoveByValue(UVPlayersInActionCam, ply)
+
+				local vehicle = UVGetVehicle(ply)
+				if IsValid(vehicle) and vehicle.RacerVehicle then
+					vehicle.RacerVehicle:Remove()
+				end
 
 				net.Start("UVActionCamStop")
 				net.Send(ply)

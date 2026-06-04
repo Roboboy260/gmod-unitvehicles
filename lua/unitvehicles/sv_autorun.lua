@@ -689,7 +689,7 @@ end
 
 function UVDisengageUnits()
 	for unit, _ in pairs( UVUnitVehicles ) do
-		if not unit.UnitVehicle or unit.UnitVehicle:IsPlayer() then continue end
+		if not IsValid(unit) or not unit.UnitVehicle or unit.UnitVehicle:IsPlayer() then continue end
 		if unit.UnitVehicle:GetClass() == "npc_uvcommander" or unit.rhino or not unit.unitscript then continue end
 
 		local unitType = string.sub( unit.UnitVehicle:GetClass(), 7 )
@@ -4048,7 +4048,7 @@ function UVUnitIsWrecked(vehicle)
 	local isJeepNoHealth = vehicle:Health() <= 0 and vehicle:GetClass() == "prop_vehicle_jeep"
 	local isCommander = vehicle.uvclasstospawnon == "npc_uvcommander"
 	local isFlipped = vehiclePhys:IsValid() and vehicleAngles.z > 90 and vehicleAngles.z < 270
-	local isFlipCrashAllowed = not isCommander and CanWreck:GetBool()
+	local isFlipCrashAllowed = not isCommander and not vehicle.RacerVehicle and CanWreck:GetBool()
 	local isFlipCrash = isFlipCrashAllowed and isFlipped and (( vehicle.rammed ) or ( vehicleVelSqr < 10000 and ( vehicle.UnitVehicle and vehicle.UnitVehicle.stuck )))
 
 	local isUnderwater = vehicle:WaterLevel() > 2
@@ -4172,6 +4172,24 @@ function UVPlayerWreck(vehicle)
 		end
 
 		UVComboBounty = UVComboBounty + 1
+	end
+
+	if vehicle.UnitVehicle or vehicle.RacerVehicle then
+		local centerPos = vehicle:WorldSpaceCenter()
+		local radius = 1000
+
+		local foundEntities = ents.FindInSphere(centerPos, radius)
+		local playersInRange = {}
+
+		for _, ent in ipairs(foundEntities) do
+		    if IsValid(ent) and ent:IsPlayer() then
+		        table.insert(playersInRange, ent)
+		    end
+		end
+
+		for _, ply in ipairs(playersInRange) do
+		    UVActionCam(ply, "Takedown", vehicle)
+		end
 	end
 
 	if DriverEntity and DriverEntity:IsNPC() then
@@ -4415,29 +4433,52 @@ function UVAddAirModel(name, data)
 	net.Broadcast()
 end
 
-local ActionCamDuration = {
-	["Crash"] = 3,
-	["Jump"] = 3,
-	["Spotted"] = 2.7,
-	["Roadblock"] = 3,
-	["Takedown"] = 3,
-	["PursuitBreaker"] = 5,
-}
-
-local ActionCamTimeScale = {
-	["Crash"] = 0.5,
-	["Jump"] = 0.5,
-	["Spotted"] = 0.001,
-	["Roadblock"] = 0.25,
-	["Takedown"] = 0.5,
-}
-
-local ActionCamAIControl = {
-	["PursuitBreaker"] = true,
+local ActionCamSettings = {
+    ["RaceStart"] = {
+		Convar = ActionCamRaceStart,
+        Duration = 4,
+        TimeScale = 1
+    },
+    ["RaceFinish"] = {
+		Convar = ActionCamRaceFinish,
+        Duration = 5,
+        TimeScale = 0.5,
+		AIControl = true
+    },
+    ["Crash"] = {
+		Convar = ActionCamCrash,
+        Duration = 3,
+        TimeScale = 0.5
+    },
+    ["Jump"] = {
+		Convar = ActionCamJump,
+        Duration = 3,
+        TimeScale = 0.5
+    },
+    ["Spotted"] = {
+		Convar = ActionCamSpotted,
+        Duration = 2.7,
+        TimeScale = 0.001
+    },
+    ["Roadblock"] = {
+		Convar = ActionCamRoadblock,
+        Duration = 3,
+        TimeScale = 0.25
+    },
+    ["Takedown"] = {
+		Convar = ActionCamTakedown,
+        Duration = 3,
+        TimeScale = 0.5
+    },
+    ["PursuitBreaker"] = {
+		Convar = ActionCamPursuitBreaker,
+        Duration = 5,
+        AIControl = true
+    }
 }
 
 function UVActionCam(ply, type, entity, pbdata)
-	if not IsValid(ply) or not ply:IsPlayer() or ply.ActionCam then return end
+	if not IsValid(ply) or not ply:IsPlayer() or ply.ActionCam or not ActionCam:GetBool() or not ActionCamSettings[type].Convar:GetBool() then return end
 	
 	local vehicle = UVGetVehicle(ply)
 	if not IsValid(vehicle) or IsValid(vehicle) and vehicle:GetNWBool( "SpeedbreakerInUse" ) then return end
@@ -4445,7 +4486,8 @@ function UVActionCam(ply, type, entity, pbdata)
 	UVPlayersInActionCam = UVPlayersInActionCam or {}
 	table.insert(UVPlayersInActionCam, ply)
 
-	if ActionCamAIControl[type] then
+	if ActionCamSettings[type].AIControl and not vehicle.UnitVehicle then
+		ply.ActionCamAIControl = true
 		local uv = ents.Create("npc_racervehicle")
 		uv:SetPos(vehicle:GetPos())
 		uv.temporary = true
@@ -4455,22 +4497,26 @@ function UVActionCam(ply, type, entity, pbdata)
 	end
 
 	ply.ActionCam = true
-	ply.ActionCamTime = RealTime() + ActionCamDuration[type] or 5
+	ply.ActionCamTime = RealTime() + ActionCamSettings[type].Duration or 5
 	
 	pbdata = pbdata or {}
 
 	net.Start("UVActionCamStart")
 		net.WriteString(type)
-		net.WriteFloat(ActionCamDuration[type] or 5)
+		net.WriteFloat(ActionCamSettings[type].Duration or 5)
 		net.WriteEntity(entity)
 		net.WriteTable(pbdata)
 	net.Send(ply)
 
-	if game.SinglePlayer() and ActionCamTimeScale[type] then
+	if game.SinglePlayer() and ActionCamSettings[type].TimeScale then
 		CF_CanSetTimeScale = false
-		game.SetTimeScale(ActionCamTimeScale[type])
+		game.SetTimeScale(ActionCamSettings[type].TimeScale)
 	end
 end
+
+hook.Add("Glide_CanPlayerVehicleInput", "UVActionCamOverrideControlsGlide", function(ply, vehicle, action, pressed)
+	if ply.ActionCamAIControl then return false end
+end)
 
 function UVCFEligibleToUse(NPC)
 	local vehicle = NPC.v

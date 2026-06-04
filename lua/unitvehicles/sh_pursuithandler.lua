@@ -3076,6 +3076,8 @@ if SERVER then
 			if ply.ActionCam and RealTime() >= ply.ActionCamTime then
 				table.RemoveByValue(UVPlayersInActionCam, ply)
 
+				ply.ActionCamAIControl = nil
+
 				local vehicle = UVGetVehicle(ply)
 				if IsValid(vehicle) and vehicle.RacerVehicle then
 					vehicle.RacerVehicle:Remove()

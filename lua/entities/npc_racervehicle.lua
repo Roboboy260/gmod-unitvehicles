@@ -357,13 +357,7 @@ if SERVER then
 					end
 				end
 			elseif self.v.IsGlideVehicle then
-				self.v:TriggerInput("Throttle", 0)
-				self.v:TriggerInput("Brake", 0)
-				self.v:TriggerInput("Steer", 0)
-				self.v:TriggerInput("Handbrake", 0)
-				if cffunctions then
-					CFtoggleNitrous( self.v, false )
-				end
+				self.v:ResetInputs(1)
 				if not self.temporary then
 					self.v:TurnOff()
 					if self.v.wrecked then
@@ -1192,7 +1186,6 @@ if SERVER then
 					end
 					throttle = throttle * self.AI_ThrottleMul --Glide traction control
 					throttleInput = throttleInput and (throttleInput * self.AI_ThrottleMul) --Glide traction control
-					self.usenitrous = UVCFEligibleToUse(self) and self.AI_ThrottleMul == 1 and true or false
 				end
 			end
 
@@ -1218,9 +1211,6 @@ if SERVER then
 				self.v.PressedKeys["joystick_brake"] = throttle * -1
 				self.v:PlayerSteerVehicle(self, steer < 0 and -steer or 0, steer > 0 and steer or 0)
 			elseif self.v.IsGlideVehicle then
-				if cffunctions then
-					CFtoggleNitrous( self.v, self.usenitrous )
-				end
 				self.v:TriggerInput("Handbrake", 0)
 				self.v:TriggerInput("Throttle", throttleInput or throttle)
 				self.v:TriggerInput("Brake", throttle * -1)
@@ -1419,7 +1409,6 @@ if SERVER then
 						self.AI_ThrottleMul = math.min(self.AI_ThrottleMul + recoverRate, 1)
 					end
 					throttle = throttle * self.AI_ThrottleMul --Glide traction control
-					self.usenitrous = UVCFEligibleToUse(self) and self.AI_ThrottleMul == 1 and true or false
 				end
 			end
 			
@@ -1454,9 +1443,6 @@ if SERVER then
 				self.v.PressedKeys["joystick_brake"] = throttle * -1
 				self.v:PlayerSteerVehicle(self, steer < 0 and -steer or 0, steer > 0 and steer or 0)
 			elseif self.v.IsGlideVehicle then
-				if cffunctions then
-					CFtoggleNitrous( self.v, self.usenitrous )
-				end
 				self.v:TriggerInput("Handbrake", 0)
 				self.v:TriggerInput("Throttle", throttle)
 				self.v:TriggerInput("Brake", throttle * -1)

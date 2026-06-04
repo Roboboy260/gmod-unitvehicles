@@ -759,8 +759,6 @@ if SERVER then
 			return 
 		end
 
-		RunConsoleCommand("ai_ignoreplayers", "0") --AI Racers don't move when this is enabled
-
 		table.Empty(UVRaceTable)
 
 		UVCounterActive = true
@@ -801,6 +799,7 @@ if SERVER then
 				net.Start( "uvrace_start" )
 				net.WriteInt( starttimer, 11 )
 				net.Send( driver )
+				UVActionCam(driver, "RaceStart")
 			end
 
 			UVSetVehicleActive( vehicle, true )

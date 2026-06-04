@@ -119,6 +119,11 @@ if SERVER then
 					net.WriteInt(place, 32)
 					net.WriteFloat(CurTime() - UVRaceTable.Info.Time)
 					net.Broadcast()
+
+					local driver = UVGetDriver( vehicle )
+					if driver then
+						UVActionCam(driver, "RaceFinish")
+					end
 					
 					UVRaceRemoveParticipant( vehicle, 'Finished' )
 				else

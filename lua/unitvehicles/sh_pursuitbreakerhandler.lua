@@ -145,7 +145,7 @@ if SERVER then
                         UVTriggerPursuitBreaker(ent, object, data.TheirOldVelocity)
 
                         local driver = UVGetDriver(object)
-                        if driver then
+                        if driver and not object.UnitVehicle then
                             local tabledata = {}
                             tabledata.Name = pbdata.jsonfile
                             tabledata.Location = pbdata.Location
@@ -309,12 +309,41 @@ if SERVER then
         if IsValid(closestbreakableent) then 
             closestbreakableent:Fire("Break") 
         end
+
+        local pbFiles, pbFolders = file.Find("sound/pursuitbreakers/*", "GAME")
+        local jsonFilename = pbdata.jsonfile:lower()
+
+        local function getAudioFolderForJson(jsonFilename)
+            for _, folder in ipairs(pbFolders) do
+                if string.find(jsonFilename, folder) then
+                    return folder
+                end
+            end
+            return nil
+        end
+
+        local matchedFolder = getAudioFolderForJson(jsonFilename)
+
+        if matchedFolder then
+            local audioFiles = file.Find("sound/pursuitbreakers/" .. matchedFolder .. "/*", "GAME")
+            PrintTable(audioFiles)
+            if audioFiles and #audioFiles ~= 0 then
+                EmitSound( 
+                    "pursuitbreakers/" .. matchedFolder .. "/" .. audioFiles[math.random(1, #audioFiles)], 
+                    pbdata.Location or hitent:WorldSpaceCenter(), 
+                    0,
+                    CHAN_AUTO,
+                    1,
+                    100
+                )
+            end
+        end
         
         local Chatter = GetConVar("unitvehicle_chatter")
         
         --Check if it's a gas station
         if UVTargeting then
-            if string.find(pbdata.jsonfile:lower(), "gas") then
+            if string.find(jsonFilename, "gas") then
                 UVSoundChatter(hitent, 1, "pursuitbreakergas", 8)
             else
                 if Chatter:GetBool() then

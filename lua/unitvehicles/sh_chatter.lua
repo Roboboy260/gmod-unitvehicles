@@ -395,7 +395,7 @@ if SERVER then
 			if not IsValid( self ) then return 0 end
 			if UVBullhornLastDuration and CurTime() < UVBullhornLastDuration then return 0 end
 			UVBullhornLastDuration = CurTime() + SoundDuration( soundFile )
-			self:EmitSound( soundFile, 120, 100, 1, CHAN_AUTO, 0, 57 )
+			self:EmitSound( soundFile, 120, 100, 1, CHAN_AUTO )
 				-- local bullhorn = CreateSound(self, soundFile, recpFilter)
 				-- bullhorn:SetSoundLevel(120)
 				-- bullhorn:Play()

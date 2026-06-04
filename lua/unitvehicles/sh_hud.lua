@@ -587,7 +587,7 @@ if CLIENT then
 	local camStartTime = 0
 	local camOrbitYaw = 0
 
-	local unitEnt = nil
+	local spectateEnt = nil
 	local pbData = {}
 
 	UVActionCamOverrideControls = nil
@@ -597,36 +597,48 @@ if CLIENT then
 		["Jump"] = "sound/ui/action/jump/",
 		["Spotted"] = "sound/ui/action/spotted/",
 		["Roadblock"] = "sound/ui/action/roadblock/",
-		["PursuitBreaker"] = "sound/ui/action/pursuitbreaker/",
-	}
-
-	local ActionCamLocal = {
-		["Crash"] = Vector(math.random(-1000, 1000), math.random(-1000, 1000), math.random(50, 300)),
-		["Roadblock"] = Vector(math.random(-2500, 2500), math.random(-2500, 2500), math.random(50, 100)),
-		["Jump"] = Vector(math.random(-2500, 2500), math.random(-2500, 2500), math.random(100, 1000)),
 	}
 
 	local ActionCamOverrideControls = {
 		["PursuitBreaker"] = true,
 	}
 
+	local ActionCamDontOverrideCamera = {
+		["Takedown"] = true,
+	}
+
     net.Receive("UVActionCamStart", function()
 		UVActionCam = net.ReadString()
         effectDuration = net.ReadFloat()
-        unitEnt = net.ReadEntity()
+        spectateEnt = net.ReadEntity()
 		pbData = net.ReadTable()
 
-		print("Received UVActionCamStart: ", UVActionCam, effectDuration, unitEnt)
+		print("Received UVActionCamStart: ", UVActionCam, effectDuration, spectateEnt)
 
         UVActionCamTime = RealTime() + effectDuration
         transitionStart = RealTime()
 		camActive = false
 
+		local ActionCamLocal = {
+			["RaceStart"] = {
+				Vector(math.random(-1000, 1000), math.random(-1000, 1000), math.random(100, 500)),
+				Vector(math.random(-1000, 1000), math.random(-1000, 1000), math.random(100, 500)),
+			},
+			["RaceFinish"] = {
+				Vector(math.random(-500, 500), math.random(-500, 500), math.random(100, 500)),
+				math.random(-20, 20),
+				math.random(20, 60),
+			},
+			["Crash"] = Vector(math.random(-1000, 1000), math.random(-1000, 1000), math.random(50, 300)),
+			["Roadblock"] = Vector(math.random(-2500, 2500), math.random(-2500, 2500), math.random(50, 100)),
+			["Jump"] = Vector(math.random(-2500, 2500), math.random(-2500, 2500), math.random(100, 1000)),
+		}
+
 		camLocal = ActionCamLocal[UVActionCam]
 
 		UVActionCamOverrideControls = ActionCamOverrideControls[UVActionCam]
 
-        if Glide then
+        if Glide and not ActionCamDontOverrideCamera[UVActionCam] then
             if Glide.Camera.isActive and IsValid(Glide.Camera.vehicle) then
                 _OldGlideCameraFunction = Glide.Camera.ShouldBeActive
                 Glide.Camera.ShouldBeActive = function()
@@ -665,17 +677,17 @@ if CLIENT then
         
         UVLastVehicleDriven = IsValid(UVGetVehicle(ply)) and UVGetVehicle(ply) or UVLastVehicleDriven or ply
 
-        if UVActionCam == "Spotted" and IsValid(unitEnt) then --Spotted
+        if UVActionCam == "Spotted" and IsValid(spectateEnt) then --Spotted
 
 			local cameraTransitionTime = 2
             local t = math.Clamp((RealTime() - transitionStart) / cameraTransitionTime, 0, 1)
 
-            local copPos = unitEnt:WorldSpaceCenter() or unitEnt:GetPos()
+            local spectatePos = spectateEnt:WorldSpaceCenter() or spectateEnt:GetPos()
             local plyPos = UVLastVehicleDriven:WorldSpaceCenter()
-            local dist = plyPos:Distance(copPos)
+            local dist = plyPos:Distance(spectatePos)
             
             local camPos = plyPos + ply:GetForward() * -300 + Vector(0, 0, 100)
-            local camAng = (copPos - camPos):Angle()
+            local camAng = (spectatePos - camPos):Angle()
             local camFov
             
             local normalized_dist = math.Clamp(dist / 2500, 0, 1)
@@ -837,6 +849,54 @@ if CLIENT then
             view.drawviewer = false
             
             return view
+			
+		elseif UVActionCam == "RaceStart" then --Race Start
+    		local t = (RealTime() - transitionStart) / 5
+			local start = UVLastVehicleDriven:LocalToWorld(camLocal[1])
+			local finish = UVLastVehicleDriven:LocalToWorld(camLocal[2])
+
+			local spectatePos = UVLastVehicleDriven:WorldSpaceCenter()
+			local camPos = LerpVector(t, start, finish)
+            local camAng = (spectatePos - camPos):Angle()
+
+			local tr = util.TraceLine({
+    		    start = spectatePos,
+    		    endpos = camPos,
+    		    mask = MASK_NPCWORLDSTATIC
+    		})
+		
+    		camPos = tr.HitPos + (tr.HitNormal * 10)
+
+    		return {
+				origin = camPos,
+				angles = camAng,
+				fov = 60,
+				drawviewer = true
+			}
+			
+		elseif UVActionCam == "RaceFinish" then --Race Finish
+			local t = (RealTime() - transitionStart) / 5
+
+			local spectatePos = UVLastVehicleDriven:WorldSpaceCenter()
+			local camPos = UVLastVehicleDriven:LocalToWorld(camLocal[1])
+            local camAng = (spectatePos - camPos):Angle()
+			camAng.z = camLocal[2]
+
+			local tr = util.TraceLine({
+    		    start = spectatePos,
+    		    endpos = camPos,
+    		    mask = MASK_NPCWORLDSTATIC
+    		})
+		
+    		camPos = tr.HitPos + (tr.HitNormal * 10)
+
+    		return {
+				origin = camPos,
+				angles = camAng,
+				fov = camLocal[3],
+				drawviewer = true
+			}
+
         end
 
         -- Dead

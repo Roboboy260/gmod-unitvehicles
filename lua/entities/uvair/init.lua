@@ -845,6 +845,22 @@ function ENT:StartCrush()
 		if IsValid(self:GetTarget()) then
 			self:SetTarget(nil)
 		end
+
+		local centerPos = self:WorldSpaceCenter()
+		local radius = 1000
+
+		local foundEntities = ents.FindInSphere(centerPos, radius)
+		local playersInRange = {}
+
+		for _, ent in ipairs(foundEntities) do
+		    if IsValid(ent) and ent:IsPlayer() then
+		        table.insert(playersInRange, ent)
+		    end
+		end
+
+		for _, ply in ipairs(playersInRange) do
+		    UVActionCam(ply, "Takedown", self)
+		end
 	end
 	
 end
@@ -932,6 +948,22 @@ function ENT:Explode()
 		self.crashing = true
 		UVBounty = (UVBounty+bountyplus)
 		UVComboBounty = UVComboBounty + 1
+
+		local centerPos = self:WorldSpaceCenter()
+		local radius = 1000
+
+		local foundEntities = ents.FindInSphere(centerPos, radius)
+		local playersInRange = {}
+
+		for _, ent in ipairs(foundEntities) do
+		    if IsValid(ent) and ent:IsPlayer() then
+		        table.insert(playersInRange, ent)
+		    end
+		end
+
+		for _, ply in ipairs(playersInRange) do
+		    UVActionCam(ply, "Takedown", self)
+		end
 	end
 end
 

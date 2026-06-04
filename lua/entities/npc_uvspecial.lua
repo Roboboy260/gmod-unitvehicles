@@ -141,7 +141,7 @@ if SERVER then
 			
 		end
 		
-		if not self.v.disengaging and self.metwithenemy and not UVResourcePointsRefreshing and UVGlobalPursuit.ResourcePoints > 1 and not self.v.rhino and not UVOneCommanderActive and not self.roadblocking then
+		if self.v and not self.v.disengaging and self.metwithenemy and not UVResourcePointsRefreshing and UVGlobalPursuit.ResourcePoints > 1 and not self.v.rhino and not UVOneCommanderActive and not self.roadblocking then
 			UVUpdateGlobalPursuit('ResourcePoints', UVGlobalPursuit.ResourcePoints - 1)
 		end	
 		

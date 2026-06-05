@@ -1021,11 +1021,12 @@ if SERVER then
 	end
 	
 	function ENT:Think()
-		if not IsValid(self.v) then self:Remove() return end
+		if not IsValid(self.v) then SafeRemoveEntity(self) return end
 		-- if UVTargeting then return end
 		self:SetPos(self.v:GetPos() + (vector_up * 50))
 		self:SetAngles(self.v:GetPhysicsObject():GetAngles()+Angle(0,180,0))
-		local vehiclePhys = self.v:GetPhysicsObject()
+		local vehiclePhys = self.__vehiclePhysicsObject or self.v:GetPhysicsObject()
+		self.__vehiclePhysicsObject = vehiclePhys
 		local vehicleAnglesZ = IsValid(vehiclePhys) and vehiclePhys:GetAngles().z or 0
 		local vehicleVelSqr = self.v:GetVelocity():LengthSqr()
 		
@@ -1154,6 +1155,7 @@ if SERVER then
 			--self.bountytimer = CurTime()
 			
 			if UVTargeting then 
+				self.tableroutetoenemy = {}
 				local enemy = self:TargetEnemyAdvanced() --Find an ongoing pursuit.
 				if IsValid(enemy) then
 					self.idle = nil

@@ -1139,6 +1139,7 @@ if SERVER then
 		
 		if not self:Validate(self.e) then --If it doesn't have an enemy.
 
+
 			self:ApplyUnitDifficulty(1)
 
 			if (UVEnemyBusted and #UVWantedTableVehicle == 0) or self.stopped or GetConVar("ai_disabled"):GetBool() then --Stop moving
@@ -1157,6 +1158,7 @@ if SERVER then
 			--self.bountytimer = CurTime()
 
 			if UVTargeting then 
+				self.tableroutetoenemy = {}
 				local enemy = self:TargetEnemyAdvanced() --Find an ongoing pursuit.
 				if IsValid(enemy) then
 					self.idle = nil

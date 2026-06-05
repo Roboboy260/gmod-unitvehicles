@@ -3427,7 +3427,7 @@ else -- CLIENT stuff
 	hook.Add("PostRenderVGUI", "UVRaceCinematicOverlayTop", function()
 		if not UVRaceCinematicOverlay then return end -- If the overlay isn't active
 		if gui.IsGameUIVisible() then return end -- If game ESC menu is opened
-		if not GetConVar("cl_drawhud"):GetBool() then return end
+		--if not GetConVar("cl_drawhud"):GetBool() then return end
 		if not GetConVar("unitvehicle_preraceinfo"):GetBool() then return end
 		
 		local now = CurTime()

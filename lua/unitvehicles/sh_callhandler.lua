@@ -105,6 +105,9 @@ if SERVER then
         if next(UVPotentialSuspects) == nil or next(dvd.Waypoints) == nil then return end
 
         for _, v in pairs(UVPotentialSuspects) do
+            local speed = v:GetVelocity():Length2DSqr()
+            if speed < 30976 then return end
+
             local startPos = v:GetPos()
             local endPos = startPos + (vector_up * -100) --being airborne also counts as offroading
 
@@ -116,7 +119,7 @@ if SERVER then
             })
 
             local surfaceMaterial = trace.MatType
-            if surfaceMaterial == MAT_CONCRETE or surfaceMaterial == MAT_ASPHALT then
+            if surfaceMaterial == MAT_CONCRETE or surfaceMaterial == MAT_DIRT or surfaceMaterial == MAT_SNOW or surfaceMaterial == MAT_METAL or surfaceMaterial == MAT_SAND or surfaceMaterial == MAT_WOOD or surfaceMaterial == MAT_GLASS then
                 return
             end
 

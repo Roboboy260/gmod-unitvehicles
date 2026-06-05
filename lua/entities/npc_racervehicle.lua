@@ -314,6 +314,7 @@ if SERVER then
 		--By undoing, driving, diving in water, or getting stuck, and the vehicle is remaining.
 		if IsValid(self.v) then
 			self.v.RacerVehicle = nil
+			UVSetVehiclePerformanceMultiplier(self.v, 1, false)
 			local steerinput = (math.random(-100, 100)) / 100
 			if self.v.IsScar then --If the vehicle is SCAR.
 				self.v.HasDriver = self.v.BaseClass.HasDriver --Restore some functions.

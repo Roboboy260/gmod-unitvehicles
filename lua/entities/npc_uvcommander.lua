@@ -549,20 +549,16 @@ if SERVER then
 	function ENT:DriveOnPath()
 		local unitpos = self.v:WorldSpaceCenter()
 		local forward = self.v.IsSimfphyscar and self.v:LocalToWorldAngles(self.v.VehicleData.LocalAngForward):Forward() or self.v:GetForward()
-		
 		local waypoints = self.tableroutetoenemy
-		if not waypoints or next(waypoints) == nil then 
+		if not waypoints or next(waypoints) == nil then
 			return IsValid(self.e) and self.e:WorldSpaceCenter() or unitpos + (forward * 100)
 		end
-		
+
 		local reachThreshold = 250000
 		local passedThreshold = 16000000
-		
-		local velocity = self.v:GetVelocity()
-		local velocitySqr = velocity:LengthSqr()
-		local velocityNormalized = velocity:GetNormalized()
-		local hasVelocity = velocitySqr > 10000
-		
+
+		local velocitySqr = self.v:GetVelocity():LengthSqr()
+
 		for i = #waypoints, 1, -1 do
 			local waypoint = waypoints[i]
 			local toWaypoint = waypoint - unitpos
@@ -586,74 +582,10 @@ if SERVER then
 			self.tableroutetoenemy = {}
 			return IsValid(self.e) and self.e:WorldSpaceCenter() or unitpos + (forward * 100)
 		end
-		
-		local bestWaypoint = waypoints[1]
-		local bestScore = -math.huge
-		local hasAnyClearPath = true
-		
-		for i = 1, #waypoints do
-			local waypoint = waypoints[i]
-			local waypointpos = waypoint + (vector_up * 50)
-			local toWaypoint = waypoint - unitpos
-			local distSqr = toWaypoint:LengthSqr()
-			local dist = math.sqrt(distSqr)
-			local toWaypointNormalized = toWaypoint:GetNormalized()
-			
-			--local hasLineOfSight = InfMap or UVStraightToWaypoint(unitpos, waypointpos)
-			local hasLineOfSight = true
-			
-			local score = 0
-			
-			if not hasLineOfSight then
-				if hasAnyClearPath then
-					score = score - 1000
-				else
-					score = score - 200 - ( dist / 10 )
-				end
-			else
-				score = score + 300
-			end
-			
-			local forwardDot = toWaypointNormalized:Dot( forward )
-			if forwardDot > 0 then
-				score = score + forwardDot * 100
-			else
-				score = score + forwardDot * 50
-			end
-			
-			if hasVelocity then
-				local velocityDot = toWaypointNormalized:Dot( velocityNormalized )
-				if velocityDot > 0 then
-					score = score + velocityDot * 75
-				else
-					score = score + velocityDot * 25
-				end
-			end
-			
-			local distanceScore = 1 / ( dist + 1 ) * 50
-			if forwardDot > 0 then
-				score = score + distanceScore
-			else
-				score = score + distanceScore * 0.5
-			end
-			
-			local progressBonus = ( i / #waypoints ) * 25
-			if forwardDot > 0.3 then
-				score = score + progressBonus
-			end
-			
-			if dist > 2000 then
-				score = score - ( dist - 2000 ) / 100
-			end
-			
-			if score > bestScore then
-				bestScore = score
-				bestWaypoint = waypoint
-			end
-		end
-		
+
+		local nextWaypoint = waypoints[1]
+
 		local needOffset = false
-		local searchRadius = 800
 		local aheadMaxDistSq = 500000
 		local onWaypointRadiusSq = 40000
 		local forwardDotMin = 0.2
@@ -663,7 +595,7 @@ if SERVER then
 				local toOther = otherPos - unitpos
 				local distSq = toOther:LengthSqr()
 				local fwdDot = toOther:GetNormalized():Dot(forward)
-				local distToWpSq = (otherPos - bestWaypoint):LengthSqr()
+				local distToWpSq = (otherPos - nextWaypoint):LengthSqr()
 				if ((fwdDot > forwardDotMin and distSq < aheadMaxDistSq) or (distToWpSq < onWaypointRadiusSq)) and velocitySqr > veh:GetVelocity():LengthSqr() then
 					needOffset = true
 					break
@@ -674,16 +606,16 @@ if SERVER then
 			local right = forward:Cross(vector_up)
 			if right:LengthSqr() > 0.01 then
 				right:Normalize()
-				local offsetAmount = 10
+				local offsetAmount = 5
 				if self.__entIndex % 2 == 0 then
-					bestWaypoint = bestWaypoint + right * offsetAmount
+					nextWaypoint = nextWaypoint + right * offsetAmount
 				else
-					bestWaypoint = bestWaypoint - right * offsetAmount
+					nextWaypoint = nextWaypoint - right * offsetAmount
 				end
 			end
 		end
-		
-		return bestWaypoint
+
+		return nextWaypoint
 	end
 
 	function ENT:FindPatrol()

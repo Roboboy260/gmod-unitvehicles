@@ -911,7 +911,7 @@ if SERVER then
 				end)
 			end)
 			
-			return UVDelayChatter((SoundDuration(soundFile) + SoundDuration(emergencyFile) + SoundDuration(radioOnFile or "") + (chirpGenericFile and 0.1 or 0) + SoundDuration(radioOffFile or "") + math.random(0.5, 2) + math.random()))
+			return UVDelayChatter((SoundDuration(soundFile) + SoundDuration(emergencyFile or "") + SoundDuration(radioOnFile or "") + (chirpGenericFile and 0.1 or 0) + SoundDuration(radioOffFile or "") + math.random(0.5, 2) + math.random()))
 		elseif parameters == 9 then -- in person chatter
 			local players = select(1, ...)
 
@@ -1200,6 +1200,7 @@ if SERVER then
 	end
 	
 	function UVChatterPursuitStartAcknowledge(self)
+		UVResetChatterQueue()
 		if #UVWantedTableVehicle > 1 then
 			return UVSoundChatter(Entity(1), "nil", "pursuitstartacknowledgemultipleenemies", nil, "DISPATCH")
 		else

@@ -4,7 +4,7 @@ UVMenu.CustomizeHUD = UVMenu.CustomizeHUD or {}
 UVMenu.CustomizeSpeedo = UVMenu.CustomizeSpeedo or {}
 
 -- Current Version -- Change this whenever a new update is releasing!
-UV.CurVersion = "1.7.2" --MAJOR.MINOR.PATCH
+UV.CurVersion = "1.7.4" --MAJOR.MINOR.PATCH
 
 -- Credits List
 UV.Credits = {
@@ -1661,7 +1661,10 @@ UVMenu.FirstTimeSetupPreset = function()
 				{ type = "infosimple", text = "uv.ft.preset.desc" },
 				{ type = "info", text = "uv.ft.preset.desc2" },
 				{ type = "presets", preset = "uvunitmanager", importonly = true, func = function(self2, name, preset)
-					UVUnitManagerLoadPresetV2(name, preset)
+					net.Start("UVPresets_Load")
+					net.WriteString('uvunitmanager')
+					net.WriteString(name)
+					net.SendToServer()
 					UVMenu.PlaySFX("confirm")
 					UVMenu.CloseCurrentMenu(true)
 					timer.Simple(tonumber(GetConVar("uvmenu_close_speed"):GetString()) or 0.2, function()

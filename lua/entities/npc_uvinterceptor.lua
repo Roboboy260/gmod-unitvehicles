@@ -1248,7 +1248,7 @@ if SERVER then
 			if InfMap and eedistSqr > 1000000 and not suspectBehindNPC then followSuspectHeadingOnGrid = false end
 			local obstaclesNearbySide = self:ObstaclesNearbySide()
 
-			if InfMap and ( suspectSameDirectionAsNPC and not suspectPulledOver and suspectOnWaypointGrid and ( not suspectInView or suspectBehindNPC ) ) and eedistSqr <= 500000 then
+			if InfMap and ( suspectSameDirectionAsNPC and not suspectPulledOver and suspectOnWaypointGrid and ( not suspectInView or suspectBehindNPC ) ) then
 				followSuspectHeadingOnGrid = true
 				useDirectDriveBranch = false
 			end

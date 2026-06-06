@@ -647,10 +647,12 @@ end
 
 function UV_ClearRacer(ply)
 	for _, v in pairs(ents.FindByClass("npc_racervehicle")) do
-		if IsValid(v.v) then
-			v.v:Remove()
+		if not v.temporary then
+			if IsValid(v.v) then
+				v.v:Remove()
+			end
+			v:Remove()
 		end
-		v:Remove()
 	end
 end
 

@@ -4341,7 +4341,7 @@ else -- CLIENT Settings | HUD/Options
 			end)
 		end
 
-		if UVHUDDisplayPursuit and not UVPlayingRace then
+		if UVHUDDisplayPursuit and not UVPlayingRace and not UVActionCam then
 			UVSoundBusted( UVHeatLevel )
 		end
 	end)

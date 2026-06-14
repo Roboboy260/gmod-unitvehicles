@@ -940,7 +940,7 @@ function UVEstablishVectorsnavmesh( start, goal, carwidth )
 	local startTime = SysTime()
 	local maxTime = 0.016
 	
-	while ( not start:IsOpenListEmpty() and i < maxIterations ) do
+	while ( not start:IsOpenListEmpty() ) do
 		if SysTime() - startTime > maxTime then
 			return false
 		end
@@ -948,8 +948,8 @@ function UVEstablishVectorsnavmesh( start, goal, carwidth )
 		i = i + 1
 		local current = start:PopOpenList()
 		
-		if ( current == goal ) then
-			return UVreconstruct_path( cameFrom, current )
+		if ( current == goal or i > maxIterations ) then
+			return table.Reverse( UVreconstruct_path( cameFrom, current ) )
 		end
 		
 		current:AddToClosedList()

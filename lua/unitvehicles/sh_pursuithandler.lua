@@ -1045,6 +1045,10 @@ conVarList["helicopterbarrels"] = 1
 conVarList["helicopterspikestrip"] = 1
 conVarList["helicopterskyhammer"] = 1
 conVarList["helicopterbusting"] = 1
+conVarList["helicopterminfuel"] = 60
+conVarList["helicoptermaxfuel"] = 180
+conVarList["helicopterspawnchance"] = 100
+conVarList["helicopterspawnlimit"] = 1
 
 conVarList["pursuittech"] = 1
 conVarList["pursuittech_esf"] = 1
@@ -1423,6 +1427,10 @@ UVUHelicopterBarrels = CreateConVar("unitvehicle_unit_helicopterbarrels", 1, {FC
 UVUHelicopterSpikeStrip = CreateConVar("unitvehicle_unit_helicopterspikestrip", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "1 = Spike Strips\n0 = No Spike Strips")
 UVUHelicopterSkyhammer = CreateConVar("unitvehicle_unit_helicopterskyhammer", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "1 = Skyhammer\n0 = No Skyhammer")
 UVUHelicopterBusting = CreateConVar("unitvehicle_unit_helicopterbusting", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "1 = Helicopter can bust racers\n0 = Helicopter cannot bust racers")
+UVUHelicopterMinFuel = CreateConVar("unitvehicle_unit_helicopterminfuel", 60, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Minimum Fuel Time before the Air Unit runs out of fuel and leaves the pursuit.")
+UVUHelicopterMaxFuel = CreateConVar("unitvehicle_unit_helicoptermaxfuel", 180, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Maximum Fuel Time before the Air Unit runs out of fuel and leaves the pursuit.")
+UVUHelicopterSpawnChance = CreateConVar("unitvehicle_unit_helicopterspawnchance", 100, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Chances for this Unit to spawn.")
+UVUHelicopterSpawnLimit = CreateConVar("unitvehicle_unit_helicopterspawnlimit", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "How many Units of this type can be part of the chase.")
 
 UVUBountyPatrol = CreateConVar("unitvehicle_unit_bountypatrol", 1000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUBountySupport = CreateConVar("unitvehicle_unit_bountysupport", 5000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
@@ -2372,7 +2380,6 @@ if SERVER then
 		return cops
 	end
 
-	UVHeliCooldown = -math.huge
 	UVBustSpeed = 10
 	UVCooldownTimer = 20
 	UVCooldownTimerProgress = 0

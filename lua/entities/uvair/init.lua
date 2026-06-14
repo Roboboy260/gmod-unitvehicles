@@ -122,18 +122,20 @@ function ENT:Initialize()
 		self.aggressive = true
 	end
 		
-	timer.Simple((math.random(60,300)), function() 
-		if IsValid(self) and not self.Downed then --Fuel is randomized 
-			if Chatter:GetBool() and not (self.crashing or self.disengaging) then
-				if IsValid(self:GetTarget()) then
-					UVChatterLowOnFuel(self)
-				else
-					UVChatterDisengaging(self)
+	if UVUHelicopterMinFuel:GetInt() ~= 0 then
+		timer.Simple((math.random(UVUHelicopterMinFuel:GetInt(), UVUHelicopterMaxFuel:GetInt())), function() 
+			if IsValid(self) and not self.Downed then --Fuel is randomized 
+				if Chatter:GetBool() and not (self.crashing or self.disengaging) then
+					if IsValid(self:GetTarget()) then
+						UVChatterLowOnFuel(self)
+					else
+						UVChatterDisengaging(self)
+					end
 				end
+				self.disengaging = true
 			end
-			self.disengaging = true
-		end
-	end)
+		end)
+	end
 	
 	if UVTargeting and Chatter:GetBool() and not (self.crashing or self.disengaging) and IsValid(self) then
 		UVChatterInitialize(self) 
@@ -300,8 +302,6 @@ function ENT:Think()
 	if self.uvkillswitching then
 		UVKillSwitchCheck(self, true)
 	end
-
-	UVHeliCooldown = CurTime()
 	
 	if self.Downed then
 		if table.HasValue(UVUnitsChasing, self) then

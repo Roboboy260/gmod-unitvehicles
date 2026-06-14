@@ -624,6 +624,10 @@ if CLIENT then
 				Vector(math.random(-1000, 1000), math.random(-1000, 1000), math.random(100, 500)),
 				Vector(math.random(-1000, 1000), math.random(-1000, 1000), math.random(100, 500)),
 			},
+			["PursuitBreaker"] = {
+				Vector(math.random(-5000, 5000), math.random(-5000, 5000), math.random(100, 500)),
+				Vector(math.random(-5000, 5000), math.random(-5000, 5000), math.random(100, 500)),
+			},
 			["RaceFinish"] = {
 				Vector(math.random(-500, 500), math.random(-500, 500), math.random(100, 500)),
 				math.random(-20, 20),
@@ -814,41 +818,30 @@ if CLIENT then
     		    return view
     		end
 		elseif UVActionCam == "PursuitBreaker" then -- Pursuit Breaker
-			local mins = pbData.Mins
-			local maxs = pbData.Maxs
-			local size = pbData.Maxs.z - pbData.Mins.z
+			local targetPos = pbData.Location or UVLastVehicleDriven:WorldSpaceCenter()
 
-            local orbitSpeed = 45
+            local t = (RealTime() - transitionStart) / 5
+			local start = LocalToWorld(camLocal[1], angle_zero, targetPos, angle_zero)
+			local finish = LocalToWorld(camLocal[2], angle_zero, targetPos, angle_zero)
 
-            camOrbitYaw = camOrbitYaw + (FrameTime() * orbitSpeed)
-			local camAngles = Angle(0, camOrbitYaw, 0)
-            
-            local trpb = util.TraceLine({
-    		    start = pbData.Location,
-    		    endpos = pbData.Location - (vector_up * 500),
-    		    mask = MASK_NPCWORLDSTATIC
-    		})
-		
-            local targetPos = trpb.HitPos or pbData.Location or UVLastVehicleDriven:WorldSpaceCenter()
-            local camPos = targetPos + camAngles:Forward() * - size
-
-            camPos = camPos + (vector_up * size)
+			local spectatePos = targetPos
+			local camPos = LerpVector(t, start, finish)
+            local camAng = (spectatePos - camPos):Angle()
 
 			local tr = util.TraceLine({
-    		    start = targetPos,
+    		    start = spectatePos,
     		    endpos = camPos,
     		    mask = MASK_NPCWORLDSTATIC
     		})
 		
     		camPos = tr.HitPos + (tr.HitNormal * 10)
-            
-            local view = {}
-            view.origin = camPos
-            view.angles = (targetPos - camPos):Angle()
-            view.fov = 90
-            view.drawviewer = false
-            
-            return view
+
+    		return {
+				origin = camPos,
+				angles = camAng,
+				fov = 90,
+				drawviewer = true
+			}
 			
 		elseif UVActionCam == "RaceStart" then --Race Start
     		local t = (RealTime() - transitionStart) / 5

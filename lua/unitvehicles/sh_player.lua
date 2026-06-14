@@ -2003,7 +2003,7 @@ if SERVER then
         end
     end
     
-    function UVDeployKillSwitch(car)
+    function UVDeployKillSwitch(car, skyhammer)
         if next(UVWantedTableVehicle) ~= nil then
             car.uvkillswitchingtarget = nil
             
@@ -2018,7 +2018,7 @@ if SERVER then
                 end
             end
             
-            if closestdistancetosuspect < 250000 then
+            if skyhammer and closestdistancetosuspect < 6250000 or closestdistancetosuspect < 250000 then
                 car.uvkillswitchingtarget = closestsuspect
                 car.uvkillswitching = true
                 local MathSound = math.random(1,2)
@@ -2125,7 +2125,7 @@ if SERVER then
         end
     end
     
-    function UVKillSwitchCheck(car)
+    function UVKillSwitchCheck(car, skyhammer)
         local enemy = car.uvkillswitchingtarget
         local AI = car.UnitVehicle
         
@@ -2136,8 +2136,16 @@ if SERVER then
         
         local carPos = car:WorldSpaceCenter()
         local distance = carPos:DistToSqr(enemy:WorldSpaceCenter())
+
+        local tr = util.TraceLine({
+    	    start = carPos,
+    	    endpos = enemy:WorldSpaceCenter(),
+    	    mask = MASK_NPCWORLDSTATIC
+    	})
+
+        local visual = tr.Fraction == 1
         
-        if distance > 250000 then
+        if not visual or (not skyhammer and distance > 250000) or distance > 25000000 then
             UVDeactivateKillSwitch(car)
         end
     end

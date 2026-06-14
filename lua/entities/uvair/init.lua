@@ -6,6 +6,7 @@ local Chatter = GetConVar("unitvehicle_chatter")
 local PursuitTech = GetConVar("unitvehicle_unit_pursuittech")
 local Barrels = GetConVar("unitvehicle_unit_helicopterbarrels")
 local SpikeStrips = GetConVar("unitvehicle_unit_helicopterspikestrip")
+local Skyhammer = GetConVar("unitvehicle_unit_helicopterskyhammer")
 
 local dvd = DecentVehicleDestination
 
@@ -109,6 +110,9 @@ function ENT:Initialize()
 	end
 	if SpikeStrips:GetBool() then
 		table.insert(weaponchoices, "spikestrips")
+	end
+	if Skyhammer:GetBool() then
+		table.insert(weaponchoices, "skyhammer")
 	end
 
 	self.WeaponChoice = (#weaponchoices > 0 and weaponchoices[math.random(1, #weaponchoices)]) or nil
@@ -285,9 +289,16 @@ function ENT:Think()
 					if Chatter:GetBool() and not (self.crashing or self.disengaging) then
 						UVChatterExplosiveBarrelDeployed(self) 
 					end
+				elseif self.WeaponChoice == 'skyhammer' then
+					UVDeployKillSwitch(self, true)
+					timer.Simple((math.random(30,60)), function() self.cooldown = nil end)
 				end
 			end
 		end
+	end
+
+	if self.uvkillswitching then
+		UVKillSwitchCheck(self, true)
 	end
 
 	UVHeliCooldown = CurTime()
@@ -453,7 +464,7 @@ function ENT:PhysicsUpdate()
 
 		local targetpos = vector_origin
 		if isValidTarget then
-			if self.aggressive and not self.engaging then
+			if self.aggressive and not self.engaging and not self.WeaponChoice == 'skyhammer' then
 				targetpos = (self:GetTargetPos()+self:GetTarget():GetVelocity())
 			else
 				targetpos = self:GetTargetPos()

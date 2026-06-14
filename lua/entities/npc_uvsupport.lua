@@ -1693,7 +1693,8 @@ if SERVER then
 			--First encounter with enemy
 			if not self.metwithenemy and edistSqr < 25000000 and straightToEnemy then
 				self.metwithenemy = true
-				if Chatter:GetBool() and UVTargeting and not (eScope and eScope.EnemyEscaping) and not self.v.roadblocking and not self.v.disperse then
+				local chance = math.random(1,5)
+				if chance == 1 and Chatter:GetBool() and UVTargeting and not (eScope and eScope.EnemyEscaping) and not self.v.roadblocking and not self.v.disperse then
 					UVChatterOnScene(self) 
 				end
 			end

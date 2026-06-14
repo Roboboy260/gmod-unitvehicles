@@ -1531,6 +1531,7 @@ UVMenu.HeatManager = function()
 		{ type = "bool", text = "uv.hm.air.canbust", desc = "uv.hm.air.canbust.desc", convar = "unitvehicle_unit_helicopterbusting", sv = true },
 		{ type = "bool", text = "uv.hm.air.pt.exp", desc = "uv.hm.air.pt.desc", convar = "unitvehicle_unit_helicopterbarrels", sv = true },
 		{ type = "bool", text = "uv.hm.air.pt.spikes", desc = "uv.hm.air.pt.desc", convar = "unitvehicle_unit_helicopterspikestrip", sv = true },
+		{ type = "bool", text = "uv.hm.air.pt.skyhammer", desc = "uv.hm.air.pt.desc", convar = "unitvehicle_unit_helicopterskyhammer", sv = true },
 						
 		{ type = "label", text = "uv.ptech" },
 		{ type = "bool", text = "uv.hm.enablept", desc = "uv.hm.enablept.desc", convar = "unitvehicle_unit_pursuittech", sv = true },

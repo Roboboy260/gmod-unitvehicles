@@ -1043,6 +1043,7 @@ conVarList["onecommanderhealth"] = 5000
 conVarList["helicoptermodel"] = "Default"
 conVarList["helicopterbarrels"] = 1
 conVarList["helicopterspikestrip"] = 1
+conVarList["helicopterskyhammer"] = 1
 conVarList["helicopterbusting"] = 1
 
 conVarList["pursuittech"] = 1
@@ -1420,6 +1421,7 @@ UVUPursuitTech_Grappler = CreateConVar("unitvehicle_unit_pursuittech_grappler", 
 UVUHelicopterModel = CreateConVar("unitvehicle_unit_helicoptermodel", "Default", {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: Helicopter model to use with Air Unit.")
 UVUHelicopterBarrels = CreateConVar("unitvehicle_unit_helicopterbarrels", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "1 = Barrels\n0 = No Barrels")
 UVUHelicopterSpikeStrip = CreateConVar("unitvehicle_unit_helicopterspikestrip", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "1 = Spike Strips\n0 = No Spike Strips")
+UVUHelicopterSkyhammer = CreateConVar("unitvehicle_unit_helicopterskyhammer", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "1 = Skyhammer\n0 = No Skyhammer")
 UVUHelicopterBusting = CreateConVar("unitvehicle_unit_helicopterbusting", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "1 = Helicopter can bust racers\n0 = Helicopter cannot bust racers")
 
 UVUBountyPatrol = CreateConVar("unitvehicle_unit_bountypatrol", 1000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})

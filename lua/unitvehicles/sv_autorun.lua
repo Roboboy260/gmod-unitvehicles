@@ -786,6 +786,19 @@ local function CheckVehicleLimit()
 	return totalUnits < UVMaxUnits and totalUnits < UVGlobalPursuit.ResourcePoints or activeUnitsCount < 1
 end
 
+local function CheckHelicopterChance(chance)
+    if chance <= 0 then return false end
+    if chance >= 100 then return true end
+
+    local roll = math.random(1, 100)
+
+    if roll <= chance then
+        return true
+    else
+        return false
+    end
+end
+
 -- Helper function for vehicle spawning logic
 function HandleVehicleSpawning(Patrolling)
 	
@@ -797,7 +810,7 @@ function HandleVehicleSpawning(Patrolling)
 	if not SpawnMainUnits:GetBool() then return end
 
 	local canSpawnRoadblock = next(ents.FindByClass("npc_uv*")) ~= nil and uvRoadblockDeployable and table.Count(UVLoadedRoadblocks) < UVRBMax:GetInt() 
-	local canSpawnHelicopter = #ents.FindByClass("uvair") < 1 and uvHelicopterDeployable and CurTime() - UVHeliCooldown > 120
+	local canSpawnHelicopter = #ents.FindByClass("uvair") < UVUHelicopterSpawnLimit:GetInt() and uvHelicopterDeployable and CheckHelicopterChance(UVUHelicopterSpawnChance:GetInt())
 
 	local pool = {
 		'normal',

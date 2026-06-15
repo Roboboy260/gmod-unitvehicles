@@ -64,6 +64,12 @@ roadblockhit = "Suspect has hit the roadblock"
 roadblockmissed = "Suspect has gone around the roadblock"
 spikestriphit = "Suspect hit the spikes"
 unitrequest = "... I need Units to respond"
+vehicledescription = 
+    - *name of the brand*
+        - default = "Suspect is in a *name of the brand*."
+        - *color* = "Suspect is in a *color* *name of the brand*."
+    - policecar
+        - default = "Suspect is in a police car."
 
 --- AIR UNIT ---
 
@@ -233,6 +239,12 @@ stuntroll = "Suspect went upside down"
 stuntspin = "Suspect spun out / did 180"
 trafficstoprammed = "Pulling over a vehicle that just hit me"
 trafficstopspeeding = "Pulling over a speeding vehicle"
+vehicledescription = 
+    - *name of the brand*
+        - default = "Suspect is in a *name of the brand*."
+        - *color* = "Suspect is in a *color* *name of the brand*."
+    - policecar
+        - default = "Suspect is in a police car."
 wreck = "I got taken out"
 
 --- MISC ---

@@ -1118,15 +1118,15 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 			dot = math.abs(dot) / 2
 			local dmg = resultVel * dot
 
-			if dmg >= 500 then
+			if dmg >= ActionCamCrashThreshold:GetInt() then
 				local driver = UVGetDriver(car)
 				if driver and not object.PursuitBreaker and not object.UVRoadblock then
 					UVActionCam(driver, "Crash")
 				end
-			elseif dmg >= 100 then
-				if car.wrecked then
-					UVDetachWheels(car, coldata.HitPos)
-				end
+			end
+			
+			if dmg >= 100 and car.wrecked then
+				UVDetachWheels(car, coldata.HitPos)
 			end
 
 			if object.PursuitBreakerActive then
@@ -1269,7 +1269,7 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 					object.UVRoadblock.RoadBlockHit = true
 
 					local driver = UVGetDriver(car)
-					if driver and ourOldVel > 1000 then
+					if driver and ourOldVel > ActionCamRoadblockThreshold:GetInt() then
 						UVActionCam(driver, "Roadblock")
 					end
 
@@ -1379,15 +1379,15 @@ hook.Add("simfphysPhysicsCollide", "UVCollisionSimfphys", function(car, coldata,
 	dot = math.abs(dot) / 2
 	local dmg = resultVel * dot
 
-	if dmg >= 500 then
+	if dmg >= ActionCamCrashThreshold:GetInt() then
 		local driver = UVGetDriver(car)
 		if driver and not object.PursuitBreaker and not object.UVRoadblock then
 			UVActionCam(driver, "Crash")
 		end
-	elseif dmg >= 100 then
-		if car.wrecked then
-			UVDetachWheels(car, coldata.HitPos)
-		end
+	end
+	
+	if dmg >= 100 and car.wrecked then
+		UVDetachWheels(car, coldata.HitPos)
 	end
 
 	if car.DecentVehicle or car.TrafficVehicle then
@@ -1525,7 +1525,7 @@ hook.Add("simfphysPhysicsCollide", "UVCollisionSimfphys", function(car, coldata,
 			object.UVRoadblock.RoadBlockHit = true
 
 			local driver = UVGetDriver(car)
-			if driver then
+			if driver and ourOldVel > ActionCamRoadblockThreshold:GetInt() then
 				UVActionCam(driver, "Roadblock")
 			end
 
@@ -1803,7 +1803,7 @@ hook.Add("OnEntityCreated", "UVCollisionJeep", function(vehicle)
 				object.UVRoadblock.RoadBlockHit = true
 
 				local driver = UVGetDriver(car)
-				if driver then
+				if driver and ourOldVel > ActionCamRoadblockThreshold:GetInt() then
 					UVActionCam(driver, "Roadblock")
 				end
 
@@ -1939,15 +1939,15 @@ hook.Add("OnEntityCreated", "UVCollisionLVS", function(lvsvehicle)
 			dot = math.abs(dot) / 2
 			local dmg = resultVel * dot
 
-			if dmg >= 500 then
+			if dmg >= ActionCamCrashThreshold:GetInt() then
 				local driver = UVGetDriver(car)
 				if driver and not object.PursuitBreaker and not object.UVRoadblock then
 					UVActionCam(driver, "Crash")
 				end
-			elseif dmg >= 100 then
-				if car.wrecked then
-					UVDetachWheels(car, coldata.HitPos)
-				end
+			end
+			
+			if dmg >= 100 and car.wrecked then
+				UVDetachWheels(car, coldata.HitPos)
 			end
 
 			if object.PursuitBreakerActive then
@@ -2090,7 +2090,7 @@ hook.Add("OnEntityCreated", "UVCollisionLVS", function(lvsvehicle)
 					object.UVRoadblock.RoadBlockHit = true
 
 					local driver = UVGetDriver(car)
-					if driver then
+					if driver and ourOldVel > ActionCamRoadblockThreshold:GetInt() then
 						UVActionCam(driver, "Roadblock")
 					end
 
@@ -4191,7 +4191,7 @@ function UVPlayerWreck(vehicle)
 
 	if vehicle.UnitVehicle or vehicle.RacerVehicle then
 		local centerPos = vehicle:WorldSpaceCenter()
-		local radius = 1000
+		local radius = ActionCamTakedownThreshold:GetInt()
 
 		local foundEntities = ents.FindInSphere(centerPos, radius)
 		local playersInRange = {}
@@ -4472,7 +4472,7 @@ local ActionCamSettings = {
     ["Jump"] = {
 		Convar = ActionCamJump,
         Duration = 3,
-        TimeScale = 0.5
+        TimeScale = 0.25
     },
     ["Spotted"] = {
 		Convar = ActionCamSpotted,

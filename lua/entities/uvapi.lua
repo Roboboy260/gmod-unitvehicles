@@ -433,8 +433,7 @@ end
 
 function ENT:SetELS(on)
 	if on == self:GetELS() or self.v.DontHaveEMS then return end
-	if self.v.IsGlideVehicle then
-		if not self.v.CanSwitchSiren then return end
+	if self.v.IsGlideVehicle and self.v.CanSwitchSiren then
 		if on then
 			self.v:SetSirenState(2)
 		else
@@ -520,8 +519,7 @@ end
 
 function ENT:SetELSSound(on)
 	if on == self:GetELSSound() or self.v.DontHaveEMS then return end
-	if self.v.IsGlideVehicle then
-		if not self.v.CanSwitchSiren then return end
+	if self.v.IsGlideVehicle and self.v.CanSwitchSiren then
 		if on then
 			self.v:SetSirenState(2)
 		else

@@ -1707,6 +1707,8 @@ if SERVER then
 				if not IsValid(v:GetDriver()) or self.temporary then --Fortunately, Simfphys Vehicles can use GetDriver()
 					self.v = v
 					v.RacerVehicle = self
+					self.v.PressedKeys = self.v.PressedKeys or {} --Reset key states.
+					self.v.PressedKeys["Shift"] = false
 					if not self.temporary then
 						v.uvclasstospawnon = self:GetClass()
 						v:SetActive(true)
@@ -1743,6 +1745,7 @@ if SERVER then
 				if not IsValid(v:GetDriver()) or self.temporary then
 					self.v = v
 					v.RacerVehicle = self
+					self.v:ResetInputs(1)
 					if not self.temporary then
 						v.uvclasstospawnon = self:GetClass()
 						v:SetEngineState(2)
@@ -1804,6 +1807,8 @@ if SERVER then
 						if not IsValid(v:GetDriver()) or self.temporary then --Fortunately, Simfphys Vehicles can use GetDriver()
 							self.v = v
 							v.RacerVehicle = self
+							self.v.PressedKeys = self.v.PressedKeys or {} --Reset key states.
+							self.v.PressedKeys["Shift"] = false
 							if not self.temporary then
 								v.uvclasstospawnon = self:GetClass()
 								v:SetActive(true)
@@ -1842,6 +1847,7 @@ if SERVER then
 						if not IsValid(v:GetDriver()) or self.temporary then
 							self.v = v
 							v.RacerVehicle = self
+							self.v:ResetInputs(1)
 							if not self.temporary then
 								v.uvclasstospawnon = self:GetClass()
 								v:TurnOn()

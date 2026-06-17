@@ -635,7 +635,7 @@ if CLIENT then
 			},
 			["Crash"] = Vector(math.random(-1000, 1000), math.random(-1000, 1000), math.random(50, 300)),
 			["Roadblock"] = Vector(math.random(-2500, 2500), math.random(-2500, 2500), math.random(50, 100)),
-			["Jump"] = Vector(math.random(-2500, 2500), math.random(-2500, 2500), math.random(100, 1000)),
+			["Jump"] = Vector(math.random(-2500, 2500), math.random(-2500, 2500), math.random(-1000, 1000)),
 		}
 
 		camLocal = ActionCamLocal[UVActionCam]

@@ -698,15 +698,28 @@ UVMenu.Settings = function()
 
 			{ TabName = "uv.camera", Icon = "unitvehicles/icons/milestone_speedtrap.png", sv = true,
 				{ type = "label", text = "uv.camera.actioncam" },
+				
 				{ type = "bool", text = "uv.camera.actioncam", desc = "uv.camera.actioncam.desc", convar = "unitvehicle_actioncam", sv = true },
 				{ type = "bool", text = "uv.camera.actioncam.wrecked", desc = "uv.camera.actioncam.wrecked.desc", convar = "unitvehicle_actioncam_wrecked", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+
 				{ type = "bool", text = "uv.camera.actioncam.racestart", desc = "uv.camera.actioncam.racestart.desc", convar = "unitvehicle_actioncam_racestart", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				
 				{ type = "bool", text = "uv.camera.actioncam.racefinish", desc = "uv.camera.actioncam.racefinish.desc", convar = "unitvehicle_actioncam_racefinish", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				
 				{ type = "bool", text = "uv.camera.actioncam.crash", desc = "uv.camera.actioncam.crash.desc", convar = "unitvehicle_actioncam_crash", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				{ type = "slider", text = "uv.camera.actioncam.crash.threshold", desc = "uv.camera.actioncam.crash.threshold", convar = "unitvehicle_actioncam_crashthreshold", min = 1, max = 10000, decimals = 0, sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				
 				{ type = "bool", text = "uv.camera.actioncam.jump", desc = "uv.camera.actioncam.jump.desc", convar = "unitvehicle_actioncam_jump", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				{ type = "slider", text = "uv.camera.actioncam.jump.threshold", desc = "uv.camera.actioncam.jump.threshold", convar = "unitvehicle_actioncam_jumpthreshold", min = 1, max = 10000, decimals = 0, sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				
 				{ type = "bool", text = "uv.camera.actioncam.spotted", desc = "uv.camera.actioncam.spotted.desc", convar = "unitvehicle_actioncam_spotted", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				
 				{ type = "bool", text = "uv.camera.actioncam.roadblock", desc = "uv.camera.actioncam.roadblock.desc", convar = "unitvehicle_actioncam_roadblock", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				{ type = "slider", text = "uv.camera.actioncam.roadblock.threshold", desc = "uv.camera.actioncam.roadblock.threshold", convar = "unitvehicle_actioncam_roadblockthreshold", min = 1, max = 10000, decimals = 0, sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				
 				{ type = "bool", text = "uv.camera.actioncam.takedown", desc = "uv.camera.actioncam.takedown.desc", convar = "unitvehicle_actioncam_takedown", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				{ type = "slider", text = "uv.camera.actioncam.takedown.threshold", desc = "uv.camera.actioncam.takedown.threshold", convar = "unitvehicle_actioncam_takedownthreshold", min = 1, max = 10000, decimals = 0, sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				
 				{ type = "bool", text = "uv.camera.actioncam.pursuitbreaker", desc = "uv.camera.actioncam.pursuitbreaker.desc", convar = "unitvehicle_actioncam_pursuitbreaker", sv = true, requireparentconvar = "unitvehicle_actioncam" },
 			},
 

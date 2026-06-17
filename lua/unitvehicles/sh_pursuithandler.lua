@@ -1383,13 +1383,17 @@ UnitCatchup = CreateConVar( "unitvehicle_unitcatchup", 1, {FCVAR_ARCHIVE, FCVAR_
 ActionCam = CreateConVar("unitvehicle_actioncam", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show dramatic angles during certain events. Gameplay may slow down.")
 ActionCamWrecked = CreateConVar("unitvehicle_actioncam_wrecked", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you get wrecked, busted or killed.")
 ActionCamRaceStart = CreateConVar("unitvehicle_actioncam_racestart", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you start a race.")
-ActionCamRaceFinish = CreateConVar("unitvehicle_actioncam_racefinish", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you finish a race. Your vehicle will be taken over by an AI temporarily.")
+ActionCamRaceFinish = CreateConVar("unitvehicle_actioncam_racefinish", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you finish a race. Your vehicle will be taken over by an AI temporarily.")
 ActionCamCrash = CreateClientConVar("unitvehicle_actioncam_crash", 1, true, false, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you crash your vehicle.")
+ActionCamCrashThreshold = CreateClientConVar("unitvehicle_actioncam_crashthreshold", 500, true, false, "Unit Vehicles: Damage to trigger.")
 ActionCamJump = CreateConVar("unitvehicle_actioncam_jump", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit a jump.")
+ActionCamJumpThreshold = CreateConVar("unitvehicle_actioncam_jumpthreshold", 200, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: Height to trigger.")
 ActionCamSpotted = CreateConVar("unitvehicle_actioncam_spotted", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the game will slow down and the camera will point to the closest Unit when starting a pursuit.")
 ActionCamRoadblock = CreateConVar("unitvehicle_actioncam_roadblock", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit roadblocks.")
+ActionCamRoadblockThreshold = CreateConVar("unitvehicle_actioncam_roadblockthreshold", 1000, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: Speed to trigger.")
 ActionCamTakedown = CreateConVar("unitvehicle_actioncam_takedown", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you take down Racers or Units.")
-ActionCamPursuitBreaker = CreateConVar("unitvehicle_actioncam_pursuitbreaker", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit Pursuit Breakers. Your vehicle will be taken over by an AI temporarily.")
+ActionCamTakedownThreshold = CreateConVar("unitvehicle_actioncam_takedownthreshold", 1000, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: Distance to trigger.")
+ActionCamPursuitBreaker = CreateConVar("unitvehicle_actioncam_pursuitbreaker", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit Pursuit Breakers. Your vehicle will be taken over by an AI temporarily.")
 
 UVUOneCommanderHealth = CreateConVar("unitvehicle_unit_onecommanderhealth", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUCommanderRepair = CreateConVar("unitvehicle_unit_commanderrepair", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED},"Unit Vehicles: If set to 1, Commander Units can utilize the Repair Shop to repair themselves.")
@@ -2889,8 +2893,8 @@ if SERVER then
 
 			--Stunt jump
 			if not v.UVStuntJump then
-				local onground = util.QuickTrace(v:WorldSpaceCenter(), -vector_up * 500, {v})
-				if not onground.Hit then
+				local onground = util.QuickTrace(v:WorldSpaceCenter(), -vector_up * ActionCamJumpThreshold:GetInt(), {v})
+				if not onground.Hit and vVelo:LengthSqr() > 30976 then
 					v.UVStuntJump = true
 
 					local driver = UVGetDriver(v)

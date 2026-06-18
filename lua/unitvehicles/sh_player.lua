@@ -1492,7 +1492,7 @@ if SERVER then
             pursuit_tech.Ammo = pursuit_tech.Ammo - 1
         elseif pursuit_tech.Tech == "Juggernaut" then --Juggernaut
             local Cooldown = pursuit_tech.Cooldown
-            if CurTime() - pursuit_tech.LastUsed < Cooldown then return end
+            if CurTime() - pursuit_tech.LastUsed < Cooldown or car.aicontrolled then return end
             car:RemoveCallOnRemove("uvjuggernaut"..car:EntIndex())
             
             UVDeployJuggernaut(car)
@@ -1517,7 +1517,7 @@ if SERVER then
             end)
         elseif pursuit_tech.Tech == "Ghost" then --Ghost
             local Cooldown = pursuit_tech.Cooldown
-            if CurTime() - pursuit_tech.LastUsed < Cooldown then return end
+            if CurTime() - pursuit_tech.LastUsed < Cooldown or car.aicontrolled then return end
             car:RemoveCallOnRemove("uvghost"..car:EntIndex())
             
             UVDeployGhost(car)
@@ -2021,12 +2021,23 @@ if SERVER then
             if skyhammer and closestdistancetosuspect < 6250000 or closestdistancetosuspect < 250000 then
                 car.uvkillswitchingtarget = closestsuspect
                 car.uvkillswitching = true
+
+                if skyhammer then
+                    net.Start("UVWeaponSkyhammerEnable")
+                        net.WriteEntity(car)
+                    net.Broadcast()
+                end
+
                 local MathSound = math.random(1,2)
                 car:EmitSound("gadgets/killswitch/start"..MathSound..".wav")
                 closestsuspect:EmitSound("gadgets/killswitch/startloop.wav")
 				
-                ReportPTEvent( car, closestsuspect, 'Killswitch', 'Locking' )
-                timer.Simple(UVUnitPTKillSwitchLockOnTime:GetInt(), function() --HIT
+                local weapon = skyhammer and 'Skyhammer' or 'Killswitch'
+                local lockontime = skyhammer and UVUnitPTKillSwitchLockOnTime:GetInt() * 2 or UVUnitPTKillSwitchLockOnTime:GetInt()
+
+                ReportPTEvent( car, closestsuspect, weapon, 'Locking' )
+
+                timer.Simple(lockontime, function() --HIT
                     if IsValid(car) and IsValid(car.uvkillswitchingtarget) then
                         if car.uvkillswitching and not car.uvkillswitchingtarget.enginedisabledbyuv then
                             car.uvkillswitching = nil
@@ -2035,7 +2046,7 @@ if SERVER then
                             local enemyCallsign = enemyVehicle.racer or "Racer "..enemyVehicle:EntIndex()
                             local enemyDriver = UVGetDriver(enemyVehicle)
 
-                            if UVIsPTUpgraded(car) then
+                            if UVIsPTUpgraded(car) or car:GetClass() == "uvair" then
 				            	kstime = kstime * 2
 				            end
                             
@@ -2051,13 +2062,14 @@ if SERVER then
                             elseif enemyVehicle.LVS then
                                 enemyVehicle:StopEngine()
                             end
-                            -- if isfunction(enemyVehicle.GetDriver) and IsValid(UVGetDriver(enemyVehicle)) and UVGetDriver(enemyVehicle):IsPlayer() then 
-                            --     UVGetDriver(enemyVehicle):PrintMessage( HUD_PRINTCENTER, "YOU HAVE BEEN KILLSWITCHED!")
-                            -- end
-                            -- if isfunction(car.GetDriver) and IsValid(UVGetDriver(car)) and UVGetDriver(car):IsPlayer() then 
-                            --     UVGetDriver(car):PrintMessage( HUD_PRINTCENTER, "KILLSWITCHED "..enemyCallsign.."!")
-                            -- end
-                            ReportPTEvent( car, closestsuspect, 'Killswitch', 'Hit' )
+                            
+                            if car:GetClass() == "uvair" then
+                                net.Start("UVWeaponSkyhammerDisable")
+                                    net.WriteEntity(car)
+                                net.Broadcast()
+                            end
+                            
+                            ReportPTEvent( car, closestsuspect, weapon, 'Hit' )
                             enemyVehicle.enginedisabledbyuv = true
                             car:StopSound("gadgets/killswitch/start1.wav")
                             car:StopSound("gadgets/killswitch/start2.wav")
@@ -2145,7 +2157,7 @@ if SERVER then
 
         local visual = tr.Fraction == 1
         
-        if not visual or (not skyhammer and distance > 250000) or distance > 25000000 then
+        if not visual or (not skyhammer and distance > 250000) or distance > 6250000 then
             UVDeactivateKillSwitch(car)
         end
     end
@@ -2154,6 +2166,13 @@ if SERVER then
         if not car.uvkillswitching then return end
 
         car.uvkillswitching = nil
+
+        if car:GetClass() == "uvair" then
+            net.Start("UVWeaponSkyhammerDisable")
+                net.WriteEntity(car)
+            net.Broadcast()
+        end
+
         local enemyVehicle = car.uvkillswitchingtarget
         if IsValid(enemyVehicle) then
             enemyVehicle:StopSound("gadgets/killswitch/startloop.wav")
@@ -2170,7 +2189,8 @@ if SERVER then
         --     UVGetDriver(car):PrintMessage( HUD_PRINTCENTER, "Killswitch missed!")
         -- end
 
-        ReportPTEvent( car, enemyVehicle, 'Killswitch', 'Counter' )
+        local weapon = car:GetClass() == "uvair" and 'Skyhammer' or 'Killswitch'
+        ReportPTEvent( car, enemyVehicle, weapon, 'Counter' )
 
         -- car.PursuitTechStatus = "Reloading"
         -- timer.Simple(UVUnitPTDuration:GetInt(), function()
@@ -2745,6 +2765,16 @@ else -- client settings
             surface.PlaySound( "gadgets/jammer/deactivate2.wav" )
         end
         hook.Remove("RenderScreenspaceEffects", "UVJammedScreen")
+    end)
+
+    net.Receive("UVWeaponSkyhammerEnable", function()
+        local ent = net.ReadEntity()
+        ent.skyhammeractive = true
+    end)
+
+    net.Receive("UVWeaponSkyhammerDisable", function()
+        local ent = net.ReadEntity()
+        ent.skyhammeractive = nil
     end)
 
     --[[

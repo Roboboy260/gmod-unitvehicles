@@ -82,7 +82,7 @@ if SERVER then
 				if not self.racerdeployed then return end
 			end
 		else
-			if self.racerdeployed and (not RacerFriendlyFire:GetBool() or car == self.racerdeployed) then return end
+			if (self.racerdeployed and (not RacerFriendlyFire:GetBool() or car == self.racerdeployed)) or (car.aicontrolled) then return end
 		end
 
 		local damage = 0 -- Divide by the number of wheels the vehicle has, so that the total damage is consistent across all vehicles regardless of wheel count

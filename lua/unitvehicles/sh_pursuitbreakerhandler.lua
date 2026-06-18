@@ -314,19 +314,25 @@ if SERVER then
         local jsonFilename = pbdata.jsonfile:lower()
 
         local function getAudioFolderForJson(jsonFilename)
+            local longestMatch = nil
+            local maxLength = 0
+
             for _, folder in ipairs(pbFolders) do
                 if string.find(jsonFilename, folder) then
-                    return folder
+                    if #folder > maxLength then
+                        maxLength = #folder
+                        longestMatch = folder
+                    end
                 end
             end
-            return nil
+        
+            return longestMatch
         end
 
         local matchedFolder = getAudioFolderForJson(jsonFilename)
 
         if matchedFolder then
             local audioFiles = file.Find("sound/pursuitbreakers/" .. matchedFolder .. "/*", "GAME")
-            PrintTable(audioFiles)
             if audioFiles and #audioFiles ~= 0 then
                 EmitSound( 
                     "pursuitbreakers/" .. matchedFolder .. "/" .. audioFiles[math.random(1, #audioFiles)], 

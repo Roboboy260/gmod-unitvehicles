@@ -3092,6 +3092,12 @@ if SERVER then
 				ply.ActionCamAIControl = nil
 
 				local vehicle = UVGetVehicle(ply)
+				vehicle.aicontrolled = nil
+
+				if not vehicle.ghoston and vehicle:GetCollisionGroup() == 20 then
+					vehicle:SetCollisionGroup(0)
+				end
+
 				if IsValid(vehicle) and vehicle.RacerVehicle then
 					vehicle.RacerVehicle:Remove()
 				end

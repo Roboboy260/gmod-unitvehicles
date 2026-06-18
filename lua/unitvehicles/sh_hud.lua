@@ -613,8 +613,6 @@ if CLIENT then
         spectateEnt = net.ReadEntity()
 		pbData = net.ReadTable()
 
-		print("Received UVActionCamStart: ", UVActionCam, effectDuration, spectateEnt)
-
         UVActionCamTime = RealTime() + effectDuration
         transitionStart = RealTime()
 		camActive = false
@@ -631,7 +629,7 @@ if CLIENT then
 			["RaceFinish"] = {
 				Vector(math.random(-500, 500), math.random(-500, 500), math.random(100, 500)),
 				math.random(-20, 20),
-				math.random(20, 60),
+				math.random(30, 90),
 			},
 			["Crash"] = Vector(math.random(-1000, 1000), math.random(-1000, 1000), math.random(50, 300)),
 			["Roadblock"] = Vector(math.random(-2500, 2500), math.random(-2500, 2500), math.random(50, 100)),

@@ -116,6 +116,7 @@ function ENT:Initialize()
 	end
 
 	self.WeaponChoice = (#weaponchoices > 0 and weaponchoices[math.random(1, #weaponchoices)]) or nil
+	timer.Simple((math.random(10, 30)), function() self.cooldown = nil end)
 
 	local MathAggressive = math.random(0,1)
 	if MathAggressive == 1 then
@@ -216,7 +217,6 @@ function ENT:Think()
 		
 		if self.CloseToTarget and self:IsSeeTarget() and not self.spotted then
 			self.spotted = true
-			timer.Simple(20, function() self.cooldown = nil end)
 
 			if not UVTargeting then
 				UVTargeting = true

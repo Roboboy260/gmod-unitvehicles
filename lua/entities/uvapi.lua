@@ -495,9 +495,9 @@ function ENT:SetELS(on)
         local pc = self.v:GetPhotonControllerFromAncestor()
         if IsValid(pc) then
 			local sirendata = GetPhoton2Siren(self.v)
-			local randomsiren = "T"..math.random(1, #sirendata.OrderedTones)
+			self.selectedsiren = self.selectedsiren or "T"..math.random(1, #sirendata.OrderedTones)
             pc:SetChannelMode("Emergency.Warning", on and "MODE3" or "OFF")
-            pc:SetChannelMode("Emergency.Siren", on and randomsiren or "OFF")
+            pc:SetChannelMode("Emergency.Siren", on and self.selectedsiren or "OFF")
         end
 	elseif Photon and not GetConVar("unitvehicle_vcmodelspriority"):GetBool()
 	and isfunction(self.v.ELS_SirenOn)
@@ -554,8 +554,8 @@ function ENT:SetELSSound(on)
         local pc = self.v:GetPhotonControllerFromAncestor()
         if IsValid(pc) then
 			local sirendata = GetPhoton2Siren(self.v)
-			local randomsiren = "T"..math.random(1, #sirendata.OrderedTones)
-            pc:SetChannelMode("Emergency.Siren", on and randomsiren or "OFF")
+			self.selectedsiren = self.selectedsiren or "T"..math.random(1, #sirendata.OrderedTones)
+            pc:SetChannelMode("Emergency.Siren", on and self.selectedsiren or "OFF")
         end
 	elseif Photon and not GetConVar("unitvehicle_vcmodelspriority"):GetBool()
 	and isfunction(self.v.ELS_SirenOn)
@@ -577,7 +577,7 @@ function ENT:SetELSSound(on)
 end
 
 function ENT:ChangeELSSiren()
-	if self.v.IsGlideVehicle and isfunction(CFswitchSiren) then
+	if self.v.IsGlideVehicle and isfunction(CFswitchSiren) and self.v.CanSwitchSiren then
 		CFswitchSiren( self.v, true )
 	elseif self.v.IsSimfphyscar then
 		if self.v.ems then self.v.ems:Stop() end
@@ -603,8 +603,8 @@ function ENT:ChangeELSSiren()
         local pc = self.v:GetPhotonControllerFromAncestor()
         if IsValid(pc) then
 			local sirendata = GetPhoton2Siren(self.v)
-			local randomsiren = "T"..math.random(1, #sirendata.OrderedTones)
-            pc:SetChannelMode("Emergency.Siren", randomsiren)
+			self.selectedsiren = "T"..math.random(1, #sirendata.OrderedTones)
+            pc:SetChannelMode("Emergency.Siren", self.selectedsiren)
         end
 	elseif Photon
 	and isfunction(self.v.ELS_SirenToggle) then

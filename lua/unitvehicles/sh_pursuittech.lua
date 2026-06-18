@@ -78,6 +78,61 @@ UV_PT.Killswitch = {
         })
     end
 }
+UV_PT.Skyhammer = {
+    Hit = function(tbl)
+        local displayMe = false
+        if tbl.User == LocalPlayer():Nick() then
+            displayMe = true
+        end
+
+        local userString = "uv.ptech.skyhammer.hit"
+        local targetString = "uv.ptech.skyhammer.hit.you"
+
+        UV_UI.general.events.CenterNotification({
+            text = string.format( (displayMe and UVString( userString )) or UVString( targetString ), (displayMe and UVString( tbl.Target )) or UVString( tbl.User )),
+			color = not displayMe and Color(255, 0, 0) or nil,
+			immediate = not displayMe and true or nil,
+			critical = not displayMe and true or nil,
+			time = not displayMe and 3 or 1,
+		})
+    end,
+    Locking = function(tbl)
+        local displayMe = false
+        if tbl.User == LocalPlayer():Nick() then
+            displayMe = true
+        end
+
+        local userString = "uv.ptech.skyhammer.activated"
+        local targetString = "uv.ptech.skyhammer.lockingon"
+
+        UV_UI.general.events.CenterNotification({
+            text = (displayMe and UVString( userString )) or UVString(targetString),
+			color = not displayMe and Color(255, 0, 0) or nil,
+			immediate = not displayMe and true or nil,
+        })
+    end,
+    Counter = function(tbl)
+        local displayMe = false
+        if tbl.User == LocalPlayer():Nick() then
+            displayMe = true
+        end
+		local String = "uv.ptech.skyhammer.dodged"
+		
+        UV_UI.general.events.CenterNotification({
+            text = UVString( String ),
+        })
+    end,
+    EngineRestarting = function(tbl)
+        local userString = "uv.ptech.killswitch.engine.on"
+
+        UV_UI.general.events.CenterNotification({
+            text = UVString( userString ),
+			immediate = true,
+			critical = true,
+			time = 3,
+        })
+    end
+}
 UV_PT.ESF = {
     Use = function(tbl)
         local userString = "uv.ptech.esf.activated"

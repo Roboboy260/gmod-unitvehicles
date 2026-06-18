@@ -34,6 +34,16 @@ function ENT:Initialize()
 	self.Spotlight:SetAngles(ang)
 	self.Spotlight:SetEnableShadows(false)
 	self.Spotlight:Update()
+
+	self.Skyhammer = ProjectedTexture()
+	self.Skyhammer:SetTexture("effects/flashlight001")
+	self.Skyhammer:SetFarZ(2500)
+	self.Skyhammer:SetFOV(50)
+	self.Skyhammer:SetColor(Color(254,72,108))
+	self.Skyhammer:SetPos(pos)
+	self.Skyhammer:SetAngles(ang)
+	self.Skyhammer:SetEnableShadows(false)
+	self.Skyhammer:Update()
 	
 	self:DrawShadow(true)
 	self.Scale = Vector(1,1,1)
@@ -92,13 +102,24 @@ function ENT:Draw()
 	local starboarddist = EyePos():Distance(starboardpos)
 	local sterndist = EyePos():Distance(sternpos)
 	
-	if IsValid(self:GetTarget()) and self.canusespotlight and spotdist<10000 and util.TraceLine({start = EyePos(),endpos = spotpos,filter = LocalPlayer(),mask = MASK_OPAQUE}).Fraction==1 then
-		mat:SetInt("$ignorez",0)
+	if IsValid(self:GetTarget()) and spotdist<10000 and util.TraceLine({start = EyePos(),endpos = spotpos,filter = LocalPlayer(),mask = MASK_OPAQUE}).Fraction==1 then
+		if self.canusespotlight and not self.skyhammeractive then
+			mat:SetInt("$ignorez",0)
+			
+				render.SetMaterial(mat)
+				render.DrawSprite(spotpos,256,256,Color(255,255,255,255-spotdist/10000*255))
+			
+			mat:SetInt("$ignorez",1)
+		end
+
+		if self.skyhammeractive then
+			mat:SetInt("$ignorez",0)
 		
-			render.SetMaterial(mat)
-			render.DrawSprite(spotpos,256,256,Color(255,255,255,255-spotdist/10000*255))
+				render.SetMaterial(mat)
+				render.DrawSprite(spotpos,256,256,Color(254,72,108,255-spotdist/10000*255))
 		
-		mat:SetInt("$ignorez",1)
+			mat:SetInt("$ignorez",1)
+		end
 	end
 	
 	if strobedist<10000 and math.floor(CurTime()*1)==math.Round(CurTime()*1) and util.TraceLine({start = EyePos(),endpos = strobepos,filter = LocalPlayer(),mask = MASK_OPAQUE}).Fraction==1 then
@@ -157,13 +178,27 @@ function ENT:Think()
 	
 	if self.GotAllLights then
 		self.Spotlight:SetPos(LocalToWorld(self.SpotlightPos*self.Scale,Angle(),self:GetPos(),self:GetAngles()))
-		if IsValid(self:GetTarget()) and self.canusespotlight then
-			self.Spotlight:SetBrightness(10)
-			self.Spotlight:SetAngles((self:GetTargetPos()-self.Spotlight:GetPos()):Angle())
+		self.Skyhammer:SetPos(LocalToWorld(self.SpotlightPos*self.Scale,Angle(),self:GetPos(),self:GetAngles()))
+		if IsValid(self:GetTarget()) then
+			if self.canusespotlight and not self.skyhammeractive then
+				self.Spotlight:SetBrightness(10)
+				self.Spotlight:SetAngles((self:GetTargetPos()-self.Spotlight:GetPos()):Angle())
+			else
+				self.Spotlight:SetBrightness(0)
+			end
+
+			if self.skyhammeractive then
+				self.Skyhammer:SetBrightness(10)
+				self.Skyhammer:SetAngles((self:GetTargetPos()-self.Skyhammer:GetPos()):Angle())
+			else
+				self.Skyhammer:SetBrightness(0)
+			end
 		else
 			self.Spotlight:SetBrightness(0)
+			self.Skyhammer:SetBrightness(0)
 		end
 		self.Spotlight:Update()
+		self.Skyhammer:Update()
 	end
 
 	if not self.NextGroundFX then self.NextGroundFX = 0 end
@@ -206,5 +241,9 @@ function ENT:OnRemove()
 	
 	if self.Spotlight and IsValid(self.Spotlight) then
 		self.Spotlight:Remove()
+	end
+
+	if self.Skyhammer and IsValid(self.Skyhammer) then
+		self.Skyhammer:Remove()
 	end
 end

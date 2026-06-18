@@ -46,6 +46,9 @@ NETWORK_STRINGS = {
 	
 	"UVWeaponJammerEnable",
 	"UVWeaponJammerDisable",
+
+	"UVWeaponSkyhammerEnable",
+	"UVWeaponSkyhammerDisable",
 	
 	-- Repair Shop
 	"UVHUDRepairCooldown",
@@ -3062,20 +3065,20 @@ function UVAddUnit(vehicle, ply)
 end
 
 function UVChangeTactics(tactic)
-	if not tactic or next(UVUnitsChasing) == nil then return end
-	
-	--Clear existing formations
-	local AvailableUnits = {}
-	for k, v in pairs(UVUnitsChasing) do
-		if v.formationpoint then
-			v.formationpoint = nil
-		end
-		table.insert(AvailableUnits, v)
-	end
+    if not tactic or next(UVUnitsChasing) == nil then return end
 
-	local FormationPoints
-	
-	if tactic == 0 then --No formation
+	--Clear existing formations
+    local AvailableUnits = {}
+    for k, v in pairs(UVUnitsChasing) do
+        if v.formationpoint then
+            v.formationpoint = nil
+        end
+        table.insert(AvailableUnits, v)
+    end
+
+    local FormationPoints
+
+    if tactic == 0 then --No formation
 		return
 	elseif tactic == 1 then --Box formation
 		FormationPoints = {
@@ -3157,34 +3160,99 @@ function UVChangeTactics(tactic)
 		}
 	end
 
-	local oneunit = #UVUnitsChasing == 1
-	local shouldstaybehind = {
-		npc_uvpatrol = true,
-		npc_uvsupport = true,
-	}
+    local oneunit = #AvailableUnits == 1
+    local shouldstaybehind = {
+        npc_uvpatrol = true,
+        npc_uvsupport = true,
+    }
 
-	if FormationPoints and istable(FormationPoints) then
-		for i = 1, #UVUnitsChasing do
-			if next(FormationPoints) == nil or next(AvailableUnits) == nil then break end
-			local unit = AvailableUnits[1]
-			local point = FormationPoints[1]
+    if FormationPoints and istable(FormationPoints) then
+        local centerPos = Vector(0, 0, 0)
+        local centerYaw = 0
+        local validCount = 0
 
-			if oneunit and shouldstaybehind[unit:GetClass()] then
-				point = Vector(0,-300,0)
-			end
+        for i = 1, #AvailableUnits do
+            local unit = AvailableUnits[i]
+            if unit.e and unit.e:IsValid() then
+                centerPos = centerPos + unit.e:GetPos()
+                validCount = validCount + 1
+                
+                if centerYaw == 0 then
+                    if unit.e.IsSimfphyscar and unit.e.VehicleData and unit.e.VehicleData.LocalAngForward then
+                        centerYaw = unit.e.VehicleData.LocalAngForward.y - 90
+                    elseif unit.e.GetForward then
+                        centerYaw = unit.e:GetForward().y - 90
+                    end
+                end
+            end
+        end
 
-			if unit.e then
-				if unit.e.IsSimfphyscar then
-					point:Rotate(Angle(0, (unit.e.VehicleData.LocalAngForward.y-90), 0))
-				elseif unit.e.IsGlideVehicle then
-					point:Rotate(Angle(0, (unit.e:GetForward().y-90), 0))
-				end
-			end
-			unit.formationpoint = point
-			table.RemoveByValue(AvailableUnits, unit)
-			table.RemoveByValue(FormationPoints, point)
-		end
-	end
+        if validCount > 0 then
+            centerPos = centerPos / validCount
+        end
+        local centerAng = Angle(0, centerYaw, 0)
+
+        local mappedPoints = {}
+        for i = 1, #FormationPoints do
+            local localPt = FormationPoints[i]
+            local worldPt = Vector(localPt.x, localPt.y, localPt.z)
+            worldPt:Rotate(centerAng)
+            worldPt = centerPos + worldPt
+            
+            mappedPoints[i] = {
+                localPt = localPt,
+                worldPt = worldPt
+            }
+        end
+
+        for i = 1, #mappedPoints do
+            if #AvailableUnits == 0 then break end
+
+            local ptData = mappedPoints[i]
+            local worldPt = ptData.worldPt
+            local localPt = ptData.localPt
+
+            local closestUnitIdx = -1
+            local closestDist = math.huge
+            local closestUnit = nil
+
+            for j = 1, #AvailableUnits do
+                local unit = AvailableUnits[j]
+                if unit.e and unit.e:IsValid() then
+                    local distSqr = unit.e:GetPos():DistToSqr(worldPt)
+                    if distSqr < closestDist then
+                        closestDist = distSqr
+                        closestUnitIdx = j
+                        closestUnit = unit
+                    end
+                end
+            end
+
+            if closestUnit then
+                local finalPoint = Vector(localPt.x, localPt.y, localPt.z)
+
+                if oneunit and shouldstaybehind[closestUnit:GetClass()] then
+                    finalPoint = Vector(0, -300, 0)
+                end
+
+                if closestUnit.e then
+                    if closestUnit.e.IsSimfphyscar and closestUnit.e.VehicleData and closestUnit.e.VehicleData.LocalAngForward then
+                        finalPoint:Rotate(Angle(0, (closestUnit.e.VehicleData.LocalAngForward.y - 90), 0))
+                    elseif closestUnit.e.IsGlideVehicle and closestUnit.e.GetForward then
+                        finalPoint:Rotate(Angle(0, (closestUnit.e:GetForward().y - 90), 0))
+                    end
+                end
+
+                closestUnit.formationpoint = finalPoint
+
+                local lastIdx = #AvailableUnits
+                if closestUnitIdx ~= lastIdx then
+                    AvailableUnits[closestUnitIdx] = AvailableUnits[lastIdx]
+                end
+                AvailableUnits[lastIdx] = nil
+            end
+        end
+    end
 end
 
 function UVEndTrafficStop( target )
@@ -4455,13 +4523,12 @@ end
 local ActionCamSettings = {
     ["RaceStart"] = {
 		Convar = ActionCamRaceStart,
-        Duration = 4,
-        TimeScale = 1
+        Duration = 4
     },
     ["RaceFinish"] = {
 		Convar = ActionCamRaceFinish,
         Duration = 5,
-        TimeScale = 0.5,
+        TimeScale = 0.25,
 		AIControl = true
     },
     ["Crash"] = {
@@ -4507,6 +4574,15 @@ function UVActionCam(ply, type, entity, pbdata)
 
 	if ActionCamSettings[type].AIControl and not vehicle.UnitVehicle then
 		ply.ActionCamAIControl = true
+
+		--blackbox style trick (SINGLEPLAYER ONLY)
+		if game.SinglePlayer() and not vehicle.ghoston then
+			vehicle.aicontrolled = true --AI should not use juggernaut and ghost
+			timer.Simple(0, function()
+				vehicle:SetCollisionGroup(20)
+			end)
+		end
+
 		local uv = ents.Create("npc_racervehicle")
 		uv:SetPos(vehicle:GetPos())
 		uv.temporary = true

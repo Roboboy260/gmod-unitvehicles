@@ -139,7 +139,10 @@ if SERVER then
             ent.DontUnweldProps = dontunweldprops
             ent:AddCallback("PhysicsCollide", function(ent, data)
                 local object = data.HitEntity
-                
+                if not UVLoadedPursuitBreakers[ent.PursuitBreakerID] then
+                    return
+                end
+
                 if data.Speed > 10 and not object:IsWorld() and not object.PursuitBreaker then
                     if ent.PursuitBreaker then
                         UVTriggerPursuitBreaker(ent, object, data.TheirOldVelocity)

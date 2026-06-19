@@ -603,6 +603,7 @@ concommand.Add("uv_clearbounty", function(ply)
 	
 	for _, v in pairs(UVPursuitScopes) do
 		v.Bounty = 0
+		v.Heat = 1
 	end
 end)
 

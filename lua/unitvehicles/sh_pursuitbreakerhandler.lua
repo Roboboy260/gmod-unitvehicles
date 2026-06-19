@@ -239,6 +239,8 @@ if SERVER then
         if hitent.PursuitBreakerActive or not hitent.PursuitBreaker then return end
         
         local id = hitent.PursuitBreakerID
+        if not UVLoadedPursuitBreakers[id] then return end
+        
         local pbdata = hitent.PursuitBreakerData
         local location = hitent.PursuitBreakerLoc
         local activeduration = hitent.ActiveDuration or 10

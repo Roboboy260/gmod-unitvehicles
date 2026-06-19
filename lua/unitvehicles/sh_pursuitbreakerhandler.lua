@@ -279,6 +279,10 @@ if SERVER then
             if not dontunweldprops then
                 UVRemoveConstraints(ent, "Weld") --Unweld everything but thrusters
             end
+
+            if not IsValid(ent) then
+                continue
+            end
             
             if ent:GetClass() == "gmod_thruster" then
                 ent:SetOn(true)

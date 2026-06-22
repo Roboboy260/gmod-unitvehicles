@@ -30,6 +30,7 @@ if SERVER then
         local location = pbdata.Location or pbdata.Maxs
         local activeduration = pbdata.ActiveDuration or 10
         local dontunweldprops = pbdata.DontUnweldProps or nil
+        local disableactioncam = pbdata.DisableActionCam or nil
         
         if checkdistance then
             local ply = ents.FindByClass('player')[1]
@@ -137,6 +138,7 @@ if SERVER then
             ent.PursuitBreakerData = pbdata
             ent.ActiveDuration = activeduration
             ent.DontUnweldProps = dontunweldprops
+            ent.DisableActionCam = disableactioncam
             ent:AddCallback("PhysicsCollide", function(ent, data)
                 local object = data.HitEntity
                 if not UVLoadedPursuitBreakers[ent.PursuitBreakerID] then
@@ -148,7 +150,7 @@ if SERVER then
                         UVTriggerPursuitBreaker(ent, object, data.TheirOldVelocity)
 
                         local driver = UVGetDriver(object)
-                        if driver and not object.UnitVehicle then
+                        if not ent.DisableActionCam and driver and not object.UnitVehicle then
                             local tabledata = {}
                             tabledata.Name = pbdata.jsonfile
                             tabledata.Location = pbdata.Location
@@ -245,6 +247,7 @@ if SERVER then
         local location = hitent.PursuitBreakerLoc
         local activeduration = hitent.ActiveDuration or 10
         local dontunweldprops = hitent.DontUnweldProps or nil
+        local disableactioncam = hitent.DisableActionCam or nil
         local entities = UVLoadedPursuitBreakers[id].entities
         local constraints = UVLoadedPursuitBreakers[id].constraints
         

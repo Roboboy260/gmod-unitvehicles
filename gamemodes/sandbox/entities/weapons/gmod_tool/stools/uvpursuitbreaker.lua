@@ -62,12 +62,15 @@ if SERVER then
 		local name = net.ReadString()
 		local duration = net.ReadInt(32)
 		local dontunweld = net.ReadBool()
+		local disableactioncam = net.ReadBool()
 
 		local keyduration = "ActiveDuration"
 		local keydontunweld = "DontUnweldProps"
+		local keydisableactioncam = "DisableActionCam"
 
 		ply.UVPBTOOLMemory[keyduration] = duration
 		ply.UVPBTOOLMemory[keydontunweld] = dontunweld
+		ply.UVPBTOOLMemory[keydisableactioncam] = disableactioncam
 
 		local jsondata = util.TableToJSON(ply.UVPBTOOLMemory)
 		file.Write("unitvehicles/pursuitbreakers/"..game.GetMap().."/"..name..".json", jsondata)
@@ -127,7 +130,7 @@ if CLIENT then
 		local OK = vgui.Create("DButton")
 
 		PursuitBreakerAdjust:Add(OK)
-		PursuitBreakerAdjust:SetSize(400, 220)
+		PursuitBreakerAdjust:SetSize(400, 240)
 		PursuitBreakerAdjust:SetBackgroundBlur(true)
 		PursuitBreakerAdjust:Center()
 		PursuitBreakerAdjust:SetTitle("#tool.uvpursuitbreaker.name")
@@ -160,6 +163,12 @@ if CLIENT then
 		DontUnweldProps:SetValue( 0 )
 		DontUnweldProps:SetTooltip( "#tool.uvpursuitbreaker.create.keepweld.desc" )
 
+		local DisableActionCam = vgui.Create( "DCheckBoxLabel", PursuitBreakerAdjust )
+		DisableActionCam:SetPos( 20, 180 )
+		DisableActionCam:SetText( "#tool.uvpursuitbreaker.create.disableactioncam" )
+		DisableActionCam:SetValue( 0 )
+		DisableActionCam:SetTooltip( "#tool.uvpursuitbreaker.create.disableactioncam.desc" )
+
 		OK:SetText("#uv.tool.create")
 		OK:SetSize(PursuitBreakerAdjust:GetWide() * 5 / 16, 22)
 		OK:Dock(BOTTOM)
@@ -174,6 +183,7 @@ if CLIENT then
 				net.WriteString(Name)
 				net.WriteInt(ActiveDuration:GetValue(), 32)
 				net.WriteBool(DontUnweldProps:GetChecked())
+				net.WriteBool(DisableActionCam:GetChecked())
 				net.SendToServer() --Create Pursuit Breaker
 				
 				UVPursuitBreakerScrollPanel:Clear() 

@@ -108,10 +108,12 @@ if SERVER then
 			end
 		end)
 
-		if self.uvdeployed.UnitVehicle and self.taggedobject.UVWanted then
-			UVChatterGPSDartHit(self.uvdeployed.UnitVehicle)
-		else
-			UVChatterGPSDartMissed(self.uvdeployed.UnitVehicle)
+		if self.uvdeployed and self.uvdeployed.UnitVehicle then
+			if self.taggedobject.UVWanted then
+				UVChatterGPSDartHit(self.uvdeployed.UnitVehicle)
+			else
+				UVChatterGPSDartMissed(self.uvdeployed.UnitVehicle)
+			end
 		end
 	end
 

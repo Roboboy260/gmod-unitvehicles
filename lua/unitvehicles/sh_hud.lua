@@ -9,6 +9,7 @@ UV.Tips.Racer = {
 	-- General Pursuit Tech
 	"uv.tip.pt.emp1",
 	"uv.tip.pt.emp2",
+	"uv.tip.pt.emp3",
 	"uv.tip.pt.esf1",
 	"uv.tip.pt.esf2",
 	"uv.tip.pt.repairkit1",
@@ -27,6 +28,7 @@ UV.Tips.Racer = {
 	"uv.tip.racer.pt.ghost1",
 
 	"uv.tip.racer.pt.killswitch1",
+	"uv.tip.racer.pt.skyhammer1",
 	"uv.tip.racer.pt.shockram1",
 	"uv.tip.racer.pt.gpsdart1",
 	"uv.tip.racer.pt.grappler1",

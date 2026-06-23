@@ -2,6 +2,8 @@ AddCSLuaFile()
 
 local dvd = DecentVehicleDestination
 
+local Chatter = GetConVar("unitvehicle_chatter")
+
 local temp_keybinds = {
     [KEY_T] = 1,
     [KEY_P] = 2,
@@ -1382,7 +1384,7 @@ if SERVER then
             if CurTime() - pursuit_tech.LastUsed < Cooldown then return end
 
             if car.UnitVehicle then
-                UVChatterSpikeStripDeployed(car)
+                UVChatterSpikeStripDeployed(car.UnitVehicle)
             end
 
             UVDeploySpikeStrip(car, not car.UnitVehicle)
@@ -1407,7 +1409,7 @@ if SERVER then
             if CurTime() - pursuit_tech.LastUsed < Cooldown then return end
 
             if car.UnitVehicle then
-                UVChatterRepairKitDeployed(car)
+                UVChatterRepairKitDeployed(car.UnitVehicle)
             end
             
             local repaired = UVDeployRepairKit(car)
@@ -1624,7 +1626,11 @@ if SERVER then
         local target, targetDriver, targetCreationID, targetEntityIndex = nil
 
         if isUnit or RacerFriendlyFire:GetBool() then table.Add( vehiclePool, UVPotentialSuspects ) end
-        if not isUnit then table.Add( vehiclePool, UVUnitVehicles ) end
+        if not isUnit then 
+            table.Add( vehiclePool, UVUnitVehicles ) 
+            local airUnits = ents.FindByClass("uvair")
+		    table.Merge(vehiclePool, airUnits)
+        end
 
         local shortestTargetDistance = math.huge
         local maxDistance = math.pow( ( isUnit and UVUnitPTEMPMaxDistance:GetInt() ) or UVPTEMPMaxDistance:GetInt(), 2 )
@@ -1698,7 +1704,7 @@ if SERVER then
                 globalCleanup()
 
                 if car.UnitVehicle then
-                    UVChatterEMPMissed(car)
+                    UVChatterEMPMissed(car.UnitVehicle)
                 end
 
                 car:StopSound("gadgets/emp/lockfromloop.wav")
@@ -1722,7 +1728,7 @@ if SERVER then
                     )
 
                     if car.UnitVehicle then
-                        UVChatterEMPMissed(car)
+                        UVChatterEMPMissed(car.UnitVehicle)
                     end
 
                     car:StopSound("gadgets/emp/lockfromloop.wav")
@@ -1747,7 +1753,35 @@ if SERVER then
 					force = force * 2
 				end
 
-                if not target.esfon then
+                if target:GetClass() == "uvair" then
+                    if target.damagecooldown or target.engaging or target.crashing then return end
+
+	                target.damagecooldown = true
+                    target.engaging = nil
+                    target.disengaging = true
+
+	                timer.Simple(1, function() target.damagecooldown = nil end)
+
+	                if not target.damaged then
+	                	target.damaged = true
+	                	target:SetHealth(target:Health()/2)
+	                	ParticleEffectAttach("smoke_burning_engine_01", PATTACH_ABSORIGIN_FOLLOW, target, 0)
+	                	if Chatter:GetBool() then
+	                		UVSoundChatter(target, target.voice, "hitptemp")
+	                	end
+	                else
+	                	MathCrash = math.random(1,2)
+	                	if MathCrash == 1 then
+	                		target:StartCrush()
+	                	else
+	                		target:Explode()
+	                	end
+	                end
+                
+	                if not UVTargeting then
+	                	UVTargeting = true
+	                end
+                elseif not target.esfon then
                     UVDamage( 
                         target, 
                         damage
@@ -1801,7 +1835,7 @@ if SERVER then
                 target:StopSound("gadgets/emp/lockonloop.wav")
 
                 if car.UnitVehicle then
-                    UVChatterEMPHit(car)
+                    UVChatterEMPHit(car.UnitVehicle)
                 end
             end
         end )
@@ -1822,7 +1856,7 @@ if SERVER then
         )
 
         if car.UnitVehicle then
-            UVChatterEMPDeployed(car)
+            UVChatterEMPDeployed(car.UnitVehicle)
         end
 
         return true
@@ -1967,7 +2001,7 @@ if SERVER then
         net.Broadcast()
 
         if car.UnitVehicle then
-            UVChatterESFDeployed(car)
+            UVChatterESFDeployed(car.UnitVehicle)
         end
     end
     
@@ -1998,7 +2032,7 @@ if SERVER then
             car.uvesfhit = nil
             
             if car.UnitVehicle then
-                UVChatterESFMissed(car)
+                UVChatterESFMissed(car.UnitVehicle)
             end
         end
     end
@@ -2036,6 +2070,12 @@ if SERVER then
                 local lockontime = skyhammer and UVUnitPTKillSwitchLockOnTime:GetInt() * 2 or UVUnitPTKillSwitchLockOnTime:GetInt()
 
                 ReportPTEvent( car, closestsuspect, weapon, 'Locking' )
+
+                if car.UnitVehicle then
+                    UVChatterKillswitchStart(car.UnitVehicle)
+                elseif skyhammer then
+                    UVChatterSkyhammerStart(car)
+                end
 
                 timer.Simple(lockontime, function() --HIT
                     if IsValid(car) and IsValid(car.uvkillswitchingtarget) then
@@ -2105,6 +2145,8 @@ if SERVER then
                             car.uvkillswitchingtarget = nil
                             if car.UnitVehicle then
                                 UVChatterKillswitchHit(car.UnitVehicle)
+                            elseif car:GetClass() == "uvair" then
+                                UVChatterSkyhammerHit(car)
                             end
                         end
                     end
@@ -2141,7 +2183,7 @@ if SERVER then
         local enemy = car.uvkillswitchingtarget
         local AI = car.UnitVehicle
         
-        if not IsValid(enemy) or (UVJammerDeployed and not car.exemptfromjammer) then
+        if not IsValid(enemy) or car.damagecooldown or car.crashing or (UVJammerDeployed and not car.exemptfromjammer) then
             UVDeactivateKillSwitch(car)
             return
         end
@@ -2204,6 +2246,8 @@ if SERVER then
         -- car.uvkillswitchingtarget = nil
         if car.UnitVehicle then
             UVChatterKillswitchMissed(car.UnitVehicle)
+        elseif car:GetClass() == "uvair" then
+            UVChatterSkyhammerMissed(car)
         end
 
     end
@@ -2575,7 +2619,7 @@ if SERVER then
         net.Broadcast()
 
         if car.UnitVehicle then
-            UVChatterGrapplerDeployed(car)
+            UVChatterGrapplerDeployed(car.UnitVehicle)
         end
     end
     
@@ -2599,7 +2643,7 @@ if SERVER then
 
         timer.Simple(1, function()
             if IsValid(car) and car.UnitVehicle and not IsValid(car.grappler) then
-                UVChatterGrapplerMissed(car)
+                UVChatterGrapplerMissed(car.UnitVehicle)
             end
         end)
     end
@@ -2717,7 +2761,7 @@ if SERVER then
         ReportPTEvent( car, object, 'Grappler', 'Hit' )
 
         if car.UnitVehicle then
-            UVChatterGrapplerHit(car)
+            UVChatterGrapplerHit(car.UnitVehicle)
         end
     end
     

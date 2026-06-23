@@ -1255,11 +1255,11 @@ if SERVER then
 		end
 	end
 	
-	function UVChatterKillswitchStart(self)
+	function UVChatterKillswitchStart( self )
 		return UVSoundChatter(self, self.voice, "ptkillswitchstart")
 	end
 	
-	function UVChatterKillswitchMissed(self)
+	function UVChatterKillswitchMissed( self )
 		return UVSoundChatter(self, self.voice, "ptkillswitchmissed")
 	end
 
@@ -1323,16 +1323,28 @@ if SERVER then
 		return UVSoundChatter(self, self.voice, "ptgrapplermissed")
 	end
 
-	function UVChatterRepairKitDeployed(self)
+	function UVChatterRepairKitDeployed( self )
 		return UVSoundChatter(self, self.voice, "ptrepairkitdeployed")
 	end
 	
-	function UVChatterKillswitchHit(self)
+	function UVChatterKillswitchHit( self )
 		return UVSoundChatter(self, self.voice, "ptkillswitchhit")
 	end
 	
-	function UVChatterSpikeStripDeployed(self)
+	function UVChatterSpikeStripDeployed( self )
 		return UVSoundChatter(self, self.voice, "ptspikestripdeployed")
+	end
+
+	function UVChatterSkyhammerStart( self )
+		return UVSoundChatter(self, self.voice, "ptskyhammerstart")
+	end
+
+	function UVChatterSkyhammerHit( self )
+		return UVSoundChatter(self, self.voice, "ptskyhammerhit")
+	end
+
+	function UVChatterSkyhammerMissed( self )
+		return UVSoundChatter(self, self.voice, "ptskyhammermissed")
 	end
 	
 	function UVChatterBusting(self)

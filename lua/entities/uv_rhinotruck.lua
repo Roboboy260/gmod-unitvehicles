@@ -331,6 +331,7 @@ if SERVER then
                 self:SetBodygroup( 1, 1 )
                 self.frontdamaged = 1
             elseif self.frontdamaged < 2 then
+                self:SetBodygroup( 1, 1 )
                 self:SetSubMaterial(16, "models/unitvehiclescars/shared/windowdamage")
                 self.frontdamaged = 2
             end

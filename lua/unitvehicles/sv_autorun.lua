@@ -4129,7 +4129,7 @@ function UVUnitIsWrecked(vehicle)
 	local vehicleVelSqr = vehicle:GetVelocity():LengthSqr()
 
 	local isNPC = vehicle.UnitVehicle and vehicle.UnitVehicle:IsNPC()
-	local isJeepNoHealth = vehicle:Health() <= 0 and vehicle:GetClass() == "prop_vehicle_jeep"
+	local isJeepNoHealth = vehicle:Health() < 0 and vehicle:GetClass() == "prop_vehicle_jeep"
 	local isCommander = vehicle.uvclasstospawnon == "npc_uvcommander"
 	local isFlipped = vehiclePhys:IsValid() and vehicleAngles.z > 90 and vehicleAngles.z < 270
 	local isFlipCrashAllowed = not isCommander and not vehicle.RacerVehicle and CanWreck:GetBool()

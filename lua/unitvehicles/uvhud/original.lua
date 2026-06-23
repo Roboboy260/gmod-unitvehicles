@@ -646,7 +646,7 @@ UV_UI.pursuit.original.events = {
         TipsPanel.Paint = function(self, w, h)
             draw.RoundedBox(2, 0, 0, w, h, Color(0,0,0,225))
 
-            local finesduetext = "<color=255,255,255><font=UVFont2-Smaller>" .. UVString("uv.results.chase.fines") .. ": $" .. UVFinesDue .. "</font></color>"
+            local finesduetext = "<color=255,255,255><font=UVFont2-Smaller>" .. UVString("uv.results.chase.fines") .. ": $" .. (UVFinesDue or 0) .. "</font></color>"
             markup.Parse(finesduetext, w):Draw((w / 2), bly, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
 
 		    local tiptext = "<color=255,255,255><font=UVFont2-Smaller>" .. UVReplaceKeybinds( string.format(UVString("uv.tip"), UVString(randomTipText) ), "Big") .. "</font></color>"

@@ -10,36 +10,59 @@ ENT.AdminOnly = false
 
 if SERVER then
     local AutoHealth = GetConVar("unitvehicle_autohealth")
-	local RepairCooldown = GetConVar("unitvehicle_repaircooldown")
-	local RepairRange = GetConVar("unitvehicle_repairrange")
-	local AutoHealth = GetConVar("unitvehicle_autohealth")
-	
-	function ENT:Initialize()
-		self:SetModel("models/unitvehiclesprops/uvrepairstation/uvrepairstation.mdl")
-		self:PhysicsInit(SOLID_VPHYSICS)
-		self:SetMoveType(MOVETYPE_VPHYSICS)
-		self:SetSolid(SOLID_VPHYSICS)
-		self:SetCollisionGroup(COLLISION_GROUP_WORLD)
-		self:GetPhysicsObject():EnableMotion(false)
-		net.Start("UVHUDAddUV")
-		net.WriteInt(self:EntIndex(), 32)
-		net.WriteInt(self:GetCreationID(), 32)
-		net.WriteString("repairshop")
-		net.Broadcast()
+    local RepairCooldown = GetConVar("unitvehicle_repaircooldown")
+    local RepairRange = GetConVar("unitvehicle_repairrange")
+    
+    function ENT:Initialize()
+        self:SetModel("models/unitvehiclesprops/uvrepairstation/uvrepairstation.mdl")
+        self:PhysicsInit(SOLID_VPHYSICS)
+        self:SetMoveType(MOVETYPE_VPHYSICS)
+        self:SetSolid(SOLID_VPHYSICS)
+        
+        local phys = self:GetPhysicsObject()
+        if IsValid(phys) then
+            phys:EnableMotion(false)
+        end
+
+        local trigger = ents.Create("base_anim")
+        trigger:SetModel("models/hunter/blocks/cube025x025x025.mdl")
+        trigger:SetPos(self:WorldSpaceCenter())
+        trigger:SetAngles(self:GetAngles())
+        trigger:Spawn()
+        trigger:SetNoDraw(true)
+        trigger:PhysicsInitSphere(RepairRange:GetInt(), "default")
+        trigger:SetCollisionGroup(COLLISION_GROUP_NONE)
+        trigger:SetNotSolid(true)
+        trigger:SetTrigger(true)
+        
+        local triggerPhys = trigger:GetPhysicsObject()
+        if IsValid(triggerPhys) then
+            triggerPhys:EnableMotion(false)
+        end
+        
+        self.RepairTrigger = trigger
+        
+        function trigger:Touch(v)
+            if IsValid(v) and not v.uvrepairdelayed and not v.wrecked then
+                if v:GetClass() == "prop_vehicle_jeep" or v.IsSimfphyscar or v.IsGlideVehicle or (v.LVS and v.BaseClass and v.BaseClass.ClassName == "lvs_base_wheeldrive") then
+                    UVRepair(v)
+                end
+            end
+        end
+
+        -- Networking HUD stuff...
+        net.Start("UVHUDAddUV")
+        net.WriteInt(self:EntIndex(), 32)
+        net.WriteInt(self:GetCreationID(), 32)
+        net.WriteString("repairshop")
+        net.Broadcast()
 	end
-	
-	function ENT:Think()
-		local vehicles = ents.FindInSphere(self:WorldSpaceCenter(), RepairRange:GetInt())
-		for k, v in pairs(vehicles) do
-			if not v.uvrepairdelayed and 
-			not v.wrecked and 
-			(v:GetClass() == "prop_vehicle_jeep" or v.IsSimfphyscar or v.IsGlideVehicle or (v.LVS and v.BaseClass.ClassName == "lvs_base_wheeldrive"))
-			then
-			-- and not table.HasValue(UVCommanders, v) then
-				UVRepair(v)
-			end
-		end
-	end
+
+	function ENT:OnRemove()
+        if IsValid(self.RepairTrigger) then
+            self.RepairTrigger:Remove()
+        end
+    end
 
 else
     function ENT:Draw()   

@@ -830,7 +830,9 @@ if SERVER then
 	function UVRaceBegin()
 		--Unfreeze all participants
 		for _, vehicle in pairs( UVRaceCurrentParticipants ) do
+			print("??????")
 			vehicle:GetPhysicsObject():EnableMotion( true )
+			vehicle:PhysWake()
 			if vehicle.PursuitTech then
 				for i, v in pairs(vehicle.PursuitTech) do
 					v.LastUsed = CurTime()

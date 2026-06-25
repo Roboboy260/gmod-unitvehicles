@@ -679,7 +679,7 @@ if CLIENT then
 
     hook.Add("CalcView", "UVActionCam", function(ply, origin, angles, fov, znear, zfar)
         
-        UVLastVehicleDriven = IsValid(UVGetVehicle(ply)) and UVGetVehicle(ply) or UVLastVehicleDriven or ply
+        UVLastVehicleDriven = IsValid(UVGetVehicle(ply)) and UVGetVehicle(ply) or IsValid(UVLastVehicleDriven) and UVLastVehicleDriven or ply
 
         if UVActionCam == "Spotted" and IsValid(spectateEnt) then --Spotted
 

@@ -1446,14 +1446,14 @@ UVUBountyCommander = CreateConVar("unitvehicle_unit_bountycommander", 100000, {F
 UVUBountyRhino = CreateConVar("unitvehicle_unit_bountyrhino", 50000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 	
 local defaultvoicetable = {
-	"cop1, cop2, cop3, cop4, cop5", --Patrol
-	"cop1, cop2, cop3, cop4, cop5", --Support
-	"cop1, cop2, cop3, cop4, cop5", --Pursuit
-	"cop1, cop2, cop3, cop4, cop5", --Interceptor
-	"cop1, cop2, cop3, cop4, cop5", --Special
+	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Patrol
+	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Support
+	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Pursuit
+	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Interceptor
+	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Special
 	"commander1", --Commander
-	"rhino1", --Rhino
-	"air", --Air
+	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Rhino
+	"air1", --Air
 }
 
 local ReplicatedVars = {
@@ -2708,7 +2708,7 @@ if SERVER then
 			
 			local vScope = UVGetScope(v)
 			if not vScope then continue end
-			local visualrange = vScope.Hiding and 1000000 or 25000000
+			local visualrange = (vScope.Hiding or (not vScope.InPursuit and UVCheckIfHiding(v))) and 1000000 or 25000000
 			vScope.UnitsChasing = 0
 			
 			v.closestunit = nil

@@ -2,8 +2,6 @@ AddCSLuaFile()
 
 local dvd = DecentVehicleDestination
 
-local Chatter = GetConVar("unitvehicle_chatter")
-
 local temp_keybinds = {
     [KEY_T] = 1,
     [KEY_P] = 2,

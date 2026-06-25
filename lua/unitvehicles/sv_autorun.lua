@@ -2846,7 +2846,7 @@ function UVIsSeenByUnit(vehicle)
 	local airUnits = ents.FindByClass("uvair")
 
 	local vScope = UVGetScope(vehicle)
-	local visualrange = (vScope and vScope.Hiding) and 1000000 or 25000000
+	local visualrange = (vScope and (vScope.Hiding or (not vScope.InPursuit and UVCheckIfHiding(vehicle)))) and 1000000 or 25000000
 
 	for w, _ in pairs(units) do
 		if not IsValid(w) then continue end

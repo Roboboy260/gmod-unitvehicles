@@ -464,7 +464,7 @@ function ENT:PhysicsUpdate()
 
 		local targetpos = vector_origin
 		if isValidTarget then
-			if self.aggressive and not self.engaging and not self.WeaponChoice == 'skyhammer' then
+			if self.aggressive and not self.engaging and self.WeaponChoice ~= 'skyhammer' then
 				targetpos = (self:GetTargetPos()+self:GetTarget():GetVelocity())
 			else
 				targetpos = self:GetTargetPos()

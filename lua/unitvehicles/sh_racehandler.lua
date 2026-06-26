@@ -1387,6 +1387,12 @@ if SERVER then
 			end
 		end
 
+		for _, v in pairs( ents.FindByClass("npc_trafficvehicle") ) do
+			if IsValid(v) then
+				v:Remove()
+			end
+		end
+
 		-- Add player vehicle if not already a participant
 		for _, v in ents.Iterator() do
 			if not table.HasValue(UVRaceCurrentParticipants, v) then

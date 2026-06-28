@@ -1599,7 +1599,7 @@ UVMenu.HeatManager = function()
 			table.insert(heatTab, { type = "slider", text = "uv.hm.heat.heatlvl.time", desc = "uv.hm.heat.heatlvl.time.desc", convar = "unitvehicle_unit_timetillnextheat" .. i, min = 20, max = 600, decimals = 0, sv = true })
 		end
 
-		table.insert(heatTab, { type = "slider", text = "uv.hm.heat.minbounty", desc = "uv.hm.heat.minbounty.desc", convar = "unitvehicle_unit_heatminimumbounty" .. i, min = 1, max = 999999999, decimals = 0, sv = true })
+		table.insert(heatTab, { type = "slider", text = "uv.hm.heat.minbounty", desc = "uv.hm.heat.minbounty.desc", convar = "unitvehicle_unit_heatminimumbounty" .. i, min = 0, max = 999999999, decimals = 0, sv = true })
 		table.insert(heatTab, { type = "slider", text = "uv.hm.heat.maxunits", desc = "uv.hm.heat.maxunits.desc", convar = "unitvehicle_unit_maxunits" .. i, min = 1, max = 40, decimals = 0, sv = true })
 		table.insert(heatTab, { type = "slider", text = "uv.hm.heat.avaunits", desc = "uv.hm.heat.avaunits.desc", convar = "unitvehicle_unit_unitsavailable" .. i, min = 1, max = 1000, decimals = 0, sv = true })
 		table.insert(heatTab, { type = "slider", text = "uv.hm.heat.backuptime", desc = "uv.hm.heat.backuptime.desc", convar = "unitvehicle_unit_backuptimer" .. i, min = 1, max = 600, decimals = 0, sv = true })

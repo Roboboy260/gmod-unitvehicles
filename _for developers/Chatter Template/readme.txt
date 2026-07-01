@@ -189,7 +189,7 @@ identify = "Unit 1, X-Ray 2, Yankee 5 (generic, you can come up with your own "i
     - *name of Unit class* = "*name of Unit class* (ex. This is Interceptor Unit)"
 inperson
     - finearrest = "YOU ARE UNDER ARREST!"
-    - finearrest = "DRIVE CAREFULLY!"
+    - finepaid = "DRIVE CAREFULLY!"
 leftpursuit = "I have fallen behind, leaving the pursuit"
 losing = "I have lost the suspect, trying to regain visual"
 lost = "We lost the suspect, unable to locate again, suggest to call off pursuit or request a follow-up from dispatch"

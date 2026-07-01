@@ -667,7 +667,7 @@ if SERVER then
 			local locationFiles = CachedFileFind("sound/chatter2/"..unitVoiceProfile.."/dispatch/d_location/*", "GAME")
 			table.Shuffle(locationFiles)
 			local locationFile
-			if locationFiles then
+			if locationFiles and next(locationFiles) ~= nil then
 				locationFile = "chatter2/"..unitVoiceProfile.."/dispatch/d_location/"..locationFiles[1]
 			end
 			

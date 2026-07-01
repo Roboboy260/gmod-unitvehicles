@@ -607,6 +607,8 @@ if SERVER then
         timer.Simple(1, function()
             NPC.uvmarkedfordeletion = true
         end)
+
+        NPC.tableroutetoenemy = {}
         
         -- local phys = vehicle:GetPhysicsObject()
         -- phys:SetVelocity(vector_origin)

@@ -600,6 +600,7 @@ if SERVER then
 
 		self:SetNoDraw(true)
 		self:SetMoveType(MOVETYPE_NONE)
+		self:SetSolid(SOLID_NONE)
 		self:SetModel(self.Modelname)
 		self:SetHealth(-1)
 		self.spawned = true
@@ -828,6 +829,7 @@ else --if CLIENT
 	function ENT:Initialize()
 		self:SetNoDraw(true)
 		self:SetMoveType(MOVETYPE_NONE)
+		self:SetSolid(SOLID_NONE)
 		self:SetModel(self.Modelname)
 	end
 end --if SERVER

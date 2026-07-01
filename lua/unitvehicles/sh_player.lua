@@ -2192,7 +2192,8 @@ if SERVER then
         local tr = util.TraceLine({
     	    start = carPos,
     	    endpos = enemy:WorldSpaceCenter(),
-    	    mask = MASK_NPCWORLDSTATIC
+            filter = {car, enemy},
+    	    mask = MASK_OPAQUE
     	})
 
         local visual = tr.Fraction == 1

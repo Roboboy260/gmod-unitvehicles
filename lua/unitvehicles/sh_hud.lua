@@ -677,6 +677,14 @@ if CLIENT then
         RunConsoleCommand("cl_drawhud", 1)
     end)
 
+	hook.Add( "Glide_OnLocalEnterVehicle", "UVActionCamGlideFix", function( vehicle, seatIndex )
+	    if Glide then
+            if not Glide.Camera.isActive and IsValid(Glide.Camera.vehicle) and _OldGlideCameraFunction then
+                Glide.Camera.ShouldBeActive = _OldGlideCameraFunction
+            end
+        end
+	end)
+
     hook.Add("CalcView", "UVActionCam", function(ply, origin, angles, fov, znear, zfar)
         
         UVLastVehicleDriven = IsValid(UVGetVehicle(ply)) and UVGetVehicle(ply) or IsValid(UVLastVehicleDriven) and UVLastVehicleDriven or ply

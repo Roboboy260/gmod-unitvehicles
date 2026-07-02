@@ -252,7 +252,7 @@ if SERVER then
 	
 	function ENT:Stop()
 		self.moving = CurTime()
-		self.tableroutetoenemy = {}
+		self:InvalidateNavigationPath()
 		self.PatrolWaypoint = nil
 		self:SetELS(false)
 		self:SetELSSound(false)
@@ -471,6 +471,9 @@ if SERVER then
 	
 	function ENT:PathFindToEnemy(vectors, enemy)
 
+		enemy = enemy or self.e
+		local suspectPos = IsValid(enemy) and enemy:WorldSpaceCenter() or vectors
+
 		if not vectors or not isvector(vectors) or not GetConVar("unitvehicle_pathfinding"):GetBool() or self.NavigateCooldown or self.v.roadblocking then -- or self.NavigateBlind
 			return
 		end
@@ -487,12 +490,7 @@ if SERVER then
 			if dvd and not InfMap then
 				local friendly_position = self.v:WorldSpaceCenter()
 
-				if enemy then
-					local scope = UVGetScope(enemy)
-					if scope and scope.InCooldown then vectors = dvd.Waypoints[math.random( #dvd.Waypoints )].Target end
-				end
-
-				enemy_nearest_waypoint = dvd.GetNearestWaypoint( vectors )
+				enemy_nearest_waypoint = dvd.GetNearestWaypoint( suspectPos )
 				friendly_nearest_waypoint = dvd.GetNearestWaypoint( friendly_position )
 
 				local friendly_waypoint_position = friendly_nearest_waypoint and friendly_nearest_waypoint.Target + ( vector_up * 50 ) or vector_origin
@@ -500,15 +498,15 @@ if SERVER then
 
 				if enemy_nearest_waypoint and not InfMap then
 					local friendly_waypoint_distance = friendly_nearest_waypoint and friendly_waypoint_position:DistToSqr( friendly_position ) or math.huge
-					local enemy_waypoint_distance = enemy_nearest_waypoint.Target:DistToSqr(vectors)
+					local enemy_waypoint_distance = enemy_nearest_waypoint.Target:DistToSqr(suspectPos)
 					local comparison_value = ( dvd.WaypointSize or 200 ) ^ 4
 
 					local enemyTooFarFromWaypoint = enemy_waypoint_distance > comparison_value
-					local enemyCanSeeWaypoint = enemy_nearest_waypoint and UVStraightToWaypoint( vectors, enemy_waypoint_position )
+					local enemyCanSeeWaypoint = enemy_nearest_waypoint and UVStraightToWaypoint( suspectPos, enemy_waypoint_position )
 					local friendlyTooFarFromWaypoint = friendly_waypoint_distance > comparison_value
 					local friendlyCanSeeWaypoint = friendly_nearest_waypoint and UVStraightToWaypoint( friendly_position, friendly_waypoint_position )
 
-					local friedlyEnemyDistance = friendly_position:DistToSqr(vectors)
+					local friedlyEnemyDistance = friendly_position:DistToSqr(suspectPos)
 					local isFriendlyEnemyTooClose = friedlyEnemyDistance < 500000
 
 					local isInvalid = enemyTooFarFromWaypoint or not enemyCanSeeWaypoint or not friendlyCanSeeWaypoint or isFriendlyEnemyTooClose
@@ -579,7 +577,7 @@ if SERVER then
 		end
 		
 		if next(waypoints) == nil then
-			self.tableroutetoenemy = {}
+			self:InvalidateNavigationPath()
 			return IsValid(self.e) and self.e:WorldSpaceCenter() or unitpos + (forward * 100)
 		end
 
@@ -674,7 +672,7 @@ if SERVER then
 			end
 			
 			if not self.respondingtocall and not self.returningtopatrol then
-				self.tableroutetoenemy = {}
+				self:InvalidateNavigationPath()
 				self.waypointPos = self.PatrolWaypoint["Target"]+(vector_up * 50)
 				self:SetELS(false)
 				self:SetELSSound(false)
@@ -1094,7 +1092,7 @@ if SERVER then
 			end
 			
 			if UVTargeting then 
-				self.tableroutetoenemy = {}
+				self:InvalidateNavigationPath()
 				local enemy = self:TargetEnemyAdvanced() --Find an ongoing pursuit.
 				if IsValid(enemy) then
 					self.idle = nil
@@ -1226,7 +1224,7 @@ if SERVER then
 			
 			--Determine pursuit standards
 			if not (eScope and eScope.EnemyEscaping) and straightToEnemy then
-				self.tableroutetoenemy = {}
+				self:InvalidateNavigationPath()
 				if self.NavigateBlind then 
 					self.NavigateBlind = nil 
 				end
@@ -1246,14 +1244,7 @@ if SERVER then
 					self.targetpos = (self.e:LocalToWorld(self.formationpoint)+self.e:GetVelocity()) --Drive in formation
 				end
 			else
-				self.tableroutetoenemy = self.tableroutetoenemy or {}
-				if next(self.tableroutetoenemy) ~= nil and #self.tableroutetoenemy > 1 then
-					-- if not self.NavigateCooldown and not UVEnemyEscaping then
-					-- 	self:PathFindToEnemy(self.e:WorldSpaceCenter()) --Find the enemy
-					-- end
-				else
-					self:PathFindToEnemy(self.e:WorldSpaceCenter(), self.e) --Find the enemy
-				end
+				self:TryRefreshPathToTarget(self.e)
 				self.targetpos = self:DriveOnPath()
 			end
 			

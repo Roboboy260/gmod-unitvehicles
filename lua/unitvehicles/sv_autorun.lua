@@ -4319,6 +4319,9 @@ function UVNavigateDVWaypointOptimized( self, vectors )
 	end
 
 	self.tableroutetoenemy = route
+	if isfunction(self.RecordNavigationPath) then
+		self:RecordNavigationPath(vectors)
+	end
 	return self.tableroutetoenemy
 end
 
@@ -4381,6 +4384,9 @@ function UVNavigateDVWaypoint(self, vectors, full)
 			table.insert( self.tableroutetoenemy, vectors )
 		end
 
+		if isfunction(self.RecordNavigationPath) then
+			self:RecordNavigationPath(vectors)
+		end
 		return self.tableroutetoenemy
 	end
 end
@@ -4388,6 +4394,10 @@ end
 function UVNavigateNavmesh(self, vectors)
 	-- THIS IS THE CAUSE OF THE FUCKING LAG PROBLEMS WHEN CAR TAKES OFF!!!
 	--print("UVNavigateNavmesh")
+	if IsValid(self.v) and isfunction(self.IsNavigationGrounded) and not self:IsNavigationGrounded() then
+		return false
+	end
+
 	local CNavAreaFromSelfToEnemy = UVRequestVectorsnavmesh(self.v:WorldSpaceCenter(), vectors, self.v.width)
 	--print(type(CNavAreaFromSelfToEnemy), (type(CNavAreaFromSelfToEnemy) == "table" and #CNavAreaFromSelfToEnemy))
 	-- WHEN YOU ARE MID AIR, IT CAN TAKE TOO LONG TO GET THE ROUTE AND IT WILL LAG THE GAME!!! THEN IT RETURNS FALSE!!!
@@ -4399,6 +4409,9 @@ function UVNavigateNavmesh(self, vectors)
 		for k, v in pairs(CNavAreaFromSelfToEnemy) do
 			table.insert(self.tableroutetoenemy, v:GetClosestPointOnArea(closestpoint))
 			closestpoint = v:GetCenter()
+		end
+		if isfunction(self.RecordNavigationPath) then
+			self:RecordNavigationPath(vectors)
 		end
 		return self.tableroutetoenemy
 	else

@@ -233,7 +233,7 @@ if SERVER then
 
 	function ENT:Stop()
 		self.moving = CurTime()
-		self.tableroutetoenemy = {}
+		self:InvalidateNavigationPath()
 		self.PatrolWaypoint = nil
 		self:SetELS(false)
 		self:SetELSSound(false)
@@ -456,7 +456,10 @@ if SERVER then
 
 	end
 
-	function ENT:PathFindToEnemy(vectors)
+	function ENT:PathFindToEnemy(vectors, enemy)
+
+		enemy = enemy or self.e
+		local suspectPos = IsValid(enemy) and enemy:WorldSpaceCenter() or vectors
 
 		if not vectors or not isvector(vectors) or not GetConVar("unitvehicle_pathfinding"):GetBool() or self.NavigateCooldown or self.v.roadblocking then -- or self.NavigateBlind
 			return self.e and self.e:WorldSpaceCenter() or self.v:WorldSpaceCenter()
@@ -467,6 +470,20 @@ if SERVER then
 			self.NavigateCooldown = nil 
 		end)
 
+		local function tryDVNavigate()
+			if ( DVNavigationOptimized:GetBool() and UVNavigateDVWaypointOptimized(self, vectors) ) or ( ( not DVNavigationOptimized:GetBool() ) and UVNavigateDVWaypoint(self, vectors) ) then
+				self.PathMode = "dv"
+				return true
+			end
+		end
+
+		local function tryNavMeshNavigate()
+			if not InfMap and UVNavigateNavmesh(self, vectors) then
+				self.PathMode = "navmesh"
+				return true
+			end
+		end
+
 		if DVWaypointsPriority:GetBool() then
 			local enemy_nearest_waypoint = InfMap or nil
 			local friendly_nearest_waypoint = InfMap or nil
@@ -474,13 +491,7 @@ if SERVER then
 			if dvd and not InfMap then
 				local friendly_position = self.v:WorldSpaceCenter()
 
-				if enemy then
-					local scope = UVGetScope(enemy)
-					if scope and scope.InCooldown then vectors = dvd.Waypoints[math.random( #dvd.Waypoints )].Target end
-				end
-
-
-				enemy_nearest_waypoint = dvd.GetNearestWaypoint( vectors )
+				enemy_nearest_waypoint = dvd.GetNearestWaypoint( suspectPos )
 				friendly_nearest_waypoint = dvd.GetNearestWaypoint( friendly_position )
 
 				local friendly_waypoint_position = friendly_nearest_waypoint and friendly_nearest_waypoint.Target + ( vector_up * 50 ) or vector_origin
@@ -488,15 +499,15 @@ if SERVER then
 
 				if enemy_nearest_waypoint and not InfMap then
 					local friendly_waypoint_distance = friendly_nearest_waypoint and friendly_waypoint_position:DistToSqr( friendly_position ) or math.huge
-					local enemy_waypoint_distance = enemy_nearest_waypoint.Target:DistToSqr(vectors)
+					local enemy_waypoint_distance = enemy_nearest_waypoint.Target:DistToSqr(suspectPos)
 					local comparison_value = ( dvd.WaypointSize or 200 ) ^ 4
 
 					local enemyTooFarFromWaypoint = enemy_waypoint_distance > comparison_value
-					local enemyCanSeeWaypoint = enemy_nearest_waypoint and UVStraightToWaypoint( vectors, enemy_waypoint_position )
+					local enemyCanSeeWaypoint = enemy_nearest_waypoint and UVStraightToWaypoint( suspectPos, enemy_waypoint_position )
 					local friendlyTooFarFromWaypoint = friendly_waypoint_distance > comparison_value
 					local friendlyCanSeeWaypoint = friendly_nearest_waypoint and UVStraightToWaypoint( friendly_position, friendly_waypoint_position )
 
-					local friedlyEnemyDistance = friendly_position:DistToSqr(vectors)
+					local friedlyEnemyDistance = friendly_position:DistToSqr(suspectPos)
 					local isFriendlyEnemyTooClose = friedlyEnemyDistance < 500000
 
 					local isInvalid = enemyTooFarFromWaypoint or not enemyCanSeeWaypoint or not friendlyCanSeeWaypoint or isFriendlyEnemyTooClose
@@ -505,22 +516,16 @@ if SERVER then
 			end
 
 			if enemy_nearest_waypoint then
-				if ( DVNavigationOptimized:GetBool() and UVNavigateDVWaypointOptimized(self, vectors) ) or ( ( not DVNavigationOptimized:GetBool() ) and UVNavigateDVWaypoint(self, vectors) ) then
-					return
-				elseif not InfMap and UVNavigateNavmesh(self, vectors) then
+				if tryDVNavigate() or tryNavMeshNavigate() then
 					return
 				end
 			else
-				if not InfMap and UVNavigateNavmesh(self, vectors) then
-					return
-				elseif ( DVNavigationOptimized:GetBool() and UVNavigateDVWaypointOptimized(self, vectors) ) or ( ( not DVNavigationOptimized:GetBool() ) and UVNavigateDVWaypoint(self, vectors) ) then
+				if tryNavMeshNavigate() or tryDVNavigate() then
 					return
 				end
 			end
 		else
-			if not InfMap and UVNavigateNavmesh(self, vectors) then
-				return
-			elseif ( DVNavigationOptimized:GetBool() and UVNavigateDVWaypointOptimized(self, vectors) ) or ( ( not DVNavigationOptimized:GetBool() ) and UVNavigateDVWaypoint(self, vectors) ) then
+			if tryNavMeshNavigate() or tryDVNavigate() then
 				return
 			end
 		end
@@ -535,6 +540,13 @@ if SERVER then
 	end
 
 	function ENT:DriveOnPath()
+		if self.PathMode == "navmesh" then
+			return self:DriveOnPathNavMesh()
+		end
+		return self:DriveOnPathDV()
+	end
+
+	function ENT:DriveOnPathDV()
 		local unitpos = self.v:WorldSpaceCenter()
 		local forward = self.v.IsSimfphyscar and self.v:LocalToWorldAngles(self.v.VehicleData.LocalAngForward):Forward() or self.v:GetForward()
 		local waypoints = self.tableroutetoenemy
@@ -551,6 +563,9 @@ if SERVER then
 			local waypoint = waypoints[i]
 			local toWaypoint = waypoint - unitpos
 			local distSqr = toWaypoint:LengthSqr()
+
+			--debugoverlay.Line(unitpos, waypoint, 1, Color(0, 255, 0), true)
+			debugoverlay.Box(waypoint, Vector(-10, -10, 0), Vector(10, 10, 50), 0.1, Color(0, 255, 0))
 			
 			if distSqr < reachThreshold then
 				table.remove(waypoints, i)
@@ -567,7 +582,86 @@ if SERVER then
 		end
 		
 		if next(waypoints) == nil then
-			self.tableroutetoenemy = {}
+			self:InvalidateNavigationPath()
+			return IsValid(self.e) and self.e:WorldSpaceCenter() or unitpos + (forward * 100)
+		end
+
+		local nextWaypoint = self:SelectDVPathWaypoint(waypoints, unitpos, forward)
+
+		local needOffset = false
+		local aheadMaxDistSq = 500000
+		local onWaypointRadiusSq = 40000
+		local forwardDotMin = 0.2
+		for veh, _ in pairs( UVUnitVehicles ) do
+			if veh ~= self.v and IsValid(veh) then 
+				local otherPos = veh:WorldSpaceCenter()
+				local toOther = otherPos - unitpos
+				local distSq = toOther:LengthSqr()
+				local fwdDot = toOther:GetNormalized():Dot(forward)
+				local distToWpSq = (otherPos - nextWaypoint):LengthSqr()
+				if ((fwdDot > forwardDotMin and distSq < aheadMaxDistSq) or (distToWpSq < onWaypointRadiusSq)) and velocitySqr > veh:GetVelocity():LengthSqr() then
+					needOffset = true
+					break
+				end
+			end
+		end
+		if needOffset then
+			local right = forward:Cross(vector_up)
+			if right:LengthSqr() > 0.01 then
+				right:Normalize()
+				local offsetAmount = 5
+				if self.__entIndex % 2 == 0 then
+					nextWaypoint = nextWaypoint + right * offsetAmount
+				else
+					nextWaypoint = nextWaypoint - right * offsetAmount
+				end
+			end
+		end
+
+		debugoverlay.Line(unitpos, nextWaypoint, 1, Color(255, 0, 0), true)
+		debugoverlay.Box(nextWaypoint, Vector(-10, -10, 0), Vector(10, 10, 50), 0.1, Color(255, 0, 0))
+
+		return nextWaypoint
+	end
+
+
+	function ENT:DriveOnPathNavMesh()
+		local unitpos = self.v:WorldSpaceCenter()
+		local forward = self.v.IsSimfphyscar and self.v:LocalToWorldAngles(self.v.VehicleData.LocalAngForward):Forward() or self.v:GetForward()
+		local waypoints = self.tableroutetoenemy
+		if not waypoints or next(waypoints) == nil then
+			return IsValid(self.e) and self.e:WorldSpaceCenter() or unitpos + (forward * 100)
+		end
+
+		local reachThreshold = 250000
+		local passedThreshold = 16000000
+
+		local velocitySqr = self.v:GetVelocity():LengthSqr()
+
+		for i = #waypoints, 1, -1 do
+			local waypoint = waypoints[i]
+			local toWaypoint = waypoint - unitpos
+			local distSqr = toWaypoint:LengthSqr()
+
+			--debugoverlay.Line(unitpos, waypoint, 1, Color(0, 255, 0), true)
+			debugoverlay.Box(waypoint, Vector(-10, -10, 0), Vector(10, 10, 50), 0.1, Color(0, 255, 0))
+			
+			if distSqr < reachThreshold then
+				table.remove(waypoints, i)
+			else
+				local toWaypointNormalized = toWaypoint:GetNormalized()
+				local forwardDot = toWaypointNormalized:Dot(forward)
+				
+				if forwardDot < -0.3 and distSqr > 62500 then -- 250 units squared minimum
+					table.remove(waypoints, i)
+				elseif distSqr > passedThreshold and forwardDot < 0 then
+					table.remove(waypoints, i)
+				end
+			end
+		end
+		
+		if next(waypoints) == nil then
+			self:InvalidateNavigationPath()
 			return IsValid(self.e) and self.e:WorldSpaceCenter() or unitpos + (forward * 100)
 		end
 
@@ -602,6 +696,9 @@ if SERVER then
 				end
 			end
 		end
+
+		debugoverlay.Line(unitpos, nextWaypoint, 1, Color(255, 0, 0), true)
+		debugoverlay.Box(nextWaypoint, Vector(-10, -10, 0), Vector(10, 10, 50), 0.1, Color(255, 0, 0))
 
 		return nextWaypoint
 	end
@@ -662,7 +759,7 @@ if SERVER then
 			end
 
 			if not self.respondingtocall and not self.returningtopatrol then
-				self.tableroutetoenemy = {}
+				self:InvalidateNavigationPath()
 				self.waypointPos = self.PatrolWaypoint["Target"]+(vector_up * 50)
 				self:SetELS(false)
 				self:SetELSSound(false)
@@ -1090,7 +1187,7 @@ if SERVER then
 			--self.bountytimer = CurTime()
 
 			if UVTargeting then 
-				self.tableroutetoenemy = {}
+				self:InvalidateNavigationPath()
 				local enemy = self:TargetEnemyAdvanced() --Find an ongoing pursuit.
 				if IsValid(enemy) then
 					self.idle = nil
@@ -1260,7 +1357,7 @@ if SERVER then
 
 			if useDirectDriveBranch then
 				if (not suspectOnWaypointGrid or suspectHeadingAwayFromNPC or suspectPulledOver) and next(self.tableroutetoenemy) ~= nil then
-					self.tableroutetoenemy = {}
+					self:InvalidateNavigationPath()
 				end
 				if self.NavigateBlind then
 					self.NavigateBlind = nil
@@ -1340,14 +1437,7 @@ if SERVER then
 					end
 				end
 			else
-				self.tableroutetoenemy = self.tableroutetoenemy or {}
-				if next(self.tableroutetoenemy) ~= nil and #self.tableroutetoenemy > 1 then
-					-- if not self.NavigateCooldown and not UVEnemyEscaping then
-					-- 	self:PathFindToEnemy(self.e:WorldSpaceCenter()) --Find the enemy
-					-- end
-				else
-					self:PathFindToEnemy(self.e:WorldSpaceCenter(), self.e) --Find the enemy
-				end
+				self:TryRefreshPathToTarget(self.e)
 				self.targetpos = self:DriveOnPath()
 			end
 			-- 	if next(self.tableroutetoenemy) ~= nil and #self.tableroutetoenemy > 1 then
@@ -1357,7 +1447,7 @@ if SERVER then
 			-- 	else
 			-- 		local toTarget = self.targetpos - self.v:WorldSpaceCenter()
 			-- 		if toTarget:LengthSqr() < 10000 then
-			-- 			self.tableroutetoenemy = {}
+			-- 			self:InvalidateNavigationPath()
 			-- 			self.targetpos = self.e:WorldSpaceCenter()
 			-- 		end
 			-- 	end
@@ -1370,7 +1460,7 @@ if SERVER then
 			-- 		else
 			-- 			local toTarget = self.targetpos - self.v:WorldSpaceCenter()
 			-- 			if toTarget:LengthSqr() < 10000 then
-			-- 				self.tableroutetoenemy = {}
+			-- 				self:InvalidateNavigationPath()
 			-- 				self.targetpos = self.e:WorldSpaceCenter()
 			-- 			end
 			-- 		end
@@ -1928,6 +2018,7 @@ if SERVER then
 		self.spawned = true
 		self.toofar = true
 		self.perfmult = 1
+		self.PathMode = nil
 
 		local selectedVoice = GetConVar("unitvehicle_unit_patrol_voice"):GetString()
 		local splittedText = string.Explode( ",", selectedVoice )

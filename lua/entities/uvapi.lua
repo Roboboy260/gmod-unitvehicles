@@ -761,3 +761,267 @@ function ENT:SetSteering(steering)
 	local pose = self:GetPoseParameter "vehicle_steer" or 0
 	self:SetPoseParameter("vehicle_steer", pose + (steering - pose) / 10)
 end
+
+-- pathfinding related funcs
+
+local PATH_REPATH_DRIFT_SQ = 250000
+local PATH_REPATH_INTERVAL = 0.75
+local PATH_REPATH_STAGGER = 0.1
+local PATH_LEAD_MIN = 500
+local PATH_LEAD_MAX = 4000
+
+local function bestForwardNeighbor( fromWp, fromId, heading )
+	local laneStart = fromWp.Target
+	local bestDot, bestTarget, bestWp, bestId = -1, nil, nil, nil
+
+	if fromWp.Neighbors then
+		for _, n in pairs( fromWp.Neighbors ) do
+			local wp = dvd.Waypoints[n]
+
+			if wp then
+				local dir = ( wp.Target - laneStart ):GetNormalized()
+				local dot = dir:Dot( heading )
+
+				if dot > bestDot then
+					bestDot = dot
+					bestTarget = wp.Target
+					bestWp = wp
+					bestId = n
+				end
+			end
+		end
+	end
+
+	-- If we don't have forward neighbors, we're going the wrong way
+	-- unfortunately DV doesn't have backwards neighbors so we have to fetch 'em manually
+	-- (until we get our own specialized nav sys :D)
+
+	if bestDot < 0 and fromId then
+		for id, wp in pairs( dvd.Waypoints ) do
+			if wp.Neighbors and table.HasValue(wp.Neighbors, fromId) then
+				local dir = ( wp.Target - laneStart ):GetNormalized()
+				local dot = dir:Dot( heading )
+
+				if dot > bestDot then
+					bestDot = dot
+					bestTarget = wp.Target
+					bestWp = wp
+					bestId = id
+				end
+			end
+		end
+	end
+
+	return bestDot, bestTarget, bestWp, bestId
+end
+
+function ENT:GetRandomSearchWaypoint()
+	if dvd and next( dvd.Waypoints or {} ) ~= nil then
+		local selectedWaypoint = dvd.Waypoints[ math.random( #dvd.Waypoints ) ] if not selectedWaypoint then return nil end
+		return selectedWaypoint.Target
+	end
+end
+
+function ENT:GetSuspectLeadPathTarget( enemy )
+	if not IsValid( enemy ) then return nil end
+
+	local suspectPos = enemy:WorldSpaceCenter()
+	local vel = enemy:GetVelocity()
+	local speed = vel:Length()
+	local suspectDir
+
+	if speed > 50 then
+		suspectDir = vel:GetNormalized()
+	else
+		suspectDir = IsValid( self.v ) and ( suspectPos - self.v:WorldSpaceCenter() ):GetNormalized() or vector_forward
+	end
+
+	local leadDist = speed > 50 and math.Clamp( speed * math.Clamp( speed / 800, 1, 4 ), PATH_LEAD_MIN, PATH_LEAD_MAX ) or PATH_LEAD_MIN
+	local leadPos = suspectPos + suspectDir * leadDist
+
+	if not dvd or next( dvd.Waypoints or {} ) == nil or InfMap then
+		return leadPos
+	end
+
+	local wp, wpId = dvd.GetNearestWaypoint( suspectPos )
+
+	if not wp then
+		local wpAtLead = dvd.GetNearestWaypoint( leadPos )
+		return wpAtLead and wpAtLead.Target or leadPos
+	end
+
+	local currentWp, currentId = wp, wpId
+	local distFromSuspect = 0
+	local targetPos = wp.Target
+
+	for _ = 1, 12 do
+		local dot, nextTarget, nextWp, nextId = bestForwardNeighbor( currentWp, currentId, suspectDir )
+		if not nextTarget or dot < 0.1 then break end
+
+		distFromSuspect = distFromSuspect + ( nextTarget - currentWp.Target ):Length()
+		targetPos = nextTarget
+		currentWp = nextWp or currentWp
+		currentId = nextId or currentId
+
+		if distFromSuspect >= leadDist then break end
+	end
+
+	return targetPos
+end
+
+function ENT:ResolvePathfindTarget(enemy)
+	enemy = enemy or self.e
+	if not IsValid( enemy ) then return nil end
+
+	if UV_IsInCooldown( enemy ) then
+		return self:GetRandomSearchWaypoint() or enemy:WorldSpaceCenter()
+	end
+
+	return self:GetSuspectLeadPathTarget( enemy )
+end
+
+function ENT:InvalidateNavigationPath()
+	self.tableroutetoenemy = {}
+	self.PathGoal = nil
+	self.PathMode = nil
+end
+
+function ENT:RecordNavigationPath( goalPos )
+	if isvector( goalPos ) then self.PathGoal = Vector( goalPos ) end
+
+	self.PathFoundTime = CurTime()
+end
+
+function ENT:SelectDVPathWaypoint( waypoints, unitpos, forward )
+	if not waypoints or #waypoints == 0 then return nil end
+
+	local maxLookahead = math.min( #waypoints, 5 )
+	local minDot = 0.35
+
+	local traceOrigin = unitpos + vector_up * 20
+	local traceFilter = self:GetTraceFilter() or {self, self.v}
+	local traceMask = InfMap and MASK_ALL or MASK_NPCWORLDSTATIC
+
+	for i = maxLookahead, 1, -1 do
+		local waypoint = waypoints[i]
+		local toWaypoint = waypoint - unitpos
+
+		local distSqr = toWaypoint:LengthSqr()
+		if distSqr < 0.01 then continue end
+
+		local forwardDot = toWaypoint:GetNormalized():Dot(forward)
+		if forwardDot < minDot then continue end
+
+		if i == 1 then return waypoint end
+
+		local tr = util.TraceLine({
+			start = traceOrigin,
+			endpos = waypoint + vector_up * 50,
+			mask = traceMask,
+			filter = traceFilter,
+		})
+
+		if tr.Fraction >= 0.92 then
+			return waypoint
+		end
+	end
+
+	return waypoints[1]
+end
+
+function ENT:IsNavigationGrounded()
+	if not IsValid( self.v ) then return false end
+	if math.abs( self.v:GetVelocity().z ) > 200 then return false end
+
+	local pos = self.v:WorldSpaceCenter()
+
+	return util.TraceLine({
+		start = pos,
+		endpos = pos - vector_up * 128,
+		mask = MASK_NPCWORLDSTATIC,
+		filter = self:GetTraceFilter() or {self, self.v},
+	}).Hit
+end
+
+function ENT:IsPathWaypointBlocked()
+	local route = self.tableroutetoenemy
+	if not route or not IsValid( self.v ) or next( route ) == nil then return false end
+
+	local unitpos = self.v:WorldSpaceCenter()
+	local nextWaypoint
+
+	for _, waypoint in ipairs( route ) do
+		if ( waypoint - unitpos ):LengthSqr() > 250000 then
+			nextWaypoint = waypoint
+			break
+		end
+	end
+
+	if not nextWaypoint then return false end
+
+	return util.TraceLine({
+		start = unitpos,
+		endpos = nextWaypoint + vector_up * 50,
+		mask = InfMap and MASK_ALL or MASK_NPCWORLDSTATIC,
+		filter = self:GetTraceFilter() or {self, self.v},
+	}).Fraction < 0.8
+end
+
+function ENT:ShouldRepath(targetPos)
+	if not isvector( targetPos ) then return false end
+	if self.stuck then return true end
+	if self:IsPathWaypointBlocked() then return true end
+
+	if isvector( self.PathGoal ) and targetPos:DistToSqr( self.PathGoal ) > PATH_REPATH_DRIFT_SQ then
+		return true
+	end
+
+	return false
+end
+
+function ENT:ShouldCheckRepath()
+	local entIndex = self.__entIndex or self:EntIndex()
+	local now = CurTime()
+	self._nextRepathCheck = self._nextRepathCheck or ( now + ( entIndex % 10 ) * PATH_REPATH_STAGGER )
+
+	if now < self._nextRepathCheck then return false end
+
+	self._nextRepathCheck = now + PATH_REPATH_INTERVAL
+	return true
+end
+
+function ENT:TryRefreshPathToTarget( enemy )
+	enemy = enemy or self.e
+	if not IsValid( enemy ) then return end
+
+	local pathTarget = self:ResolvePathfindTarget( enemy )
+	if not isvector( pathTarget ) then return end
+
+	local route = self.tableroutetoenemy
+	local hasRoute = route and next( route ) ~= nil
+
+	if UV_IsInCooldown(enemy) then
+		if hasRoute then return end
+
+		self:PathFindToEnemy(pathTarget, enemy) return
+	end
+
+	local hasSubstantialRoute = hasRoute and #route > 1
+
+	if not hasSubstantialRoute then self:PathFindToEnemy(pathTarget, enemy)
+		return
+	end
+
+	if not self:ShouldCheckRepath() then return end
+	if not self:ShouldRepath( pathTarget ) then return end
+
+	if self.NavigateCooldown then
+		self.NavigateCooldown = nil
+		if self._cooldownString then
+			timer.Remove( self._cooldownString )
+		end
+	end
+
+	self:InvalidateNavigationPath()
+	self:PathFindToEnemy( pathTarget, enemy )
+end

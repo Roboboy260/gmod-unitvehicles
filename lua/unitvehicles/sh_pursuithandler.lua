@@ -301,6 +301,11 @@ function UV_GetCopAllInCooldown()
 	return cooldownCount == inPursuitCount
 end
 
+function UV_IsInCooldown( target )
+	local scope = UVGetScope( target )
+	return UVEnemyEscaping or ( scope and scope.InCooldown )
+end
+
 function UV_InitiatePursuit( target )
 	local scope = UVGetScope( target )
 	if not scope or scope.InPursuit then return end

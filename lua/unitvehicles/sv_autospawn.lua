@@ -1299,7 +1299,7 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		local SpawnAng = uvspawnpointangles
 		SpawnAng.pitch = 0
 		SpawnAng.yaw = UVTargeting and rhinoattack and not posspecified and SpawnAng.yaw or SpawnAng.yaw + 180
-		SpawnAng.yaw = SpawnAng.yaw + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
+		SpawnAng.yaw = SpawnAng.yaw + (UVCheckIfRedlineSimfphys(vehicle) and -90 or 0) + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
 		SpawnAng.roll = 0
 		
 		Ent = simfphys.SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle, true )
@@ -2337,7 +2337,7 @@ function UVAutoSpawnTraffic()
 		local SpawnAng = uvspawnpointangles
 		SpawnAng.pitch = 0
 		SpawnAng.yaw = SpawnAng.yaw + 180
-		SpawnAng.yaw = SpawnAng.yaw + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
+		SpawnAng.yaw = SpawnAng.yaw + (UVCheckIfRedlineSimfphys(vehicle) and -90 or 0) + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
 		SpawnAng.roll = 0
 		
 		Ent = simfphys.SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle, true )
@@ -3144,7 +3144,7 @@ function UVAutoSpawnRacer()
 		local SpawnAng = uvspawnpointangles
 		SpawnAng.pitch = 0
 		SpawnAng.yaw = SpawnAng.yaw + 180
-		SpawnAng.yaw = SpawnAng.yaw + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
+		SpawnAng.yaw = SpawnAng.yaw + (UVCheckIfRedlineSimfphys(vehicle) and -90 or 0) + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
 		SpawnAng.roll = 0
 		
 		Ent = simfphys.SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle, true )
@@ -3491,7 +3491,6 @@ local function GetVehicleData( ent )
 		Memory.HasBackfire = ent:GetBackFire()
 		Memory.DoesntStall = ent:GetDoNotStall()
 		Memory.SoundOverride = ent:GetSoundoverride()
-		Memory.AddedYaw = UVCheckIfRedlineSimfphys(ent) and 180 or 90
 		
 		Memory.FrontHeight = ent:GetFrontSuspensionHeight()
 		Memory.RearHeight = ent:GetRearSuspensionHeight()
@@ -3761,7 +3760,7 @@ function UVTeleportSimfphysVehicle( vehicle, pos, ang )
 	
 	local SpawnAng = ang
 	SpawnAng.pitch = 0
-	SpawnAng.yaw = SpawnAng.yaw  + 270 + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
+	SpawnAng.yaw = SpawnAng.yaw + (UVCheckIfRedlineSimfphys(vehicle) and -90 or 0) + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
 	SpawnAng.roll = 0
 	
 	Ent = simfphys.SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle, true )
@@ -4100,7 +4099,7 @@ function UVMoveToGridSlot( vehicle )
 
 	local pos = spawn:GetPos()
 	local ang = spawn:GetAngles()
-	ang.yaw = ang.yaw + 180
+	ang.yaw = ang.yaw + (UVCheckIfRedlineSimfphys(vehicle) and -90 or 180)
 
 	UVSetVehiclePos( vehicle, pos, ang )
 	UVSetVehicleActive( vehicle, false )
@@ -4168,7 +4167,7 @@ function UVMoveToGridSlotLegacy( vehicle, aienabled )
 		
 		local SpawnAng = ang
 		SpawnAng.pitch = 0
-		SpawnAng.yaw = SpawnAng.yaw + Memory.AddedYaw + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
+		SpawnAng.yaw = SpawnAng.yaw + (UVCheckIfRedlineSimfphys(vehicle) and -90 or 0) + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
 		SpawnAng.roll = 0
 		
 		Ent = simfphys.SpawnVehicle( nil, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle )

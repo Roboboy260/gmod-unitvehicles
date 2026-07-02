@@ -333,7 +333,7 @@ if SERVER then
 		if not self.v or not target then
 			return
 		end
-		local tr = util.TraceLine({start = self.v:WorldSpaceCenter(), endpos = target:WorldSpaceCenter(), mask = MASK_OPAQUE, filter = {self, self.v, target}}).Fraction==1
+		local tr = util.TraceLine({start = self.v:WorldSpaceCenter(), endpos = target:WorldSpaceCenter(), mask = MASK_OPAQUE, filter = {self.v, target}}).Fraction==1
 		return tobool(tr)
 	end
 
@@ -822,7 +822,7 @@ if SERVER then
 						for i = 1, table.Count( self.v.Wheels ) do
 							local Wheel = self.v.Wheels[ i ]
 							if not Wheel then return end
-							if Wheel:GetGripLoss() > 0 then
+							if isfunction(Wheel.GetGripLoss) and Wheel:GetGripLoss() > 0 then
 								throttle = throttle * Wheel:GetGripLoss() --Simfphys traction control
 							end
 						end
@@ -1846,7 +1846,7 @@ if SERVER then
 						for i = 1, table.Count( self.v.Wheels ) do
 							local Wheel = self.v.Wheels[ i ]
 							if not Wheel then return end
-							if Wheel:GetGripLoss() > 0 then
+							if isfunction(Wheel.GetGripLoss) and Wheel:GetGripLoss() > 0 then
 								throttle = throttle * Wheel:GetGripLoss() --Simfphys traction control
 							end
 						end
@@ -2003,6 +2003,7 @@ if SERVER then
 
 		self:SetNoDraw(true)
 		self:SetMoveType(MOVETYPE_NONE)
+		self:SetSolid(SOLID_NONE)
 		self:SetModel(self.Modelname)
 		self:SetHealth(-1)
 		self.bountytimer = CurTime()
@@ -2289,6 +2290,7 @@ else --if CLIENT
 	function ENT:Initialize()
 		self:SetNoDraw(true)
 		self:SetMoveType(MOVETYPE_NONE)
+		self:SetSolid(SOLID_NONE)
 		self:SetModel(self.Modelname)
 	end
 end --if SERVER

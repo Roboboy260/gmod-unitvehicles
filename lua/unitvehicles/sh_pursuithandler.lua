@@ -3595,10 +3595,50 @@ else -- CLIENT Settings | HUD/Options
 	CleanupTask = {}
 
 	local unitBlipColors = {
-		[1] = Color( 0, 0, 255 ),
-		[2] = Color( 150, 0, 0),
-		[3] = Color( 255, 255, 255 )
+	    [1] = Color(0, 0, 255),
+		[2] = color_white,
+	    [3] = Color(150, 0, 0),
+	    [4] = color_white
 	}
+
+	UNIT_BLIPS = UNIT_BLIPS or {}
+
+	local function RegisterUnitBlip(id)
+	    UNIT_BLIPS[id] = id
+	end
+
+	local function UnregisterUnitBlip(id)
+	    UNIT_BLIPS[id] = nil
+	end
+
+	local unitBlipColorsCurrent = 1
+
+	timer.Create("UpdateUnitBlips", 0.035, 0, function()
+	    if table.IsEmpty(UNIT_BLIPS) then return end
+
+	    local currentFlashColor = unitBlipColors[unitBlipColorsCurrent]
+		unitBlipColorsCurrent = unitBlipColorsCurrent % #unitBlipColors + 1
+	
+	    local disabledColor = unitBlipColors[2]
+	    local inactiveColor = unitBlipColors[3]
+
+	    for id, data in pairs(UNIT_BLIPS) do
+	        local blip = GMinimap:FindBlipByID(data)
+
+	        if not blip then
+	            UnregisterUnitBlip(id)
+	            continue
+	        end
+
+	        if blip.disabled then
+	            blip.color = disabledColor
+	        elseif not IsPursuitActive then
+	            blip.color = inactiveColor
+	        else
+	            blip.color = currentFlashColor
+	        end
+	    end
+	end)
 
 	PursuitTheme = CreateClientConVar("unitvehicle_pursuittheme", "", true, false, "Unit Vehicles: Pursuit Theme (string).")
 	PursuitSFX = CreateClientConVar("unitvehicle_pursuitsfx", 1, true, false, "Unit Vehicles: If set to 1, Pursuit SFX will play.")
@@ -3822,31 +3862,7 @@ else -- CLIENT Settings | HUD/Options
 					alpha = 255
 				})
 
-				entity.flashIterator = 1
-
-				timer.Create( "unit_blip_" .. id, 0.035, 0, function()
-					if blip.disabled then
-						blip.color = unitBlipColors[3]
-						return
-					end
-
-					if not IsPursuitActive then
-						blip.color = unitBlipColors[2]
-						return
-					end
-
-					-- entity.flashIterator = entity.flashIterator + 1
-					local color = unitBlipColors[entity.flashIterator]
-					entity.flashIterator = entity.flashIterator % #unitBlipColors + 1
-
-					if color then
-						blip.color = color
-					end
-				end)
-
-				entity:CallOnRemove( "uv_entity_" .. entIndex, function()
-					timer.Remove( "unit_blip_" .. id )
-				end)
+				RegisterUnitBlip(id)
 			end
 
 		elseif entType == "roadblock" then

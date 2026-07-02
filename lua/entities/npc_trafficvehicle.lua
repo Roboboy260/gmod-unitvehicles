@@ -335,7 +335,7 @@ if SERVER then
 						for i = 1, table.Count( self.v.Wheels ) do
 							local Wheel = self.v.Wheels[ i ]
 							if not Wheel then return end
-							if Wheel:GetGripLoss() > 0 then
+							if isfunction(Wheel.GetGripLoss) and Wheel:GetGripLoss() > 0 then
 								throttle = throttle * Wheel:GetGripLoss() --Simfphys traction control
 							end
 						end
@@ -600,6 +600,7 @@ if SERVER then
 
 		self:SetNoDraw(true)
 		self:SetMoveType(MOVETYPE_NONE)
+		self:SetSolid(SOLID_NONE)
 		self:SetModel(self.Modelname)
 		self:SetHealth(-1)
 		self.spawned = true
@@ -828,6 +829,7 @@ else --if CLIENT
 	function ENT:Initialize()
 		self:SetNoDraw(true)
 		self:SetMoveType(MOVETYPE_NONE)
+		self:SetSolid(SOLID_NONE)
 		self:SetModel(self.Modelname)
 	end
 end --if SERVER

@@ -780,7 +780,7 @@ if SERVER then
         local spawnAngleOffset = ( vehData and vehData.SpawnAngleOffset ) or 0
 
         local finalPos = targetBasePos + ( vector_up * 25 ) + spawnOffset
-        local finalAng = Angle( 0, angHint.yaw + 270 + spawnAngleOffset, 0 )
+        local finalAng = Angle( 0, angHint.yaw + (UVCheckIfRedlineSimfphys(vehicle) and 0 or 270) + spawnAngleOffset, 0 )
 
         local function snapshotRigidEnt( ent )
             if not IsValid( ent ) then return nil end
@@ -2194,7 +2194,8 @@ if SERVER then
         local tr = util.TraceLine({
     	    start = carPos,
     	    endpos = enemy:WorldSpaceCenter(),
-    	    mask = MASK_NPCWORLDSTATIC
+            filter = {car, enemy},
+    	    mask = MASK_OPAQUE
     	})
 
         local visual = tr.Fraction == 1

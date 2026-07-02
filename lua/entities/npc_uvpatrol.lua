@@ -725,7 +725,7 @@ if SERVER then
 						for i = 1, table.Count( self.v.Wheels ) do
 							local Wheel = self.v.Wheels[ i ]
 							if not Wheel then return end
-							if Wheel:GetGripLoss() > 0 then
+							if isfunction(Wheel.GetGripLoss) and Wheel:GetGripLoss() > 0 then
 								throttle = throttle * Wheel:GetGripLoss() --Simfphys traction control
 							end
 						end
@@ -1756,7 +1756,7 @@ if SERVER then
 						for i = 1, table.Count( self.v.Wheels ) do
 							local Wheel = self.v.Wheels[ i ]
 							if not Wheel then return end
-							if Wheel:GetGripLoss() > 0 then
+							if isfunction(Wheel.GetGripLoss) and Wheel:GetGripLoss() > 0 then
 								throttle = throttle * Wheel:GetGripLoss() --Simfphys traction control
 							end
 						end

@@ -780,7 +780,7 @@ if SERVER then
         local spawnAngleOffset = ( vehData and vehData.SpawnAngleOffset ) or 0
 
         local finalPos = targetBasePos + ( vector_up * 25 ) + spawnOffset
-        local finalAng = Angle( 0, angHint.yaw + 270 + spawnAngleOffset, 0 )
+        local finalAng = Angle( 0, angHint.yaw + (UVCheckIfRedlineSimfphys(vehicle) and 0 or 270) + spawnAngleOffset, 0 )
 
         local function snapshotRigidEnt( ent )
             if not IsValid( ent ) then return nil end

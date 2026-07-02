@@ -3988,7 +3988,7 @@ function UVGetAng3(A, B, C)
 	return UVGetAng(B - A, C - B)
 end
 
-function UVCheckIfRedlineSimfphys(vehicle) --angle fix thanks to the piece of shit who made it
+function UVCheckIfRedlineSimfphys(vehicle) --angle fix
 	local category = UVGetVehicleMakeAndModel(vehicle, true)
 	local categories = {
 		["NFS Police Cars"] = true,

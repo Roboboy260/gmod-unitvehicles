@@ -331,6 +331,8 @@ if SERVER then
 				self.v.GetDriver = self.v.OldGetDriver or self.v.GetDriver
 				self.v.PressedKeys = self.v.PressedKeys or {} --Reset key states.
 				self.v.PressedKeys["Shift"] = false
+				self.v.PressedKeys["joystick_throttle"] = 0
+				self.v.PressedKeys["joystick_brake"] = 0
 				if not self.temporary then
 					self.v:StopEngine()
 					if self.v.wrecked then
@@ -1171,7 +1173,7 @@ if SERVER then
 						for i = 1, table.Count( self.v.Wheels ) do
 							local Wheel = self.v.Wheels[ i ]
 							if not Wheel then return end
-							if Wheel:GetGripLoss() > 0 then
+							if isfunction(Wheel.GetGripLoss) and Wheel:GetGripLoss() > 0 then
 								throttle = throttle * Wheel:GetGripLoss() --Simfphys traction control
 							end
 						end
@@ -1395,7 +1397,7 @@ if SERVER then
 						for i = 1, table.Count( self.v.Wheels ) do
 							local Wheel = self.v.Wheels[ i ]
 							if not Wheel then return end
-							if Wheel:GetGripLoss() > 0 then
+							if isfunction(Wheel.GetGripLoss) and Wheel:GetGripLoss() > 0 then
 								throttle = throttle * Wheel:GetGripLoss() --Simfphys traction control
 							end
 						end

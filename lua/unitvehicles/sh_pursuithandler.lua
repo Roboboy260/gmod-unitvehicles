@@ -4710,15 +4710,8 @@ else -- CLIENT Settings | HUD/Options
 			UVHUDDisplayPursuit = nil
 		end
 
-		if UVActionCam then
-			local isInRaceMusic = (not RacingMusicPriority:GetBool()) and RacingMusic:GetBool() and UVHUDDisplayRacing
-			local isOutsideRaceMusic = RacingThemeOutsideRace:GetBool() and RacingMusic:GetBool()
-			
-			if UVPlayingRace then
-				if isInRaceMusic or isOutsideRaceMusic then
-					return
-				end
-			end
+		if UVActionCam then			
+			if UVPlayingRace then return end
 
 			UVStopSound()
 			if UVSoundLoop then

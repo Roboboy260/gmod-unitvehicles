@@ -4322,6 +4322,7 @@ function UVNavigateDVWaypointOptimized( self, vectors )
 	if isfunction(self.RecordNavigationPath) then
 		self:RecordNavigationPath(vectors)
 	end
+	self.PathMode = "dv"
 	return self.tableroutetoenemy
 end
 
@@ -4387,6 +4388,7 @@ function UVNavigateDVWaypoint(self, vectors, full)
 		if isfunction(self.RecordNavigationPath) then
 			self:RecordNavigationPath(vectors)
 		end
+		self.PathMode = "dv"
 		return self.tableroutetoenemy
 	end
 end
@@ -4413,6 +4415,7 @@ function UVNavigateNavmesh(self, vectors)
 		if isfunction(self.RecordNavigationPath) then
 			self:RecordNavigationPath(vectors)
 		end
+		self.PathMode = "navmesh"
 		return self.tableroutetoenemy
 	else
 		self.NavigateBlind = true

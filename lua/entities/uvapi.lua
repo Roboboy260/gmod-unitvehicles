@@ -929,6 +929,135 @@ function ENT:SelectDVPathWaypoint( waypoints, unitpos, forward )
 	return waypoints[1]
 end
 
+function ENT:GetVehicleDriveForward()
+	if not IsValid(self.v) then return vector_forward end
+
+	if self.v.IsSimfphyscar then
+		return self.v:LocalToWorldAngles(self.v.VehicleData.LocalAngForward):Forward()
+	end
+
+	return self.v:GetForward()
+end
+
+function ENT:GetDriveOnPathFallback( unitpos, forward )
+	return IsValid(self.e) and self.e:WorldSpaceCenter() or unitpos + (forward * 100)
+end
+
+function ENT:PrunePathWaypoints( waypoints, unitpos, forward, drawDebug )
+	local reachThreshold = 250000
+	local passedThreshold = 16000000
+
+	for i = #waypoints, 1, -1 do
+		local waypoint = waypoints[i]
+		local toWaypoint = waypoint - unitpos
+		local distSqr = toWaypoint:LengthSqr()
+
+		if drawDebug then
+			debugoverlay.Box(waypoint, Vector(-10, -10, 0), Vector(10, 10, 50), 0.1, Color(0, 255, 0))
+		end
+
+		if distSqr < reachThreshold then
+			table.remove(waypoints, i)
+		else
+			local forwardDot = toWaypoint:GetNormalized():Dot(forward)
+
+			if forwardDot < -0.3 and distSqr > 62500 then
+				table.remove(waypoints, i)
+			elseif distSqr > passedThreshold and forwardDot < 0 then
+				table.remove(waypoints, i)
+			end
+		end
+	end
+end
+
+function ENT:OffsetPathWaypointForUnits( nextWaypoint, unitpos, forward )
+	local velocitySqr = self.v:GetVelocity():LengthSqr()
+	local aheadMaxDistSq = 500000
+	local onWaypointRadiusSq = 40000
+	local forwardDotMin = 0.2
+
+	for veh, _ in pairs(UVUnitVehicles) do
+		if veh ~= self.v and IsValid(veh) then
+			local otherPos = veh:WorldSpaceCenter()
+			local toOther = otherPos - unitpos
+			local distSq = toOther:LengthSqr()
+			local fwdDot = toOther:GetNormalized():Dot(forward)
+			local distToWpSq = (otherPos - nextWaypoint):LengthSqr()
+
+			if ((fwdDot > forwardDotMin and distSq < aheadMaxDistSq) or (distToWpSq < onWaypointRadiusSq)) and velocitySqr > veh:GetVelocity():LengthSqr() then
+				local right = forward:Cross(vector_up)
+				if right:LengthSqr() > 0.01 then
+					right:Normalize()
+					local offsetAmount = 5
+					if self.__entIndex % 2 == 0 then
+						return nextWaypoint + right * offsetAmount
+					end
+					return nextWaypoint - right * offsetAmount
+				end
+				break
+			end
+		end
+	end
+
+	return nextWaypoint
+end
+
+function ENT:DriveOnPath()
+	if self.PathMode == "navmesh" then
+		return self:DriveOnPathNavMesh()
+	end
+	return self:DriveOnPathDV()
+end
+
+function ENT:DriveOnPathDV()
+	local unitpos = self.v:WorldSpaceCenter()
+	local forward = self:GetVehicleDriveForward()
+	local waypoints = self.tableroutetoenemy
+
+	if not waypoints or next(waypoints) == nil then
+		return self:GetDriveOnPathFallback( unitpos, forward )
+	end
+
+	self:PrunePathWaypoints( waypoints, unitpos, forward, true )
+
+	if next(waypoints) == nil then
+		self:InvalidateNavigationPath()
+		return self:GetDriveOnPathFallback( unitpos, forward )
+	end
+
+	local nextWaypoint = self:SelectDVPathWaypoint( waypoints, unitpos, forward )
+	nextWaypoint = self:OffsetPathWaypointForUnits( nextWaypoint, unitpos, forward )
+
+	debugoverlay.Line( unitpos, nextWaypoint, 1, Color(255, 0, 0), true )
+	debugoverlay.Box( nextWaypoint, Vector(-10, -10, 0), Vector(10, 10, 50), 0.1, Color(255, 0, 0) )
+
+	return nextWaypoint
+end
+
+function ENT:DriveOnPathNavMesh()
+	local unitpos = self.v:WorldSpaceCenter()
+	local forward = self:GetVehicleDriveForward()
+	local waypoints = self.tableroutetoenemy
+
+	if not waypoints or next(waypoints) == nil then
+		return self:GetDriveOnPathFallback( unitpos, forward )
+	end
+
+	self:PrunePathWaypoints( waypoints, unitpos, forward, true )
+
+	if next(waypoints) == nil then
+		self:InvalidateNavigationPath()
+		return self:GetDriveOnPathFallback( unitpos, forward )
+	end
+
+	local nextWaypoint = self:OffsetPathWaypointForUnits( waypoints[1], unitpos, forward )
+
+	debugoverlay.Line( unitpos, nextWaypoint, 1, Color(255, 0, 0), true )
+	debugoverlay.Box( nextWaypoint, Vector(-10, -10, 0), Vector(10, 10, 50), 0.1, Color(255, 0, 0) )
+
+	return nextWaypoint
+end
+
 function ENT:IsNavigationGrounded()
 	if not IsValid( self.v ) then return false end
 	if math.abs( self.v:GetVelocity().z ) > 200 then return false end

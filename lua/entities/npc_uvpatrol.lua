@@ -470,20 +470,6 @@ if SERVER then
 			self.NavigateCooldown = nil 
 		end)
 
-		local function tryDVNavigate()
-			if ( DVNavigationOptimized:GetBool() and UVNavigateDVWaypointOptimized(self, vectors) ) or ( ( not DVNavigationOptimized:GetBool() ) and UVNavigateDVWaypoint(self, vectors) ) then
-				self.PathMode = "dv"
-				return true
-			end
-		end
-
-		local function tryNavMeshNavigate()
-			if not InfMap and UVNavigateNavmesh(self, vectors) then
-				self.PathMode = "navmesh"
-				return true
-			end
-		end
-
 		if DVWaypointsPriority:GetBool() then
 			local enemy_nearest_waypoint = InfMap or nil
 			local friendly_nearest_waypoint = InfMap or nil
@@ -516,16 +502,22 @@ if SERVER then
 			end
 
 			if enemy_nearest_waypoint then
-				if tryDVNavigate() or tryNavMeshNavigate() then
+				if ( DVNavigationOptimized:GetBool() and UVNavigateDVWaypointOptimized(self, vectors) ) or ( ( not DVNavigationOptimized:GetBool() ) and UVNavigateDVWaypoint(self, vectors) ) then
+					return
+				elseif not InfMap and UVNavigateNavmesh(self, vectors) then
 					return
 				end
 			else
-				if tryNavMeshNavigate() or tryDVNavigate() then
+				if not InfMap and UVNavigateNavmesh(self, vectors) then
+					return
+				elseif ( DVNavigationOptimized:GetBool() and UVNavigateDVWaypointOptimized(self, vectors) ) or ( ( not DVNavigationOptimized:GetBool() ) and UVNavigateDVWaypoint(self, vectors) ) then
 					return
 				end
 			end
 		else
-			if tryNavMeshNavigate() or tryDVNavigate() then
+			if not InfMap and UVNavigateNavmesh(self, vectors) then
+				return
+			elseif ( DVNavigationOptimized:GetBool() and UVNavigateDVWaypointOptimized(self, vectors) ) or ( ( not DVNavigationOptimized:GetBool() ) and UVNavigateDVWaypoint(self, vectors) ) then
 				return
 			end
 		end
@@ -537,170 +529,6 @@ if SERVER then
 			end
 		end
 
-	end
-
-	function ENT:DriveOnPath()
-		if self.PathMode == "navmesh" then
-			return self:DriveOnPathNavMesh()
-		end
-		return self:DriveOnPathDV()
-	end
-
-	function ENT:DriveOnPathDV()
-		local unitpos = self.v:WorldSpaceCenter()
-		local forward = self.v.IsSimfphyscar and self.v:LocalToWorldAngles(self.v.VehicleData.LocalAngForward):Forward() or self.v:GetForward()
-		local waypoints = self.tableroutetoenemy
-		if not waypoints or next(waypoints) == nil then
-			return IsValid(self.e) and self.e:WorldSpaceCenter() or unitpos + (forward * 100)
-		end
-
-		local reachThreshold = 250000
-		local passedThreshold = 16000000
-
-		local velocitySqr = self.v:GetVelocity():LengthSqr()
-
-		for i = #waypoints, 1, -1 do
-			local waypoint = waypoints[i]
-			local toWaypoint = waypoint - unitpos
-			local distSqr = toWaypoint:LengthSqr()
-
-			--debugoverlay.Line(unitpos, waypoint, 1, Color(0, 255, 0), true)
-			debugoverlay.Box(waypoint, Vector(-10, -10, 0), Vector(10, 10, 50), 0.1, Color(0, 255, 0))
-			
-			if distSqr < reachThreshold then
-				table.remove(waypoints, i)
-			else
-				local toWaypointNormalized = toWaypoint:GetNormalized()
-				local forwardDot = toWaypointNormalized:Dot(forward)
-				
-				if forwardDot < -0.3 and distSqr > 62500 then -- 250 units squared minimum
-					table.remove(waypoints, i)
-				elseif distSqr > passedThreshold and forwardDot < 0 then
-					table.remove(waypoints, i)
-				end
-			end
-		end
-		
-		if next(waypoints) == nil then
-			self:InvalidateNavigationPath()
-			return IsValid(self.e) and self.e:WorldSpaceCenter() or unitpos + (forward * 100)
-		end
-
-		local nextWaypoint = self:SelectDVPathWaypoint(waypoints, unitpos, forward)
-
-		local needOffset = false
-		local aheadMaxDistSq = 500000
-		local onWaypointRadiusSq = 40000
-		local forwardDotMin = 0.2
-		for veh, _ in pairs( UVUnitVehicles ) do
-			if veh ~= self.v and IsValid(veh) then 
-				local otherPos = veh:WorldSpaceCenter()
-				local toOther = otherPos - unitpos
-				local distSq = toOther:LengthSqr()
-				local fwdDot = toOther:GetNormalized():Dot(forward)
-				local distToWpSq = (otherPos - nextWaypoint):LengthSqr()
-				if ((fwdDot > forwardDotMin and distSq < aheadMaxDistSq) or (distToWpSq < onWaypointRadiusSq)) and velocitySqr > veh:GetVelocity():LengthSqr() then
-					needOffset = true
-					break
-				end
-			end
-		end
-		if needOffset then
-			local right = forward:Cross(vector_up)
-			if right:LengthSqr() > 0.01 then
-				right:Normalize()
-				local offsetAmount = 5
-				if self.__entIndex % 2 == 0 then
-					nextWaypoint = nextWaypoint + right * offsetAmount
-				else
-					nextWaypoint = nextWaypoint - right * offsetAmount
-				end
-			end
-		end
-
-		debugoverlay.Line(unitpos, nextWaypoint, 1, Color(255, 0, 0), true)
-		debugoverlay.Box(nextWaypoint, Vector(-10, -10, 0), Vector(10, 10, 50), 0.1, Color(255, 0, 0))
-
-		return nextWaypoint
-	end
-
-
-	function ENT:DriveOnPathNavMesh()
-		local unitpos = self.v:WorldSpaceCenter()
-		local forward = self.v.IsSimfphyscar and self.v:LocalToWorldAngles(self.v.VehicleData.LocalAngForward):Forward() or self.v:GetForward()
-		local waypoints = self.tableroutetoenemy
-		if not waypoints or next(waypoints) == nil then
-			return IsValid(self.e) and self.e:WorldSpaceCenter() or unitpos + (forward * 100)
-		end
-
-		local reachThreshold = 250000
-		local passedThreshold = 16000000
-
-		local velocitySqr = self.v:GetVelocity():LengthSqr()
-
-		for i = #waypoints, 1, -1 do
-			local waypoint = waypoints[i]
-			local toWaypoint = waypoint - unitpos
-			local distSqr = toWaypoint:LengthSqr()
-
-			--debugoverlay.Line(unitpos, waypoint, 1, Color(0, 255, 0), true)
-			debugoverlay.Box(waypoint, Vector(-10, -10, 0), Vector(10, 10, 50), 0.1, Color(0, 255, 0))
-			
-			if distSqr < reachThreshold then
-				table.remove(waypoints, i)
-			else
-				local toWaypointNormalized = toWaypoint:GetNormalized()
-				local forwardDot = toWaypointNormalized:Dot(forward)
-				
-				if forwardDot < -0.3 and distSqr > 62500 then -- 250 units squared minimum
-					table.remove(waypoints, i)
-				elseif distSqr > passedThreshold and forwardDot < 0 then
-					table.remove(waypoints, i)
-				end
-			end
-		end
-		
-		if next(waypoints) == nil then
-			self:InvalidateNavigationPath()
-			return IsValid(self.e) and self.e:WorldSpaceCenter() or unitpos + (forward * 100)
-		end
-
-		local nextWaypoint = waypoints[1]
-
-		local needOffset = false
-		local aheadMaxDistSq = 500000
-		local onWaypointRadiusSq = 40000
-		local forwardDotMin = 0.2
-		for veh, _ in pairs( UVUnitVehicles ) do
-			if veh ~= self.v and IsValid(veh) then 
-				local otherPos = veh:WorldSpaceCenter()
-				local toOther = otherPos - unitpos
-				local distSq = toOther:LengthSqr()
-				local fwdDot = toOther:GetNormalized():Dot(forward)
-				local distToWpSq = (otherPos - nextWaypoint):LengthSqr()
-				if ((fwdDot > forwardDotMin and distSq < aheadMaxDistSq) or (distToWpSq < onWaypointRadiusSq)) and velocitySqr > veh:GetVelocity():LengthSqr() then
-					needOffset = true
-					break
-				end
-			end
-		end
-		if needOffset then
-			local right = forward:Cross(vector_up)
-			if right:LengthSqr() > 0.01 then
-				right:Normalize()
-				local offsetAmount = 5
-				if self.__entIndex % 2 == 0 then
-					nextWaypoint = nextWaypoint + right * offsetAmount
-				else
-					nextWaypoint = nextWaypoint - right * offsetAmount
-				end
-			end
-		end
-
-		debugoverlay.Line(unitpos, nextWaypoint, 1, Color(255, 0, 0), true)
-		debugoverlay.Box(nextWaypoint, Vector(-10, -10, 0), Vector(10, 10, 50), 0.1, Color(255, 0, 0))
-
-		return nextWaypoint
 	end
 
 	function ENT:FindPatrol()

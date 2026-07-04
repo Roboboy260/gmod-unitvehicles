@@ -1384,6 +1384,7 @@ DisengageOnHeatChange = CreateConVar("unitvehicle_disengageonheatchange", 1, {FC
 CanExitVehicle = CreateConVar("unitvehicle_canexitvehicle", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, players can exit their vehicle during pursuits or races.")
 UnitDifficulty = CreateConVar( "unitvehicle_unitdifficulty", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Increases Unit AI difficulty." )
 UnitCatchup = CreateConVar( "unitvehicle_unitcatchup", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit AI catch-up." )
+DriverModel = CreateConVar( "unitvehicle_drivermodel", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, driver models will spawn depending on the NPC class." )
 
 ActionCam = CreateConVar("unitvehicle_actioncam", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show dramatic angles during certain events. Gameplay may slow down.")
 ActionCamWrecked = CreateConVar("unitvehicle_actioncam_wrecked", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you get wrecked, busted or killed.")
@@ -3831,7 +3832,7 @@ else -- CLIENT Settings | HUD/Options
 		end
 	end)
 
-	local function InitEntity( entIndex, creationId, entType )
+	local function InitEntity( entIndex, creationId, entType, entColor )
 		local entity = Entity( entIndex )
 		if not IsValid( entity ) then return end
 
@@ -3897,6 +3898,9 @@ else -- CLIENT Settings | HUD/Options
 
 		elseif entType == "racer" then
 			table.insert( UVHUDWantedSuspects, entity )
+		elseif entType == "drivermodel" then
+			local vecCache = entColor:ToVector()
+			entity.GetPlayerColor = function() return vecCache end
 		end
 
 		return true
@@ -4461,7 +4465,8 @@ else -- CLIENT Settings | HUD/Options
 		table.insert( EntityQueue, {
 			entIndex = entIndex,
 			creationId = creationId,
-			entType = net.ReadString()
+			entType = net.ReadString(),
+			entColor = net.ReadColor()
 		} )
 	end)
 
@@ -4585,7 +4590,7 @@ else -- CLIENT Settings | HUD/Options
 		end
 
 		for i, v in pairs( EntityQueue ) do
-			local ent = InitEntity( v.entIndex, v.creationId, v.entType )
+			local ent = InitEntity( v.entIndex, v.creationId, v.entType, v.entColor )
 			if ent then
 				table.remove( EntityQueue, i )
 			end

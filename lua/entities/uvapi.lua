@@ -1154,3 +1154,250 @@ function ENT:TryRefreshPathToTarget( enemy )
 	self:InvalidateNavigationPath()
 	self:PathFindToEnemy( pathTarget, enemy )
 end
+
+local DefaultDriverModels = {
+	["npc_racervehicle"] = {
+		"models/player/alyx.mdl",
+		"models/player/arctic.mdl",
+		"models/player/barney.mdl",
+		"models/player/breen.mdl",
+		"models/player/eli.mdl",
+		"models/player/gman_high.mdl",
+		"models/player/guerilla.mdl",
+		"models/player/kleiner.mdl",
+		"models/player/leet.mdl",
+		"models/player/magnusson.mdl",
+		"models/player/monk.mdl",
+		"models/player/mossman.mdl",
+		"models/player/mossman_arctic.mdl",
+		"models/player/odessa.mdl",
+		"models/player/p2_chell.mdl",
+		"models/player/phoenix.mdl",
+		"models/player/group01/female_01.mdl",
+    	"models/player/group01/female_02.mdl",
+    	"models/player/group01/female_03.mdl",
+    	"models/player/group01/female_04.mdl",
+    	"models/player/group01/female_05.mdl",
+    	"models/player/group01/female_06.mdl",
+    	"models/player/group01/male_01.mdl",
+    	"models/player/group01/male_02.mdl",
+    	"models/player/group01/male_03.mdl",
+    	"models/player/group01/male_04.mdl",
+    	"models/player/group01/male_05.mdl",
+    	"models/player/group01/male_06.mdl",
+    	"models/player/group01/male_07.mdl",
+    	"models/player/group01/male_08.mdl",
+    	"models/player/group01/male_09.mdl",
+    	"models/player/group02/male_02.mdl",
+    	"models/player/group02/male_04.mdl",
+    	"models/player/group02/male_06.mdl",
+    	"models/player/group02/male_08.mdl",
+    	"models/player/group03/female_01.mdl",
+    	"models/player/group03/female_02.mdl",
+    	"models/player/group03/female_03.mdl",
+    	"models/player/group03/female_04.mdl",
+    	"models/player/group03/female_05.mdl",
+    	"models/player/group03/female_06.mdl",
+    	"models/player/group03/male_01.mdl",
+    	"models/player/group03/male_02.mdl",
+    	"models/player/group03/male_03.mdl",
+    	"models/player/group03/male_04.mdl",
+    	"models/player/group03/male_05.mdl",
+    	"models/player/group03/male_06.mdl",
+    	"models/player/group03/male_07.mdl",
+    	"models/player/group03/male_08.mdl",
+    	"models/player/group03/male_09.mdl",
+		"models/player/group03m/female_01.mdl",
+    	"models/player/group03m/female_02.mdl",
+    	"models/player/group03m/female_03.mdl",
+    	"models/player/group03m/female_04.mdl",
+    	"models/player/group03m/female_05.mdl",
+    	"models/player/group03m/female_06.mdl",
+    	"models/player/group03m/male_01.mdl",
+    	"models/player/group03m/male_02.mdl",
+    	"models/player/group03m/male_03.mdl",
+    	"models/player/group03m/male_04.mdl",
+    	"models/player/group03m/male_05.mdl",
+    	"models/player/group03m/male_06.mdl",
+    	"models/player/group03m/male_07.mdl",
+    	"models/player/group03m/male_08.mdl",
+    	"models/player/group03m/male_09.mdl"
+	},
+	["npc_trafficvehicle"] = {
+    	"models/player/group01/female_01.mdl",
+    	"models/player/group01/female_02.mdl",
+    	"models/player/group01/female_03.mdl",
+    	"models/player/group01/female_04.mdl",
+    	"models/player/group01/female_05.mdl",
+    	"models/player/group01/female_06.mdl",
+    	"models/player/group01/male_01.mdl",
+    	"models/player/group01/male_02.mdl",
+    	"models/player/group01/male_03.mdl",
+    	"models/player/group01/male_04.mdl",
+    	"models/player/group01/male_05.mdl",
+    	"models/player/group01/male_06.mdl",
+    	"models/player/group01/male_07.mdl",
+    	"models/player/group01/male_08.mdl",
+    	"models/player/group01/male_09.mdl",
+    	"models/player/group02/male_02.mdl",
+    	"models/player/group02/male_04.mdl",
+    	"models/player/group02/male_06.mdl",
+    	"models/player/group02/male_08.mdl",
+    	"models/player/group03/female_01.mdl",
+    	"models/player/group03/female_02.mdl",
+    	"models/player/group03/female_03.mdl",
+    	"models/player/group03/female_04.mdl",
+    	"models/player/group03/female_05.mdl",
+    	"models/player/group03/female_06.mdl",
+    	"models/player/group03/male_01.mdl",
+    	"models/player/group03/male_02.mdl",
+    	"models/player/group03/male_03.mdl",
+    	"models/player/group03/male_04.mdl",
+    	"models/player/group03/male_05.mdl",
+    	"models/player/group03/male_06.mdl",
+    	"models/player/group03/male_07.mdl",
+    	"models/player/group03/male_08.mdl",
+    	"models/player/group03/male_09.mdl",
+		"models/player/group03m/female_01.mdl",
+    	"models/player/group03m/female_02.mdl",
+    	"models/player/group03m/female_03.mdl",
+    	"models/player/group03m/female_04.mdl",
+    	"models/player/group03m/female_05.mdl",
+    	"models/player/group03m/female_06.mdl",
+    	"models/player/group03m/male_01.mdl",
+    	"models/player/group03m/male_02.mdl",
+    	"models/player/group03m/male_03.mdl",
+    	"models/player/group03m/male_04.mdl",
+    	"models/player/group03m/male_05.mdl",
+    	"models/player/group03m/male_06.mdl",
+    	"models/player/group03m/male_07.mdl",
+    	"models/player/group03m/male_08.mdl",
+    	"models/player/group03m/male_09.mdl"
+	},
+	["npc_uvpatrol"] = {
+		"models/player/police.mdl",
+		"models/player/police_fem.mdl"
+	},
+	["npc_uvsupport"] = {
+		"models/player/police.mdl",
+		"models/player/police_fem.mdl"
+	},
+	["npc_uvpursuit"] = {
+		"models/player/police.mdl",
+		"models/player/police_fem.mdl"
+	},
+	["npc_uvinterceptor"] = {
+		"models/player/police.mdl",
+		"models/player/police_fem.mdl"
+	},
+	["npc_uvspecial"] = {
+		"models/player/combine_soldier.mdl"
+	},
+	["npc_uvcommander"] = {
+		"models/player/combine_super_soldier.mdl"
+	}
+}
+
+function ENT:GetVehiclePrefix()
+    if self.v.IsScar then
+        return "SCAR_"
+    elseif self.v.IsSimfphyscar then
+        return "Simfphys_"
+    elseif self.v.LVS or self.v.LVS_GUNNER then
+        return "LVS_"
+    elseif self.v.IsGlideVehicle then
+        return "Glide_"
+    else
+        return "Source_"
+    end
+end
+
+function ENT:GetVehicleIdentifier()
+    local id = ""
+    if self.v.IsScar then
+        id = self.v:GetClass()
+    else
+        id = self.v:GetModel() or "INVALID_MODEL"
+    end
+
+    return self:GetVehiclePrefix() .. id
+end
+
+function ENT:GetRandomDriverModel()
+	local entClass = self:GetClass()
+    local modelList = DefaultDriverModels[entClass]
+
+    if not modelList or #modelList == 0 then
+        return "models/player/kleiner.mdl"
+    end
+
+    return table.Random(modelList)
+end
+
+function ENT:AttachDriverModel()
+    local v = self.v
+    local seat = v
+    if v.IsScar then
+        seat = v.Seats and v.Seats[1]
+    elseif self.v.IsSimfphyscar then
+        seat = v.DriverSeat
+    elseif v.LVS or v.LVS_GUNNER then
+        seat = v:GetDriverSeat()
+    elseif v.IsGlideVehicle then
+        seat = v.seats and v.seats[1]
+    end
+
+    if not IsValid(seat) then return end
+
+	if self.v.DriverModel and IsValid(self.v.DriverModel) then self.v.DriverModel:Remove() end
+
+    local anim = dvd.DriverAnimation[self:GetVehicleIdentifier()] or dvd.DriverAnimation[self:GetVehiclePrefix()] or "drive_jeep"
+	local class = self:GetClass()
+    local model = self:GetRandomDriverModel()
+	
+	local DriverModel = ents.Create("prop_dynamic")
+	DriverModel:SetSolid(SOLID_NONE)
+	DriverModel:SetMoveType(MOVETYPE_NONE)
+	DriverModel:SetCollisionGroup(10)
+    DriverModel:SetModel(model)
+	DriverModel:SetNoDraw(true)
+	DriverModel:SetPos(seat:GetPos())
+	DriverModel:SetAngles(seat:GetAngles())
+    DriverModel:SetParent(seat)
+	DriverModel:Spawn()
+
+	self.v.DriverModel = DriverModel
+	self.v.DriverModel.vehicle = self.v
+    seat:SetSequence(0)
+
+	local attachedEntity = DriverModel.AttachedEntity or DriverModel
+	local nonUnit = (class == "npc_racervehicle" or class == "npc_trafficvehicle") and true
+
+    timer.Simple(.1, function()
+        if not IsValid(seat) then return end
+        if not IsValid(DriverModel) then return end
+        if not IsValid(self.v) then return end
+
+        local a = seat:GetAttachment(assert(seat:LookupAttachment("vehicle_driver_eyes"), dvd.Texts.Errors.AttachmentNotFound))
+        local d = dvd.SeatPos[self:GetVehicleIdentifier()] or dvd.SeatPos[self:GetVehiclePrefix()] or Vector(-8, 0, -32)
+        local seatang = seat:WorldToLocalAngles(a.Ang)
+        local seatpos = seat:WorldToLocal(a.Pos + a.Ang:Forward() * d.x + a.Ang:Right() * d.y + a.Ang:Up() * d.z)
+
+        DriverModel:SetLocalPos(seatpos)
+		DriverModel:SetLocalAngles(seatang)
+        DriverModel:SetSequence(anim)
+
+		DriverModel:SetNoDraw(false)
+
+		for i = 0, DriverModel:GetFlexNum() - 1 do
+            DriverModel:SetFlexWeight(i, 0)
+        end
+
+		net.Start("UVHUDAddUV")
+		net.WriteInt(DriverModel:EntIndex(), 32)
+		net.WriteInt(DriverModel:GetCreationID(), 32)
+		net.WriteString("drivermodel")
+		net.WriteColor(nonUnit and Color(math.random(0, 255), math.random(0, 255), math.random(0, 255)) or color_white)
+		net.Broadcast()
+    end)
+end

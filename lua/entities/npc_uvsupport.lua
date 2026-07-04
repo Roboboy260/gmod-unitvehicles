@@ -3,11 +3,13 @@ list.Set("NPC", "npc_uvsupport", {
 	Class = "npc_uvsupport",
 	Category = "#uv.unitvehicles"
 })
+
 AddCSLuaFile("npc_uvsupport.lua")
-include("entities/uvapi.lua")
 
 ENT.Base = "base_entity"
 ENT.Type = "ai"
+
+include("entities/uvapi.lua")
 
 ENT.PrintName = "UVSupport"
 ENT.Author = "UVPD Vehicular Autonomous Navigation and General Unit Automated Research Division"
@@ -16,6 +18,8 @@ ENT.Purpose = "To be called out if Patrol units hit trouble. You are that troubl
 ENT.Instruction = "Spawn on/under the vehicle until it shows a spawn effect."
 ENT.Spawnable = false
 ENT.Modelname = "models/props_lab/huladoll.mdl"
+
+local ENT = ENT
 
 local dvd = DecentVehicleDestination
 
@@ -137,6 +141,10 @@ if SERVER then
 			
 			if (self.uvscripted and not self.wrecked) then
 				SafeRemoveEntity(self.v)
+			end
+
+			if not self.wrecked and self.v.DriverModel and IsValid(self.v.DriverModel) then 
+				self.v.DriverModel:Remove() 
 			end
 			
 		end
@@ -2058,8 +2066,12 @@ if SERVER then
 			end
 		end
 
-		if isfunction(self.v.UVVehicleInitialize) then --For vehicles that has a driver bodygroup
-			self.v:UVVehicleInitialize()
+		if DriverModel:GetBool() then
+			self:AttachDriverModel()
+		else
+			if isfunction(self.v.UVVehicleInitialize) then
+				self.v:UVVehicleInitialize() --For vehicles that has a driver bodygroup
+			end
 		end
 
 		if cffunctions then

@@ -3,11 +3,13 @@ list.Set("NPC", "npc_trafficvehicle", {
 	Class = "npc_trafficvehicle",
 	Category = "#uv.unitvehicles"
 })
+
 AddCSLuaFile("npc_trafficvehicle.lua")
-include("entities/uvapi.lua")
 
 ENT.Base = "base_entity"
 ENT.Type = "ai"
+
+include("entities/uvapi.lua")
 
 ENT.PrintName = "TrafficVehicle"
 ENT.Author = "Ranjeet"
@@ -17,9 +19,9 @@ ENT.Instruction = "Spawn on/under the vehicle until it shows a spawn effect."
 ENT.Spawnable = false
 ENT.Modelname = "models/props_lab/huladoll.mdl"
 
+local ENT = ENT
+
 local dvd = DecentVehicleDestination
-
-
 
 if SERVER then	
 	--Setting ConVars.
@@ -111,6 +113,10 @@ if SERVER then
 
 			if (self.uvscripted and not self.wrecked) then
 				SafeRemoveEntity(self.v)
+			end
+
+			if not self.wrecked and self.v.DriverModel and IsValid(self.v.DriverModel) then 
+				self.v.DriverModel:Remove() 
 			end
 			
 		end
@@ -779,8 +785,12 @@ if SERVER then
 
 		self.v.racer = "Traffic"
 
-		if isfunction(self.v.UVVehicleInitialize) then --For vehicles that has a driver bodygroup
-			self.v:UVVehicleInitialize()
+		if DriverModel:GetBool() then
+			self:AttachDriverModel()
+		else
+			if isfunction(self.v.UVVehicleInitialize) then
+				self.v:UVVehicleInitialize() --For vehicles that has a driver bodygroup
+			end
 		end
 
 		local deletiontime = 1

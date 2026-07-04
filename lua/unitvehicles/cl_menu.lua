@@ -806,6 +806,7 @@ UVMenu.Settings = function()
 				{ type = "bool", text = "uv.aidifficulty.unit.rubberband", desc = "uv.aidifficulty.unit.rubberband.desc", convar = "unitvehicle_unitcatchup", showprefix = true, sv = true },
 
 				{ type = "label", text = "uv.ailogic", sv = true },
+				{ type = "bool", text = "uv.ailogic.drivermodel", desc = "uv.ailogic.drivermodel.desc", convar = "unitvehicle_drivermodel", sv = true },
 				{ type = "bool", text = "uv.ailogic.optimizerespawn", desc = "uv.ailogic.optimizerespawn.desc", convar = "unitvehicle_optimizerespawn", sv = true },
 				{ type = "bool", text = "uv.ailogic.trafficstreaming", desc = "uv.ailogic.trafficstreaming.desc", convar = "unitvehicle_trafficstreaming", sv = true },
 				{ type = "bool", text = "uv.ailogic.wrecking", desc = "uv.ailogic.wrecking.desc", convar = "unitvehicle_canwreck", sv = true },

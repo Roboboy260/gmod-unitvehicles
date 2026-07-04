@@ -3,11 +3,13 @@ list.Set("NPC", "npc_racervehicle", {
 	Class = "npc_racervehicle",
 	Category = "#uv.unitvehicles"
 })
+
 AddCSLuaFile("npc_racervehicle.lua")
-include("entities/uvapi.lua")
 
 ENT.Base = "base_entity"
 ENT.Type = "ai"
+
+include("entities/uvapi.lua")
 
 ENT.PrintName = "RacerVehicle"
 ENT.Author = "Razor"
@@ -16,6 +18,8 @@ ENT.Purpose = "It ain't over until I say it's over."
 ENT.Instruction = "Spawn on/under the vehicle until it shows a spawn effect."
 ENT.Spawnable = false
 ENT.Modelname = "models/props_lab/huladoll.mdl"
+
+local ENT = ENT
 
 local dvd = DecentVehicleDestination
 
@@ -393,6 +397,10 @@ if SERVER then
 				local e = EffectData()
 				e:SetEntity(self.v)
 				util.Effect("entity_remove", e) --Perform an effect.4
+			end
+
+			if not self.wrecked and self.v.DriverModel and IsValid(self.v.DriverModel) then 
+				self.v.DriverModel:Remove() 
 			end
 			
 		end
@@ -1894,8 +1902,12 @@ if SERVER then
 				net.Broadcast()
 			end
 
-			if isfunction(self.v.UVVehicleInitialize) then --For vehicles that has a driver bodygroup
-				self.v:UVVehicleInitialize()
+			if DriverModel:GetBool() then
+				self:AttachDriverModel()
+			else
+				if isfunction(self.v.UVVehicleInitialize) then
+					self.v:UVVehicleInitialize() --For vehicles that has a driver bodygroup
+				end
 			end
 
 			if cffunctions then

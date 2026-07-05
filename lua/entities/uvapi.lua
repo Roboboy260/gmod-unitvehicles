@@ -1221,7 +1221,11 @@ local DefaultDriverModels = {
     	"models/player/group03m/male_06.mdl",
     	"models/player/group03m/male_07.mdl",
     	"models/player/group03m/male_08.mdl",
-    	"models/player/group03m/male_09.mdl"
+    	"models/player/group03m/male_09.mdl",
+		"models/player/hostage/hostage_01.mdl",
+		"models/player/hostage/hostage_02.mdl",
+		"models/player/hostage/hostage_03.mdl",
+		"models/player/hostage/hostage_04.mdl"
 	},
 	["npc_trafficvehicle"] = {
     	"models/player/group01/female_01.mdl",
@@ -1272,7 +1276,11 @@ local DefaultDriverModels = {
     	"models/player/group03m/male_06.mdl",
     	"models/player/group03m/male_07.mdl",
     	"models/player/group03m/male_08.mdl",
-    	"models/player/group03m/male_09.mdl"
+    	"models/player/group03m/male_09.mdl",
+		"models/player/hostage/hostage_01.mdl",
+		"models/player/hostage/hostage_02.mdl",
+		"models/player/hostage/hostage_03.mdl",
+		"models/player/hostage/hostage_04.mdl"
 	},
 	["npc_uvpatrol"] = {
 		"models/player/police.mdl",

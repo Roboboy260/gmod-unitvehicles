@@ -66,6 +66,15 @@ NETWORK_STRINGS = {
 	"UVRepairShopLoadAll",
 	"UVRepairShopMarkAll",
 	"UVRepairShopMarkAllResponse",
+
+	-- Driver Model
+	"UVDriverModelManagerAdjust",
+	"UVDriverModelManagerRetrieve",
+	"UVDriverModelManagerRetrieveColor",
+	"UVDriverModelManagerCreate",
+	"UVDriverModelManagerDeleteFile",
+	"UVDriverModelManagerRefresh",
+	"UVDriverModelManagerLoad",
 	
 	-- Pursuit Table
 	"UVGet_PursuitTable",

@@ -8,6 +8,7 @@ local LOCAL_CONTENT_ROOT = "unitvehicles/"
 local REPLICATION_BATCH_SIZE = 50
 local REPLICATION_DELAY = 0.1
 local REPLICATED_FILES = {
+    ['drivermodels'] = true,
     ['glide>>units'] = true,
     ['glide>>traffic'] = true,
     ['glide>>racers'] = true,

@@ -9,6 +9,12 @@ if SERVER then
 
 	net.Receive("UVDriverModelManagerRetrieve", function( length, ply )
 		local filename = net.ReadString()
+		local addfile = net.ReadBool()
+
+		if addfile then
+			UV_AddFile( "drivermodels", filename .. ".json", "unitvehicles/drivermodels/", "DATA" )
+			return
+		end
 
 		local data = UV_LoadFile("drivermodels", filename)
 		if not data then return end
@@ -77,6 +83,7 @@ if CLIENT then
 		{ name = "info"},
 		{ name = "left" },
 		{ name = "right" },
+		{ name = "reload" },
 	}
 
 	local selecteditem	= nil
@@ -113,7 +120,7 @@ if CLIENT then
 		local OK = vgui.Create("DButton")
 
 		DriverModelAdjust:Add(OK)
-		DriverModelAdjust:SetSize(1000, 500)
+		DriverModelAdjust:SetSize(500, 300)
 		DriverModelAdjust:SetBackgroundBlur(true)
 		DriverModelAdjust:Center()
 		DriverModelAdjust:SetTitle("#tool.uvdrivermodelmanager.create")
@@ -146,7 +153,7 @@ if CLIENT then
 		RandomizeColor:SetValue( 0 )
 
 		local Warning = vgui.Create( "DLabel", DriverModelAdjust )
-		Warning:SetPos( 20, 160 )
+		Warning:SetPos( 20, 170 )
 		Warning:SetText( UVDMTOOLMemory.NoDriveSequence and "#tool.uvdrivermodelmanager.sequence.warning" or "" )
 		Warning:SizeToContents()
 
@@ -323,6 +330,237 @@ if CLIENT then
 
 	end
 
+	local function OpenModelExporter()
+	    local frame = vgui.Create("DFrame")
+	    frame:SetSize(750, 550)
+	    frame:SetTitle("#tool.uvdrivermodelmanager.create")
+	    frame:Center()
+	    frame:MakePopup()
+
+	    local leftScroll = vgui.Create("DScrollPanel", frame)
+	    leftScroll:SetSize(380, 500)
+	    leftScroll:Dock(LEFT)
+	    leftScroll:DockMargin(0, 0, 15, 0)
+
+	    local modelPanel = vgui.Create("DModelPanel", frame)
+	    modelPanel:Dock(FILL)
+	    modelPanel:SetFOV(40)
+					
+		modelPanel.Angles = Angle(0, 45, 0)
+			
+		function modelPanel:DragMousePress()
+		    self.PressX, self.PressY = gui.MousePos()
+		    self.Pressed = true
+		end
+		
+		function modelPanel:DragMouseRelease()
+		    self.Pressed = false
+		end
+		
+		function modelPanel:LayoutEntity(ent)
+		    if self.Pressed then
+		        local mx, my = gui.MousePos()
+			
+		        self.Angles = self.Angles - Angle(0, (self.PressX - mx) * 0.5, 0)
+			
+		        self.PressX, self.PressY = gui.MousePos()
+		    end
+		
+		    ent:SetAngles(self.Angles)
+		
+		    if self.bAnimated then 
+		        self:RunAnimation() 
+		    end 
+		end
+
+	    local currentBodygroups = {}
+	    local currentSkin = 0
+
+	    local lblModel = vgui.Create("DLabel", leftScroll)
+	    lblModel:SetText("#smwidget.playermodel")
+	    lblModel:SetFont("DermaDefaultBold")
+	    lblModel:Dock(TOP)
+	    lblModel:DockMargin(0, 5, 0, 5)
+
+	    local modelCombo = vgui.Create("DComboBox", leftScroll)
+	    modelCombo:Dock(TOP)
+	    modelCombo:DockMargin(0, 0, 0, 15)
+	    modelCombo:SetSortItems(true)
+
+	    local dynamicControls = vgui.Create("DListLayout", leftScroll)
+	    dynamicControls:Dock(TOP)
+	    dynamicControls:DockMargin(0, 0, 0, 15)
+
+	    local function RebuildDynamicControls(modelPath)
+	        dynamicControls:Clear()
+	        currentBodygroups = {}
+	        currentSkin = 0
+
+	        modelPanel:SetModel(modelPath)
+	        local ent = modelPanel:GetEntity()
+	        if not IsValid(ent) then return end
+
+	        local mn, mx = ent:GetRenderBounds()
+	        local r_size = (mn - mx):Length()
+	        modelPanel:SetCamPos(mn + Vector(r_size, r_size, r_size * 0.4))
+	        modelPanel:SetLookAt((mn + mx) * 0.5 + Vector(0, 0, 10))
+
+	        local skinCount = ent:SkinCount()
+	        if skinCount > 1 then
+	            local skinSlider = vgui.Create("DNumSlider", dynamicControls)
+	            skinSlider:Dock(TOP)
+	            skinSlider:SetText("Skin")
+	            skinSlider:SetMin(0)
+	            skinSlider:SetMax(skinCount - 1)
+	            skinSlider:SetDecimals(0)
+	            skinSlider:SetValue(0)
+	            skinSlider.OnValueChanged = function(_, val)
+	                val = math.Round(val)
+	                currentSkin = val
+	                if IsValid(modelPanel:GetEntity()) then
+	                    modelPanel:GetEntity():SetSkin(val)
+	                end
+	            end
+	        end
+
+	        local bgList = ent:GetBodyGroups()
+	        for _, bg in ipairs(bgList) do
+	            if bg.num > 1 then
+	                local bgSlider = vgui.Create("DNumSlider", dynamicControls)
+	                bgSlider:Dock(TOP)
+	                bgSlider:SetText(bg.name .. " (" .. bg.id .. ")")
+	                bgSlider:SetMin(0)
+	                bgSlider:SetMax(bg.num - 1)
+	                bgSlider:SetDecimals(0)
+	                bgSlider:SetValue(0)
+				
+	                currentBodygroups[tostring(bg.id)] = 0
+
+	                bgSlider.OnValueChanged = function(_, val)
+	                    val = math.Round(val)
+	                    currentBodygroups[tostring(bg.id)] = val
+	                    if IsValid(modelPanel:GetEntity()) then
+	                        modelPanel:GetEntity():SetBodygroup(bg.id, val)
+	                    end
+	                end
+	            end
+	        end
+	    end
+
+	    for name, path in pairs(player_manager.AllValidModels()) do
+	        modelCombo:AddChoice(name, path)
+	    end
+
+	    modelCombo.OnSelect = function(_, index, value, data)
+	        RebuildDynamicControls(data)
+	    end
+
+    	local lblColor = vgui.Create("DLabel", leftScroll)
+    	lblColor:SetText("#color")
+    	lblColor:SetFont("DermaDefaultBold")
+    	lblColor:Dock(TOP)
+    	lblColor:DockMargin(0, 5, 0, 5)
+		
+    	colorMixer = vgui.Create("DColorMixer", leftScroll)
+    	colorMixer:Dock(TOP)
+    	colorMixer:SetTall(150)
+    	colorMixer:SetPalette(true)
+    	colorMixer:SetAlphaBar(true)
+    	colorMixer:SetWangs(true)
+    	colorMixer:SetColor(Color(255, 255, 255, 255))
+		
+    	function colorMixer:ValueChanged(col)
+    	    local ent = modelPanel:GetEntity()
+    	    if IsValid(ent) then
+    	        ent.GetPlayerColor = function()
+    	            return Vector(col.r / 255, col.g / 255, col.b / 255)
+    	        end
+    	    end
+    	end
+	
+    	modelCombo:SetValue("alyx")
+    	RebuildDynamicControls("models/player/alyx.mdl")
+
+	    local cbRandBg = vgui.Create("DCheckBoxLabel", leftScroll)
+	    cbRandBg:SetText("#tool.uvdrivermodelmanager.create.optional.randomizebodygroups")
+	    cbRandBg:Dock(TOP)
+	    cbRandBg:DockMargin(0, 15, 0, 5)
+	    cbRandBg:SetValue(true)
+
+	    local cbRandSkin = vgui.Create("DCheckBoxLabel", leftScroll)
+	    cbRandSkin:SetText("#tool.uvdrivermodelmanager.create.optional.randomizeskin")
+	    cbRandSkin:Dock(TOP)
+	    cbRandSkin:DockMargin(0, 0, 0, 5)
+	    cbRandSkin:SetValue(true)
+
+	    local cbRandColor = vgui.Create("DCheckBoxLabel", leftScroll)
+	    cbRandColor:SetText("#tool.uvdrivermodelmanager.create.optional.randomizecolor")
+	    cbRandColor:Dock(TOP)
+	    cbRandColor:DockMargin(0, 0, 0, 20)
+	    cbRandColor:SetValue(true)
+
+	    local lblFile = vgui.Create("DLabel", leftScroll)
+	    lblFile:SetText("#tool.uvnamechanger.settings.name")
+	    lblFile:SetFont("DermaDefaultBold")
+	    lblFile:Dock(TOP)
+	    lblFile:DockMargin(0, 5, 0, 5)
+
+	    local txtFilename = vgui.Create("DTextEntry", leftScroll)
+	    txtFilename:Dock(TOP)
+	    txtFilename:SetPlaceholderText("#tool.uvdrivermodelmanager.create.name")
+	    txtFilename:DockMargin(0, 0, 0, 15)
+
+	    local btnSave = vgui.Create("DButton", leftScroll)
+	    btnSave:SetText("#uv.tool.export")
+	    btnSave:Dock(TOP)
+	    btnSave:SetTall(40)
+	
+	    btnSave.DoClick = function()
+	        local filename = txtFilename:GetValue()
+	        if filename == "" then txtFilename:SetPlaceholderText( "#uv.tool.fillme" ) return end
+		
+	        filename = string.gsub(filename, '[\\/:*?"<>|%s]', "_") 
+
+	        local col = colorMixer:GetColor()
+	        local _, selectedModelPath = modelCombo:GetSelected()
+	        if not selectedModelPath then selectedModelPath = "models/player/alyx.mdl" end
+
+	        local dataTable = {
+	            ["ModelName"] = selectedModelPath,
+	            ["RandomizeBodygroups"] = cbRandBg:GetChecked(),
+	            ["Skin"] = currentSkin,
+	            ["Color"] = {
+	                r = col.r,
+	                b = col.b,
+	                a = col.a,
+	                g = col.g
+	            },
+	            ["Bodygroups"] = currentBodygroups,
+	            ["RandomizeSkin"] = cbRandSkin:GetChecked(),
+	            ["RandomizeColor"] = cbRandColor:GetChecked()
+	        }
+
+	        local jsonString = util.TableToJSON(dataTable, true)
+
+	        file.Write("unitvehicles/drivermodels/"..filename..".json", jsonString)
+
+			net.Start("UVDriverModelManagerRetrieve")
+				net.WriteString(filename)
+				net.WriteBool(true)
+			net.SendToServer()
+
+			UVDriverModelManagerScrollPanel:Clear()
+			if RefreshDriverModelList then RefreshDriverModelList() end
+
+			chat.AddText(Color(0, 255, 100), "Driver Model "..filename.." has been created!" )
+	        surface.PlaySound("garrysmod/ui_click.wav")
+	    end
+	end
+
+	net.Receive("UVDriverModelManagerOpenModelMenu", function ( length )
+		OpenModelExporter()
+	end)
+
 end
 
 function TOOL:RightClick(trace)
@@ -400,6 +638,15 @@ function TOOL:LeftClick( trace )
 	undo.Finish()
 		
 	return true
+end
+
+function TOOL:Reload( trace )
+	if CLIENT then return true end
+
+	local ply = self:GetOwner()
+
+	net.Start("UVDriverModelManagerOpenModelMenu")
+	net.Send(ply)
 end
 
 function TOOL:GetDriverModelData( ent, ply, location )

@@ -3237,7 +3237,7 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 		return panel
 	end
 	
-	if st.type == "unitselect" then
+	if st.type == "unitselect" or st.type == "drivermodel" then
 		local panel = vgui.Create("DPanel", parent)
 		panel:Dock(TOP)
 		panel:DockMargin(8, 4, 8, 4)
@@ -3277,13 +3277,18 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 		end
 
 		local vehicleBases = {
-			{ id = 1, name = "HL2",      path = "prop_vehicle_jeep>>units", type = "txt"  },
-			{ id = 2, name = "Simfphys", path = "simfphys>>units",           type = "txt"  },
-			{ id = 3, name = "Glide",    path = "glide>>units",               type = "json" },
-			{ id = 4, name = "LVS",      path = "lvs>>units",                 type = "json" }
+			{ id = 1, name = "HL2", path = "prop_vehicle_jeep>>units", type = "txt"  },
+			{ id = 2, name = "Simfphys", path = "simfphys>>units", type = "txt"  },
+			{ id = 3, name = "Glide", path = "glide>>units", type = "json" },
+			{ id = 4, name = "LVS", path = "lvs>>units", type = "json" },
+			{ id = 5, name = "DriverModel", path = "drivermodels", type = "json" }
 		}
 		
 		local activeFilterBaseId = 0 -- 0 = show all
+
+		if st.type == "drivermodel" then
+			activeFilterBaseId = 5
+		end
 		
 		local filterBar = vgui.Create("DIconLayout", panel)
 		filterBar:Dock(TOP)
@@ -3384,7 +3389,7 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 					table.insert(entries, {
 						filename = filename, -- stored value
 						base  = base.name,
-						display  = "[ " .. base.name .. " ] " .. filename,
+						display  = st.type == "unitselect" and "[ " .. base.name .. " ] " .. filename or filename,
 						baseId   = base.id
 					})
 				end
@@ -3445,7 +3450,7 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 			end
 
 			for _, entry in ipairs(selectedEntries) do
-				if activeFilterBaseId ~= 0 and entry.baseId ~= activeFilterBaseId then
+				if (activeFilterBaseId ~= 0 and entry.baseId ~= activeFilterBaseId) or (st.type == "unitselect" and entry.baseId == 5) then
 					continue
 				end
 
@@ -3519,7 +3524,7 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 			end
 
 			for _, entry in ipairs(unselEntries) do
-				if activeFilterBaseId ~= 0 and entry.baseId ~= activeFilterBaseId then
+				if (activeFilterBaseId ~= 0 and entry.baseId ~= activeFilterBaseId) or (st.type == "unitselect" and entry.baseId == 5) then
 					continue
 				end
 
@@ -3624,11 +3629,13 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 			end
 		end
 
-		addFilterButton(UVString("all"), 0)
-		addFilterButton("HL2", 1)
-		addFilterButton("Simfphys", 2)
-		addFilterButton("Glide", 3)
-		addFilterButton("LVS", 4)
+		if st.type == "unitselect" then
+			addFilterButton(UVString("all"), 0)
+			addFilterButton("HL2", 1)
+			addFilterButton("Simfphys", 2)
+			addFilterButton("Glide", 3)
+			addFilterButton("LVS", 4)
+		end
 
 		timer.Simple(0, function()
 			if IsValid(panel) then

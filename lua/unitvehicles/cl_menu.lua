@@ -500,6 +500,8 @@ UVMenu.Main = function()
 				
 				{ type = "bool", text = "uv.airacer.override", desc = "uv.airacer.override.desc", convar = "unitvehicle_racer_assignracers", sv = true },
 				{ type = "vehicleoverride", text = "uv.airacer.overridelist", desc = "uv.airacer.overridelist.desc", convar = "unitvehicle_racer_racers", sv = true, parentconvar = "unitvehicle_racer_assignracers" },
+			
+				{ type = "drivermodel", text = "uv.ailogic.drivermodel", convar = "unitvehicle_racer_drivermodel", sv = true }
 			},
 			
 			{ TabName = "uv.tm", Icon = "unitvehicles/icons_settings/gameplay.png", sv = true, -- Traffic Manager
@@ -522,6 +524,8 @@ UVMenu.Main = function()
 
 				{ type = "bool", text = "uv.airacer.override", desc = "uv.tm.override.desc", convar = "unitvehicle_traffic_assigntraffic", sv = true },
 				{ type = "vehicleoverride", text = "uv.airacer.overridelist", desc = "uv.airacer.overridelist.desc", convar = "unitvehicle_traffic_vehicles", sv = true, parentconvar = "unitvehicle_traffic_assigntraffic" },
+				
+				{ type = "drivermodel", text = "uv.ailogic.drivermodel", convar = "unitvehicle_traffic_drivermodel", sv = true }
 			},
 
 			{ TabName = "uv.settings", Icon = "unitvehicles/icons_settings/options.png", playsfx = "clickopen", Prompts = { "uv.prompt.open.menu" }, func = function()
@@ -1572,6 +1576,19 @@ UVMenu.HeatManager = function()
 		{ type = "slider", text = "uv.unit.rhino", desc = "uv.hm.disablebounty.desc", convar = "unitvehicle_unit_bountyrhino", min = 1, max = 9999999, decimals = 0, sv = true },
 		{ type = "slider", text = "uv.unit.helicopter", desc = "uv.hm.disablebounty.desc", convar = "unitvehicle_unit_bountyair", min = 1, max = 9999999, decimals = 0, sv = true },
     })
+
+	-- Driver model tab
+	local drivermodelTab = {
+		TabName = "uv.hm.dm",
+	}
+
+    local units = { "Patrol", "Support", "Pursuit", "Interceptor", "Special", "Commander", "Rhino" }
+	for _, unit in ipairs(units) do
+		local lower = string.lower(unit)
+		table.insert(drivermodelTab, { type = "drivermodel", text = "uv.unit." .. lower, convar = "unitvehicle_unit_" .. lower .. "_drivermodel", sv = true })
+	end
+
+	table.insert(tabs, drivermodelTab)
 
     -- Voice profile tab
     table.insert(tabs, {

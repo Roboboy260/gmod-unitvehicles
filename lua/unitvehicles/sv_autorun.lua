@@ -75,6 +75,7 @@ NETWORK_STRINGS = {
 	"UVDriverModelManagerDeleteFile",
 	"UVDriverModelManagerRefresh",
 	"UVDriverModelManagerLoad",
+	"UVDriverModelManagerOpenModelMenu",
 	
 	-- Pursuit Table
 	"UVGet_PursuitTable",

@@ -1077,6 +1077,24 @@ conVarList["bountyspecial"] = 25000
 conVarList["bountycommander"] = 100000
 conVarList["bountyrhino"] = 50000
 
+local defaultdrivermodeltable = {
+	"police.json, police_fem.json", --Patrol
+	"police.json, police_fem.json", --Support
+	"police.json, police_fem.json", --Pursuit
+	"police.json, police_fem.json", --Interceptor
+	"combine_soldier.json", --Special
+	"combine_super_soldier.json", --Commander
+	"combine_soldier_prisonguard.json", --Rhino
+}
+
+for index, v in pairs( {'Patrol', 'Support', 'Pursuit', 'Interceptor', 'Special', 'Commander', 'Rhino'} ) do
+	local lowercaseUnit = string.lower( v )
+	local conVarKey = string.format( '%s_drivermodel', lowercaseUnit )
+	local conVarKeyDriverModelProfile = string.format( '%s_drivermodel', lowercaseUnit )
+	conVarList[conVarKey] = defaultdrivermodeltable[index]
+	conVarList[conVarKeyDriverModelProfile] = "default"
+end
+
 local defaultvoicetable = {
 	"cop1, cop2, cop3, cop4, cop5", --Patrol
 	"cop1, cop2, cop3, cop4, cop5", --Support
@@ -1411,6 +1429,7 @@ UVTAssignTraffic = CreateConVar("unitvehicle_traffic_assigntraffic", 0, {FCVAR_A
 UVTSpawnCondition = CreateConVar("unitvehicle_traffic_spawncondition", 2, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "\n1) Never \n2) When driving \n3) Always")
 UVTMaxTraffic = CreateConVar("unitvehicle_traffic_maxtraffic", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Max amount of Traffic Vehicles roaming.")
 UVTTrafficVehicles = CreateConVar("unitvehicle_traffic_vehicles", "", {ShouldArchive}, "Assigned Traffic Vehicles (for override mode)")
+UVTDriverModels = CreateConVar("unitvehicle_traffic_drivermodel", "", {ShouldArchive}, "Assigned Traffic Driver Models")
 
 --racer convars
 UVRVehicleBase = CreateConVar("unitvehicle_racer_vehiclebase", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "\n1 = Default Vehicle Base (prop_vehicle_jeep)\n2 = simfphys\n3 = Glide")
@@ -1418,6 +1437,7 @@ UVRAssignRacers = CreateConVar("unitvehicle_racer_assignracers", 0, {FCVAR_ARCHI
 UVRRacers = CreateConVar("unitvehicle_racer_racers", "", {ShouldArchive}, "Assigned Racer Vehicles")
 UVRSpawnCondition = CreateConVar("unitvehicle_racer_spawncondition", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "\n1) Never \n2) When driving \n3) Always")
 UVRMaxRacer = CreateConVar("unitvehicle_racer_maxracer", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Max amount of Racer Vehicles roaming.")
+UVRDriverModels = CreateConVar("unitvehicle_racer_drivermodel", "", {ShouldArchive}, "Assigned Racer Driver Models")
 
 --unit convars
 UVUVehicleBase = CreateConVar("unitvehicle_unit_vehiclebase", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "\n1 = Default Vehicle Base (prop_vehicle_jeep)\n2 = simfphys\n3 = Glide")
@@ -1465,6 +1485,9 @@ local defaultvoicetable = {
 local ReplicatedVars = {
 	["unitvehicle_racer_racers"] = true,
 	["unitvehicle_traffic_vehicles"] = true,
+
+	["unitvehicle_racer_drivermodel"] = true,
+	["unitvehicle_traffic_drivermodel"] = true,
 }
 
 for index, v in pairs( {'Patrol', 'Support', 'Pursuit', 'Interceptor', 'Special', 'Commander', 'Rhino', 'Air'} ) do
@@ -1475,6 +1498,12 @@ for index, v in pairs( {'Patrol', 'Support', 'Pursuit', 'Interceptor', 'Special'
 
 	CreateConVar( "unitvehicle_unit_" .. lowercaseUnit .. "_voice", defaultvoicetable[index], {ShouldArchive})
 	CreateConVar( "unitvehicle_unit_" .. lowercaseUnit .. "_voiceprofile", "default", {ShouldArchive})
+
+	if lowercaseUnit ~= 'air' then
+		ReplicatedVars["unitvehicle_unit_" .. lowercaseUnit .. "_drivermodel"] = true
+		
+		CreateConVar( "unitvehicle_unit_" .. lowercaseUnit .. "_drivermodel", defaultvoicetable[index], {ShouldArchive})
+	end
 end
 
 for _, v in pairs( {'Misc', 'Dispatch'} ) do

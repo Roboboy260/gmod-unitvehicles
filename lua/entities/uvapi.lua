@@ -1155,157 +1155,6 @@ function ENT:TryRefreshPathToTarget( enemy )
 	self:PathFindToEnemy( pathTarget, enemy )
 end
 
-local DefaultDriverModels = {
-	["npc_racervehicle"] = {
-		"models/player/alyx.mdl",
-		"models/player/arctic.mdl",
-		"models/player/barney.mdl",
-		"models/player/breen.mdl",
-		"models/player/eli.mdl",
-		"models/player/gman_high.mdl",
-		"models/player/guerilla.mdl",
-		"models/player/kleiner.mdl",
-		"models/player/leet.mdl",
-		"models/player/magnusson.mdl",
-		"models/player/monk.mdl",
-		"models/player/mossman.mdl",
-		"models/player/mossman_arctic.mdl",
-		"models/player/odessa.mdl",
-		"models/player/p2_chell.mdl",
-		"models/player/phoenix.mdl",
-		"models/player/group01/female_01.mdl",
-    	"models/player/group01/female_02.mdl",
-    	"models/player/group01/female_03.mdl",
-    	"models/player/group01/female_04.mdl",
-    	"models/player/group01/female_05.mdl",
-    	"models/player/group01/female_06.mdl",
-    	"models/player/group01/male_01.mdl",
-    	"models/player/group01/male_02.mdl",
-    	"models/player/group01/male_03.mdl",
-    	"models/player/group01/male_04.mdl",
-    	"models/player/group01/male_05.mdl",
-    	"models/player/group01/male_06.mdl",
-    	"models/player/group01/male_07.mdl",
-    	"models/player/group01/male_08.mdl",
-    	"models/player/group01/male_09.mdl",
-    	"models/player/group02/male_02.mdl",
-    	"models/player/group02/male_04.mdl",
-    	"models/player/group02/male_06.mdl",
-    	"models/player/group02/male_08.mdl",
-    	"models/player/group03/female_01.mdl",
-    	"models/player/group03/female_02.mdl",
-    	"models/player/group03/female_03.mdl",
-    	"models/player/group03/female_04.mdl",
-    	"models/player/group03/female_05.mdl",
-    	"models/player/group03/female_06.mdl",
-    	"models/player/group03/male_01.mdl",
-    	"models/player/group03/male_02.mdl",
-    	"models/player/group03/male_03.mdl",
-    	"models/player/group03/male_04.mdl",
-    	"models/player/group03/male_05.mdl",
-    	"models/player/group03/male_06.mdl",
-    	"models/player/group03/male_07.mdl",
-    	"models/player/group03/male_08.mdl",
-    	"models/player/group03/male_09.mdl",
-		"models/player/group03m/female_01.mdl",
-    	"models/player/group03m/female_02.mdl",
-    	"models/player/group03m/female_03.mdl",
-    	"models/player/group03m/female_04.mdl",
-    	"models/player/group03m/female_05.mdl",
-    	"models/player/group03m/female_06.mdl",
-    	"models/player/group03m/male_01.mdl",
-    	"models/player/group03m/male_02.mdl",
-    	"models/player/group03m/male_03.mdl",
-    	"models/player/group03m/male_04.mdl",
-    	"models/player/group03m/male_05.mdl",
-    	"models/player/group03m/male_06.mdl",
-    	"models/player/group03m/male_07.mdl",
-    	"models/player/group03m/male_08.mdl",
-    	"models/player/group03m/male_09.mdl",
-		"models/player/hostage/hostage_01.mdl",
-		"models/player/hostage/hostage_02.mdl",
-		"models/player/hostage/hostage_03.mdl",
-		"models/player/hostage/hostage_04.mdl"
-	},
-	["npc_trafficvehicle"] = {
-    	"models/player/group01/female_01.mdl",
-    	"models/player/group01/female_02.mdl",
-    	"models/player/group01/female_03.mdl",
-    	"models/player/group01/female_04.mdl",
-    	"models/player/group01/female_05.mdl",
-    	"models/player/group01/female_06.mdl",
-    	"models/player/group01/male_01.mdl",
-    	"models/player/group01/male_02.mdl",
-    	"models/player/group01/male_03.mdl",
-    	"models/player/group01/male_04.mdl",
-    	"models/player/group01/male_05.mdl",
-    	"models/player/group01/male_06.mdl",
-    	"models/player/group01/male_07.mdl",
-    	"models/player/group01/male_08.mdl",
-    	"models/player/group01/male_09.mdl",
-    	"models/player/group02/male_02.mdl",
-    	"models/player/group02/male_04.mdl",
-    	"models/player/group02/male_06.mdl",
-    	"models/player/group02/male_08.mdl",
-    	"models/player/group03/female_01.mdl",
-    	"models/player/group03/female_02.mdl",
-    	"models/player/group03/female_03.mdl",
-    	"models/player/group03/female_04.mdl",
-    	"models/player/group03/female_05.mdl",
-    	"models/player/group03/female_06.mdl",
-    	"models/player/group03/male_01.mdl",
-    	"models/player/group03/male_02.mdl",
-    	"models/player/group03/male_03.mdl",
-    	"models/player/group03/male_04.mdl",
-    	"models/player/group03/male_05.mdl",
-    	"models/player/group03/male_06.mdl",
-    	"models/player/group03/male_07.mdl",
-    	"models/player/group03/male_08.mdl",
-    	"models/player/group03/male_09.mdl",
-		"models/player/group03m/female_01.mdl",
-    	"models/player/group03m/female_02.mdl",
-    	"models/player/group03m/female_03.mdl",
-    	"models/player/group03m/female_04.mdl",
-    	"models/player/group03m/female_05.mdl",
-    	"models/player/group03m/female_06.mdl",
-    	"models/player/group03m/male_01.mdl",
-    	"models/player/group03m/male_02.mdl",
-    	"models/player/group03m/male_03.mdl",
-    	"models/player/group03m/male_04.mdl",
-    	"models/player/group03m/male_05.mdl",
-    	"models/player/group03m/male_06.mdl",
-    	"models/player/group03m/male_07.mdl",
-    	"models/player/group03m/male_08.mdl",
-    	"models/player/group03m/male_09.mdl",
-		"models/player/hostage/hostage_01.mdl",
-		"models/player/hostage/hostage_02.mdl",
-		"models/player/hostage/hostage_03.mdl",
-		"models/player/hostage/hostage_04.mdl"
-	},
-	["npc_uvpatrol"] = {
-		"models/player/police.mdl",
-		"models/player/police_fem.mdl"
-	},
-	["npc_uvsupport"] = {
-		"models/player/police.mdl",
-		"models/player/police_fem.mdl"
-	},
-	["npc_uvpursuit"] = {
-		"models/player/police.mdl",
-		"models/player/police_fem.mdl"
-	},
-	["npc_uvinterceptor"] = {
-		"models/player/police.mdl",
-		"models/player/police_fem.mdl"
-	},
-	["npc_uvspecial"] = {
-		"models/player/combine_soldier.mdl"
-	},
-	["npc_uvcommander"] = {
-		"models/player/combine_super_soldier.mdl"
-	}
-}
-
 function ENT:GetVehiclePrefix()
     if self.v.IsScar then
         return "SCAR_"
@@ -1331,18 +1180,22 @@ function ENT:GetVehicleIdentifier()
     return self:GetVehiclePrefix() .. id
 end
 
-function ENT:GetRandomDriverModel()
-	local entClass = self:GetClass()
-    local modelList = DefaultDriverModels[entClass]
+function ENT:GetDefaultDriverModel()
+	local modelTable = {
+		["ModelName"] = "models/player/kleiner.mdl",
+	}
 
-    if not modelList or #modelList == 0 then
-        return "models/player/kleiner.mdl"
-    end
-
-    return table.Random(modelList)
+    return modelTable
 end
 
-function ENT:AttachDriverModel()
+function ENT:AttachDriverModel(filename)
+	local usingDefaultModel = false
+
+	if not filename or filename == "" then
+		print("Filename " .. tostring(filename) .. " is either missing or invalid. Using default model instead.")
+		usingDefaultModel = true
+	end
+
     local v = self.v
     local seat = v
     if v.IsScar then
@@ -1360,8 +1213,24 @@ function ENT:AttachDriverModel()
 	if self.v.DriverModel and IsValid(self.v.DriverModel) then self.v.DriverModel:Remove() end
 
     local anim = dvd.DriverAnimation[self:GetVehicleIdentifier()] or dvd.DriverAnimation[self:GetVehiclePrefix()] or "drive_jeep"
-	local class = self:GetClass()
-    local model = self:GetRandomDriverModel()
+
+	local data = {}
+	
+	if not usingDefaultModel then
+		data = UV_LoadFile("drivermodels", filename)
+		if not data then
+			print("Failed to load driver model data for " .. filename)
+			usingDefaultModel = true 
+		end
+	end
+
+	local DMMemory = usingDefaultModel and self:GetDefaultDriverModel() or util.JSONToTable(data, true)
+
+	local model = DMMemory.ModelName
+	if not util.IsValidModel(model) then
+		print("The model '" .. model .. "' is missing or invalid.")
+		model = "models/player/kleiner.mdl"
+	end
 	
 	local DriverModel = ents.Create("prop_dynamic")
 	DriverModel:SetSolid(SOLID_NONE)
@@ -1373,6 +1242,30 @@ function ENT:AttachDriverModel()
 	DriverModel:SetAngles(seat:GetAngles())
     DriverModel:SetParent(seat)
 	DriverModel:Spawn()
+	DriverModel:Activate()
+
+	if DMMemory.Bodygroups and not DMMemory.RandomizeBodygroups then
+		for index, value in pairs(DMMemory.Bodygroups) do
+		    DriverModel:SetBodygroup(index, value)
+		end
+	else
+		for k = 0, DriverModel:GetNumBodyGroups() do
+			DriverModel:SetBodygroup( k, math.random( 0, DriverModel:GetBodygroupCount( k ) - 1 ) )
+		end
+	end
+
+	if DMMemory.Skin and not DMMemory.RandomizeSkin then
+		DriverModel:SetSkin(DMMemory.Skin)
+	else
+		local totalSkins = DriverModel:SkinCount()
+    	if totalSkins > 0 then
+    	    DriverModel:SetSkin(math.random(0, totalSkins - 1))
+    	end
+	end
+
+	local color = (DMMemory.RandomizeColor and Color(math.random(0, 255), math.random(0, 255), math.random(0, 255))) 
+	or (DMMemory.Color and Color(DMMemory.Color.r, DMMemory.Color.g, DMMemory.Color.b))
+	or color_white
 
 	self.v.DriverModel = DriverModel
 	self.v.DriverModel.vehicle = self.v
@@ -1401,7 +1294,7 @@ function ENT:AttachDriverModel()
 		net.WriteInt(DriverModel:EntIndex(), 32)
 		net.WriteInt(DriverModel:GetCreationID(), 32)
 		net.WriteString("drivermodel")
-		net.WriteColor(nonUnit and Color(math.random(0, 255), math.random(0, 255), math.random(0, 255)) or color_white)
+		net.WriteColor(color)
 		net.Broadcast()
     end)
 end

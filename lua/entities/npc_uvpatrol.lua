@@ -2052,7 +2052,19 @@ if SERVER then
 		end
 
 		if DriverModel:GetBool() then
-			self:AttachDriverModel()
+			local selectedDriverModel = GetConVar("unitvehicle_unit_patrol_drivermodel"):GetString()
+			local splittedText = string.Explode( " ", selectedDriverModel )
+
+			local ya = {}
+
+			for k, v in pairs( splittedText ) do
+				table.insert( ya, string.Trim( v ) )
+			end
+
+			self._cooldownString = "NavigateCooldown_Entity"..self:EntIndex()
+			self.drivermodel = ya[math.random(1, #ya)]
+
+			self:AttachDriverModel(self.drivermodel)
 		else
 			if isfunction(self.v.UVVehicleInitialize) then
 				self.v:UVVehicleInitialize() --For vehicles that has a driver bodygroup

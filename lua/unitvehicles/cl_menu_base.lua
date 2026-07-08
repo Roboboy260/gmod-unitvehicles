@@ -880,7 +880,7 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 			-- end
 			-- return p
 			
-			mat = Material("unitvehicles/icons_settings/pnotes/1.0.0.png", "smooth")
+			mat = Material("unitvehicles/icons_settings/pnotes/pnotesplaceholder.png", "smooth")
 		end
 
 		-- Cache image size

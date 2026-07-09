@@ -518,38 +518,43 @@ function ENT:PhysicsUpdate()
 				self.CloseToTarget = true
 			end
 		else
-			if self.PatrolWaypoint then
-				self.waypointPos = self.PatrolWaypoint["Target"]+(vector_up * 50)
-
-				self:FlyTo(self.waypointPos, true)
-				self:RotateToTarget(self.waypointPos)
-
-				--When there
-				if self:DistIgnoreZ(self.waypointPos) <= 1000 then
-					if self.PatrolWaypoint.Neighbors then
-						local WaypointTable = {}
-						for k, v in pairs(self.PatrolWaypoint.Neighbors) do
-							if not self.PreviousPatrolWaypoint or self.PreviousPatrolWaypoint["Target"] ~= dvd.Waypoints[v]["Target"] then
-								table.insert(WaypointTable, v)
-							end
-						end --Don't turn around
-						self.PreviousPatrolWaypoint = self.PatrolWaypoint
-						self.PatrolWaypoint = dvd.Waypoints[WaypointTable[math.random(#WaypointTable)]]
-					else
-						self.PatrolWaypoint = nil
-					end
-				end
-
-				if self.potentialtarget and 
-				self.potentialtarget.UVWanted and
-				UVStraightToWaypoint(self:GetPos(), self.potentialtarget:GetPos()) and 
-				not UVTargeting then
-					UVTargeting = true
-				end
-			else
-				self:RotateAround(targetpos)
+			if UVJammerDeployed then
+				self:SlowDown()
 				self:SelfRotate()
-				self:FindPatrol()
+			else
+				if self.PatrolWaypoint then
+					self.waypointPos = self.PatrolWaypoint["Target"]+(vector_up * 50)
+
+					self:FlyTo(self.waypointPos, true)
+					self:RotateToTarget(self.waypointPos)
+
+					--When there
+					if self:DistIgnoreZ(self.waypointPos) <= 1000 then
+						if self.PatrolWaypoint.Neighbors then
+							local WaypointTable = {}
+							for k, v in pairs(self.PatrolWaypoint.Neighbors) do
+								if not self.PreviousPatrolWaypoint or self.PreviousPatrolWaypoint["Target"] ~= dvd.Waypoints[v]["Target"] then
+									table.insert(WaypointTable, v)
+								end
+							end --Don't turn around
+							self.PreviousPatrolWaypoint = self.PatrolWaypoint
+							self.PatrolWaypoint = dvd.Waypoints[WaypointTable[math.random(#WaypointTable)]]
+						else
+							self.PatrolWaypoint = nil
+						end
+					end
+
+					if self.potentialtarget and 
+					self.potentialtarget.UVWanted and
+					UVStraightToWaypoint(self:GetPos(), self.potentialtarget:GetPos()) and 
+					not UVTargeting then
+						UVTargeting = true
+					end
+				else
+					self:RotateAround(targetpos)
+					self:SelfRotate()
+					self:FindPatrol()
+				end
 			end
 			self.LastUpdate = CurTime()
 		end

@@ -1152,7 +1152,7 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 				end	
 			end
 
-			if car.DecentVehicle or car.TrafficVehicle then
+			if car.DecentVehicle or car.TrafficVehicle or object.rammed then
 				UVRamVehicle(car)
 			end
 
@@ -1404,7 +1404,7 @@ hook.Add("simfphysPhysicsCollide", "UVCollisionSimfphys", function(car, coldata,
 		UVDetachWheels(car, coldata.HitPos)
 	end
 
-	if car.DecentVehicle or car.TrafficVehicle then
+	if car.DecentVehicle or car.TrafficVehicle or object.rammed then
 		UVRamVehicle(car)
 	end
 
@@ -1656,7 +1656,7 @@ hook.Add("OnEntityCreated", "UVCollisionJeep", function(vehicle)
 			util.Effect("cball_explode", e)
 		end
 
-		if car.DecentVehicle or car.TrafficVehicle then
+		if car.DecentVehicle or car.TrafficVehicle or object.rammed then
 			UVRamVehicle(car)
 		end
 
@@ -1973,7 +1973,7 @@ hook.Add("OnEntityCreated", "UVCollisionLVS", function(lvsvehicle)
 				end	
 			end
 
-			if car.DecentVehicle or car.TrafficVehicle then
+			if car.DecentVehicle or car.TrafficVehicle or object.rammed then
 				UVRamVehicle(car)
 			end
 

@@ -1289,6 +1289,11 @@ function ENT:AttachDriverModel(filename)
         DriverModel:SetSequence(anim)
 
 		DriverModel:SetNoDraw(false)
+
+		for i = 0, DriverModel:GetFlexNum() - 1 do
+		    DriverModel:SetFlexWeight(i, 0)
+		end
+		DriverModel:SetFlexScale(1)
 		
 		net.Start("UVHUDAddUV")
 		net.WriteInt(DriverModel:EntIndex(), 32)

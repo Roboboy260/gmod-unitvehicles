@@ -602,6 +602,11 @@ function TOOL:LeftClick( trace )
 	prop:Spawn()
 	prop:Activate()
 
+	for i = 0, prop:GetFlexNum() - 1 do
+	    prop:SetFlexWeight(i, 0)
+	end
+	prop:SetFlexScale(1)
+
 	if ply.UVDMTOOLMemory.Bodygroups and not ply.UVDMTOOLMemory.RandomizeBodygroups then
 		for index, value in pairs(ply.UVDMTOOLMemory.Bodygroups) do
 		    prop:SetBodygroup(index, value)

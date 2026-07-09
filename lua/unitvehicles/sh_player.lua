@@ -271,6 +271,8 @@ if SERVER then
     end
 
     function UVGetHeadlight(vehicle)
+        if not IsValid(vehicle) then return end
+
         if vehicle.IsGlideVehicle then
             return vehicle:GetHeadlightState()
         elseif vcmod_main and vehicle:GetClass() == "prop_vehicle_jeep" then
@@ -279,6 +281,8 @@ if SERVER then
     end
 
     function UVSetHeadlight(vehicle, state)
+        if not IsValid(vehicle) then return end
+
         if vehicle.IsGlideVehicle then
             vehicle:SetHeadlightState( state )
         elseif vcmod_main and vehicle:GetClass() == "prop_vehicle_jeep" then

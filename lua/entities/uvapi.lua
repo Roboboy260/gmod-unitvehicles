@@ -1189,10 +1189,12 @@ function ENT:GetDefaultDriverModel()
 end
 
 function ENT:AttachDriverModel(filename)
+	if not IsValid(self.v) then return end
+
 	local usingDefaultModel = false
 
 	if not filename or filename == "" then
-		print("Filename " .. tostring(filename) .. " is either missing or invalid. Using default model instead.")
+		--print("[Unit Vehicles]: Assigned Driver Model(s) for " .. self:GetClass() .. " seems to be empty. Using default model instead.")
 		usingDefaultModel = true
 	end
 
@@ -1219,16 +1221,21 @@ function ENT:AttachDriverModel(filename)
 	if not usingDefaultModel then
 		data = UV_LoadFile("drivermodels", filename)
 		if not data then
-			print("Failed to load driver model data for " .. filename)
+			print("[Unit Vehicles]: Failed to load Driver Model data '" .. filename .. "' for " .. self:GetClass() .. ".")
 			usingDefaultModel = true 
 		end
+	end
+	
+	if usingDefaultModel and isfunction(self.v.UVVehicleInitialize) then
+		self.v:UVVehicleInitialize()
+		return
 	end
 
 	local DMMemory = usingDefaultModel and self:GetDefaultDriverModel() or util.JSONToTable(data, true)
 
 	local model = DMMemory.ModelName
 	if not util.IsValidModel(model) then
-		print("The model '" .. model .. "' is missing or invalid.")
+		print("[Unit Vehicles]: Driver Model '" .. model .. "' is either missing or invalid for " .. self:GetClass() .. ".")
 		model = "models/player/kleiner.mdl"
 	end
 	

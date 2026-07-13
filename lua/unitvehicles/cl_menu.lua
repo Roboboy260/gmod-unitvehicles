@@ -1552,7 +1552,6 @@ UVMenu.HeatManager = function()
 		{ type = "bool", text = "uv.hm.air.pt.skyhammer", desc = "uv.hm.air.pt.desc", convar = "unitvehicle_unit_helicopterskyhammer", sv = true },
 		{ type = "slider", text = "uv.hm.air.fuel.min", desc = "uv.hm.air.fuel.min.desc", convar = "unitvehicle_unit_helicopterminfuel", min = 1, max = 10000, decimals = 0, sv = true },
 		{ type = "slider", text = "uv.hm.air.fuel.max", desc = "uv.hm.air.fuel.max.desc", convar = "unitvehicle_unit_helicoptermaxfuel", min = 1, max = 10000, decimals = 0, sv = true },
-		{ type = "slider", text = "uv.hm.units.spawnchance", desc = "uv.hm.units.spawnchance.desc", convar = "unitvehicle_unit_helicopterspawnchance", min = 1, max = 100, decimals = 0, sv = true },
 		{ type = "slider", text = "uv.hm.units.limit", desc = "uv.hm.units.limit.helicopter.desc", convar = "unitvehicle_unit_helicopterspawnlimit", min = 1, max = 10, decimals = 0, sv = true },
 		
 		{ type = "label", text = "uv.ptech" },
@@ -1624,7 +1623,10 @@ UVMenu.HeatManager = function()
 		table.insert(heatTab, { type = "slider", text = "uv.hm.heat.bustspeed", desc = "uv.hm.heat.bustspeed.desc", convar = "unitvehicle_unit_bustspeed" .. i, min = 1, max = 200, decimals = 0, sv = true })
 		table.insert(heatTab, { type = "slider", text = "uv.hm.heat.cooldowntime", desc = "uv.hm.heat.cooldowntime.desc", convar = "unitvehicle_unit_cooldowntimer" .. i, min = 1, max = 600, decimals = 0, sv = true })
 		table.insert(heatTab, { type = "bool", text = "uv.hm.heat.roadblocks", desc = "uv.hm.heat.roadblocks.desc", convar = "unitvehicle_unit_roadblocks" .. i, sv = true })
+		table.insert(heatTab, { type = "slider", text = "uv.hm.units.spawnchance", desc = "uv.hm.units.spawnchance.desc", convar = "unitvehicle_unit_roadblocks_chance" .. i, min = 0, max = 100, decimals = 0, requireparentconvar = "unitvehicle_unit_roadblocks" .. i, sv = true })
 		table.insert(heatTab, { type = "bool", text = "uv.hm.heat.helicopter", desc = "uv.hm.heat.helicopter.desc", convar = "unitvehicle_unit_helicopters" .. i, sv = true })
+		table.insert(heatTab, { type = "slider", text = "uv.hm.units.spawnchance", desc = "uv.hm.units.spawnchance.desc", convar = "unitvehicle_unit_helicopters_chance" .. i, min = 0, max = 100, decimals = 0, requireparentconvar = "unitvehicle_unit_helicopters" .. i, sv = true })
+		table.insert(heatTab, { type = "slider", text = "uv.hm.units.limit", desc = "uv.hm.units.limit.desc", convar = "unitvehicle_unit_helicopters_limit", min = 1, max = 10, decimals = 0, requireparentconvar = "unitvehicle_unit_helicopters" .. i, sv = true })
 
 		table.insert(heatTab, { type = "label", text = "uv.hm.units" })
 

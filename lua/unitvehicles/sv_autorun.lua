@@ -800,7 +800,7 @@ local function CheckVehicleLimit()
 	return totalUnits < UVMaxUnits and totalUnits < UVGlobalPursuit.ResourcePoints or activeUnitsCount < 1
 end
 
-local function CheckHelicopterChance(chance)
+local function CheckSpawnChance(chance)
     if chance <= 0 then return false end
     if chance >= 100 then return true end
 
@@ -823,8 +823,12 @@ function HandleVehicleSpawning(Patrolling)
 
 	if not SpawnMainUnits:GetBool() then return end
 
-	local canSpawnRoadblock = next(ents.FindByClass("npc_uv*")) ~= nil and uvRoadblockDeployable and table.Count(UVLoadedRoadblocks) < UVRBMax:GetInt() 
-	local canSpawnHelicopter = #ents.FindByClass("uvair") < UVUHelicopterSpawnLimit:GetInt() and uvHelicopterDeployable and CheckHelicopterChance(UVUHelicopterSpawnChance:GetInt())
+	local rbchance = GetConVar( "unitvehicle_unit_roadblocks_chance" .. UVHeatLevel ):GetInt()
+	local helichance = GetConVar( "unitvehicle_unit_helicopters_chance" .. UVHeatLevel ):GetInt()
+	local helilimit = GetConVar( "unitvehicle_unit_helicopters_limit" .. UVHeatLevel ):GetInt()
+
+	local canSpawnRoadblock = uvRoadblockDeployable and next(ents.FindByClass("npc_uv*")) ~= nil and table.Count(UVLoadedRoadblocks) < UVRBMax:GetInt() and CheckSpawnChance(rbchance)
+	local canSpawnHelicopter = uvHelicopterDeployable and #ents.FindByClass("uvair") < helilimit and CheckSpawnChance(helichance)
 
 	local pool = {
 		'normal',

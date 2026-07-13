@@ -939,7 +939,10 @@ HEAT_SETTINGS = {
 	'backuptimer',
 	'cooldowntimer',
 	'roadblocks',
+	'roadblocks_chance',
 	'helicopters',
+	'helicopters_chance',
+	'helicopters_limit'
 }
 
 HEAT_DEFAULTS = {
@@ -949,7 +952,11 @@ HEAT_DEFAULTS = {
 		['3'] = 6,
 		['4'] = 8,
 		['5'] = 10,
-		['6'] = 10
+		['6'] = 10,
+		['7'] = 10,
+		['8'] = 10,
+		['9'] = 10,
+		['10'] = 10
 	},
 	['bountytime'] = {
 		['1'] = 1000,
@@ -957,7 +964,11 @@ HEAT_DEFAULTS = {
 		['3'] = 10000,
 		['4'] = 50000,
 		['5'] = 100000,
-		['6'] = 500000
+		['6'] = 500000,
+		['7'] = 1000000,
+		['8'] = 5000000,
+		['9'] = 10000000,
+		['10'] = 50000000
 	},
 	['timetillnextheat'] = {
 		['Enabled'] = 0,
@@ -965,7 +976,11 @@ HEAT_DEFAULTS = {
 		['2'] = 120,
 		['3'] = 180,
 		['4'] = 180,
-		['5'] = 240
+		['5'] = 240,
+		['6'] = 240,
+		['7'] = 300,
+		['8'] = 300,
+		['9'] = 360,
 	},
 	['heatminimumbounty'] = {
 		['1'] = 1000,
@@ -974,6 +989,10 @@ HEAT_DEFAULTS = {
 		['4'] = 250000,
 		['5'] = 1000000,
 		['6'] = 5000000,
+		['7'] = 7500000,
+		['8'] = 10000000,
+		['9'] = 25000000,
+		['10'] = 50000000
 	},
 	['unitsavailable'] = {
 		['1'] = 10,
@@ -982,6 +1001,10 @@ HEAT_DEFAULTS = {
 		['4'] = 40,
 		['5'] = 50,
 		['6'] = 60,
+		['7'] = 70,
+		['8'] = 80,
+		['9'] = 90,
+		['10'] = 100
 	},
 	['bustspeed'] = {
 		['1'] = 10,
@@ -990,6 +1013,10 @@ HEAT_DEFAULTS = {
 		['4'] = 15,
 		['5'] = 20,
 		['6'] = 20,
+		['7'] = 20,
+		['8'] = 20,
+		['9'] = 20,
+		['10'] = 20
 	},
 	['backuptimer'] = {
 		['1'] = 120,
@@ -998,6 +1025,10 @@ HEAT_DEFAULTS = {
 		['4'] = 90,
 		['5'] = 60,
 		['6'] = 60,
+		['7'] = 60,
+		['8'] = 60,
+		['9'] = 60,
+		['10'] = 60
 	},
 	['cooldowntimer'] = {
 		['1'] = 20,
@@ -1006,6 +1037,10 @@ HEAT_DEFAULTS = {
 		['4'] = 80,
 		['5'] = 100,
 		['6'] = 120,
+		['7'] = 140,
+		['8'] = 160,
+		['9'] = 180,
+		['10'] = 200
 	},
 	['roadblocks'] = {
 		['1'] = 0,
@@ -1014,6 +1049,22 @@ HEAT_DEFAULTS = {
 		['4'] = 1,
 		['5'] = 1,
 		['6'] = 1,
+		['7'] = 1,
+		['8'] = 1,
+		['9'] = 1,
+		['10'] = 1
+	},
+	['roadblocks_chance'] = {
+		['1'] = 0,
+		['2'] = 10,
+		['3'] = 20,
+		['4'] = 30,
+		['5'] = 40,
+		['6'] = 50,
+		['7'] = 60,
+		['8'] = 70,
+		['9'] = 80,
+		['10'] = 90
 	},
 	['helicopters'] = {
 		['1'] = 0,
@@ -1022,6 +1073,34 @@ HEAT_DEFAULTS = {
 		['4'] = 1,
 		['5'] = 1,
 		['6'] = 1,
+		['7'] = 1,
+		['8'] = 1,
+		['9'] = 1,
+		['10'] = 1
+	},
+	['helicopters_chance'] = {
+		['1'] = 0,
+		['2'] = 0,
+		['3'] = 0,
+		['4'] = 10,
+		['5'] = 20,
+		['6'] = 30,
+		['7'] = 40,
+		['8'] = 50,
+		['9'] = 60,
+		['10'] = 70
+	},
+	['helicopters_limit'] = {
+		['1'] = 0,
+		['2'] = 0,
+		['3'] = 0,
+		['4'] = 1,
+		['5'] = 1,
+		['6'] = 2,
+		['7'] = 2,
+		['8'] = 2,
+		['9'] = 2,
+		['10'] = 2
 	}
 }
 
@@ -1052,8 +1131,6 @@ conVarList["helicopterskyhammer"] = 1
 conVarList["helicopterbusting"] = 1
 conVarList["helicopterminfuel"] = 60
 conVarList["helicoptermaxfuel"] = 180
-conVarList["helicopterspawnchance"] = 100
-conVarList["helicopterspawnlimit"] = 1
 
 conVarList["pursuittech"] = 1
 conVarList["pursuittech_esf"] = 1
@@ -1087,23 +1164,15 @@ local defaultdrivermodeltable = {
 	"combine_soldier_prisonguard.json", --Rhino
 }
 
-for index, v in pairs( {'Patrol', 'Support', 'Pursuit', 'Interceptor', 'Special', 'Commander', 'Rhino'} ) do
-	local lowercaseUnit = string.lower( v )
-	local conVarKey = string.format( '%s_drivermodel', lowercaseUnit )
-	local conVarKeyDriverModelProfile = string.format( '%s_drivermodel', lowercaseUnit )
-	conVarList[conVarKey] = defaultdrivermodeltable[index]
-	conVarList[conVarKeyDriverModelProfile] = "default"
-end
-
 local defaultvoicetable = {
-	"cop1, cop2, cop3, cop4, cop5", --Patrol
-	"cop1, cop2, cop3, cop4, cop5", --Support
-	"cop1, cop2, cop3, cop4, cop5", --Pursuit
-	"cop1, cop2, cop3, cop4, cop5", --Interceptor
-	"cop1, cop2, cop3, cop4, cop5", --Special
+	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Patrol
+	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Support
+	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Pursuit
+	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Interceptor
+	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Special
 	"commander1", --Commander
-	"rhino1", --Rhino
-	"air", --Air
+	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Rhino
+	"air1", --Air
 }
 
 for index, v in pairs( {'Patrol', 'Support', 'Pursuit', 'Interceptor', 'Special', 'Commander', 'Rhino', 'Air'} ) do
@@ -1118,6 +1187,14 @@ for _, v in pairs( {'Misc', 'Dispatch'} ) do
 	local lowercaseType = string.lower( v )
 	local conVarKey = string.format( '%s_voiceprofile', lowercaseType )
 	conVarList[conVarKey] = "default"
+end
+
+for index, v in pairs( {'Patrol', 'Support', 'Pursuit', 'Interceptor', 'Special', 'Commander', 'Rhino'} ) do
+	local lowercaseUnit = string.lower( v )
+	local conVarKey = string.format( '%s_drivermodel', lowercaseUnit )
+	local conVarKeyDriverModelProfile = string.format( '%s_drivermodel', lowercaseUnit )
+	conVarList[conVarKey] = defaultdrivermodeltable[index]
+	conVarList[conVarKeyDriverModelProfile] = "default"
 end
 
 local unitsheat1 = {
@@ -1459,8 +1536,6 @@ UVUHelicopterSkyhammer = CreateConVar("unitvehicle_unit_helicopterskyhammer", 1,
 UVUHelicopterBusting = CreateConVar("unitvehicle_unit_helicopterbusting", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "1 = Helicopter can bust racers\n0 = Helicopter cannot bust racers")
 UVUHelicopterMinFuel = CreateConVar("unitvehicle_unit_helicopterminfuel", 60, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Minimum Fuel Time before the Air Unit runs out of fuel and leaves the pursuit.")
 UVUHelicopterMaxFuel = CreateConVar("unitvehicle_unit_helicoptermaxfuel", 180, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Maximum Fuel Time before the Air Unit runs out of fuel and leaves the pursuit.")
-UVUHelicopterSpawnChance = CreateConVar("unitvehicle_unit_helicopterspawnchance", 100, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Chances for this Unit to spawn.")
-UVUHelicopterSpawnLimit = CreateConVar("unitvehicle_unit_helicopterspawnlimit", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "How many Units of this type can be part of the chase.")
 
 UVUBountyPatrol = CreateConVar("unitvehicle_unit_bountypatrol", 1000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUBountySupport = CreateConVar("unitvehicle_unit_bountysupport", 5000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
@@ -1470,17 +1545,6 @@ UVUBountyAir = CreateConVar("unitvehicle_unit_bountyair", 75000, {FCVAR_ARCHIVE,
 UVUBountySpecial = CreateConVar("unitvehicle_unit_bountyspecial", 25000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUBountyCommander = CreateConVar("unitvehicle_unit_bountycommander", 100000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUBountyRhino = CreateConVar("unitvehicle_unit_bountyrhino", 50000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
-	
-local defaultvoicetable = {
-	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Patrol
-	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Support
-	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Pursuit
-	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Interceptor
-	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Special
-	"commander1", --Commander
-	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Rhino
-	"air1", --Air
-}
 
 local ReplicatedVars = {
 	["unitvehicle_racer_racers"] = true,
@@ -1502,7 +1566,7 @@ for index, v in pairs( {'Patrol', 'Support', 'Pursuit', 'Interceptor', 'Special'
 	if lowercaseUnit ~= 'air' then
 		ReplicatedVars["unitvehicle_unit_" .. lowercaseUnit .. "_drivermodel"] = true
 		
-		CreateConVar( "unitvehicle_unit_" .. lowercaseUnit .. "_drivermodel", defaultvoicetable[index], {ShouldArchive})
+		CreateConVar( "unitvehicle_unit_" .. lowercaseUnit .. "_drivermodel", defaultdrivermodeltable[index], {ShouldArchive})
 	end
 end
 

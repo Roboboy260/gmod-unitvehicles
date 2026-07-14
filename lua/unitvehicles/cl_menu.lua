@@ -4,7 +4,7 @@ UVMenu.CustomizeHUD = UVMenu.CustomizeHUD or {}
 UVMenu.CustomizeSpeedo = UVMenu.CustomizeSpeedo or {}
 
 -- Current Version -- Change this whenever a new update is releasing!
-UV.CurVersion = "1.7.4" --MAJOR.MINOR.PATCH
+UV.CurVersion = "1.8.0" --MAJOR.MINOR.PATCH
 
 -- Credits List
 UV.Credits = {

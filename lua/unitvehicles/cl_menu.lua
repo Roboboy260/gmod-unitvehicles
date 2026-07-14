@@ -218,7 +218,7 @@ local MonthNames = {
 }
 
 local DateFormats = {
-    en = "{day} {month} {year}",
+    en = "{month} {day} {year}", --sorry non-Americans
     fr = "{day} {month} {year}",
     de = "{day}. {month} {year}",
     ["es-ES"] = "{day} {month} {year}",
@@ -1626,7 +1626,7 @@ UVMenu.HeatManager = function()
 		table.insert(heatTab, { type = "slider", text = "uv.hm.units.spawnchance", desc = "uv.hm.units.spawnchance.desc", convar = "unitvehicle_unit_roadblocks_chance" .. i, min = 0, max = 100, decimals = 0, requireparentconvar = "unitvehicle_unit_roadblocks" .. i, sv = true })
 		table.insert(heatTab, { type = "bool", text = "uv.hm.heat.helicopter", desc = "uv.hm.heat.helicopter.desc", convar = "unitvehicle_unit_helicopters" .. i, sv = true })
 		table.insert(heatTab, { type = "slider", text = "uv.hm.units.spawnchance", desc = "uv.hm.units.spawnchance.desc", convar = "unitvehicle_unit_helicopters_chance" .. i, min = 0, max = 100, decimals = 0, requireparentconvar = "unitvehicle_unit_helicopters" .. i, sv = true })
-		table.insert(heatTab, { type = "slider", text = "uv.hm.units.limit", desc = "uv.hm.units.limit.desc", convar = "unitvehicle_unit_helicopters_limit" .. i, min = 1, max = 10, decimals = 0, requireparentconvar = "unitvehicle_unit_helicopters" .. i, sv = true })
+		table.insert(heatTab, { type = "slider", text = "uv.hm.units.limit", desc = "uv.hm.units.limit.helicopter.desc", convar = "unitvehicle_unit_helicopters_limit" .. i, min = 1, max = 10, decimals = 0, requireparentconvar = "unitvehicle_unit_helicopters" .. i, sv = true })
 
 		table.insert(heatTab, { type = "label", text = "uv.hm.units" })
 

@@ -8,6 +8,55 @@ UV = UV or {}
 -- },
 
 UV.PNotes = {
+["1.8.0"] = {
+Date = { year = 2026, month = 7, day = 31 },
+Type = "Minor",
+Text = [[
+Unit Vehicles - 1.8.0 is finally here! Took a bit longer than expected but it has been worth the wait. Here are the Patch Notes:
+
+**New Features**
+- Added Action Camera, experience cinematic sequences during certain gameplay moments
+      |-- When enabled, the camera will show dramatic angles during certain events
+      |-- Gameplay may slow down in singleplayer
+      |-- Use the speedbreaker to prevent Action Cam from activating
+      |-- Adjust its options under the new <color=255,255,100>Camera</color> tab
+
+- Added Driver Models
+      |-- Added <color=255,255,0>Creator: Driver Models</color> Tool for you to add new Driver Models
+      |-- Assign which models should the Racers, Traffic and Units use in <color=255,255,0>AI Racer Manager, Traffic Manager and Heat Level Manager</color> respectively
+            |-- Toggle button is located under <color=255,255,0>AI Settings</color>
+
+- Added improvements for Air Units
+      |-- Addon creators can now create their own custom chopper models with custom lighting positions, weight and sounds
+            |-- Refer to <color=255,255,0>#uv-updates</color> under our Discord server for more details
+      |-- Added new variables to be changed in the preset (min fuel time, max fuel time, spawn chance, spawn limit, you can have X number of choppers now)
+      |-- Added Skyhammer PT weapon option
+
+- Added Pursuit Breaker SFX
+      |-- Located under <color=255,255,0>sound\pursuitbreakers</color> where sounds are played according to the name of each Pursuit Breaker
+
+- Added Roadblock spawn chance for each Heat Level
+- Added the ability to EMP an Air Unit
+
+**Changes**
+- Updated Chatter Template (refer to GitHub)
+- Air Unit: Gave back the badging for most chopper models
+- Default Chatter: Roboboy now works at the desk (swapped roles with Moka)
+
+**Fixes**
+- Fixed that Chatter related to Pursuit Tech were not triggering
+- Fixed Repair Shops not detecting vehicles travelling at supersonic speeds
+- Fixed Units patrolling on waypoints not meant for traffic
+- You can now hide from Units when not in pursuit
+- Traffic now gets despawned along with Units on race start
+- Improved optimization for GMinimap support
+- Improved AI Logic
+- Many other smaller undocumented fixes/optimizations
+
+/// RACE /// CHASE /// ESCAPE ///
+]],
+},
+
 ["1.7.4"] = {
 Date = { year = 2026, month = 6, day = 1 },
 Text = [[

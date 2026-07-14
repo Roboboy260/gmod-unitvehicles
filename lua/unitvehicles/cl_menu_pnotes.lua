@@ -31,6 +31,8 @@ Unit Vehicles - 1.8.0 is finally here! Took a bit longer than expected but it ha
             |-- Refer to <color=255,255,0>#uv-updates</color> under our Discord server for more details
       |-- Added new variables to be changed in the preset (min fuel time, max fuel time, spawn chance, spawn limit, you can have X number of choppers now)
       |-- Added Skyhammer PT weapon option
+            |-- Takes twice as long to lock on but has double the disable duration
+            |-- Dodge it by outmaneuvering the Air Unit, taking cover or using the Jammer
 
 - Added Pursuit Breaker SFX
       |-- Located under <color=255,255,0>sound\pursuitbreakers</color> where sounds are played according to the name of each Pursuit Breaker
@@ -49,6 +51,7 @@ Unit Vehicles - 1.8.0 is finally here! Took a bit longer than expected but it ha
 - Fixed Units patrolling on waypoints not meant for traffic
 - You can now hide from Units when not in pursuit
 - Traffic now gets despawned along with Units on race start
+- Units can now get taken out when flipped over by Traffic or by other Units rammed by the Racer
 - Improved optimization for GMinimap support
 - Improved AI Logic
 - Many other smaller undocumented fixes/optimizations

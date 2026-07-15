@@ -1552,7 +1552,6 @@ UVMenu.HeatManager = function()
 		{ type = "bool", text = "uv.hm.air.pt.skyhammer", desc = "uv.hm.air.pt.desc", convar = "unitvehicle_unit_helicopterskyhammer", sv = true },
 		{ type = "slider", text = "uv.hm.air.fuel.min", desc = "uv.hm.air.fuel.min.desc", convar = "unitvehicle_unit_helicopterminfuel", min = 1, max = 10000, decimals = 0, sv = true },
 		{ type = "slider", text = "uv.hm.air.fuel.max", desc = "uv.hm.air.fuel.max.desc", convar = "unitvehicle_unit_helicoptermaxfuel", min = 1, max = 10000, decimals = 0, sv = true },
-		{ type = "slider", text = "uv.hm.units.limit", desc = "uv.hm.units.limit.helicopter.desc", convar = "unitvehicle_unit_helicopterspawnlimit", min = 1, max = 10, decimals = 0, sv = true },
 		
 		{ type = "label", text = "uv.ptech" },
 		{ type = "bool", text = "uv.hm.enablept", desc = "uv.hm.enablept.desc", convar = "unitvehicle_unit_pursuittech", sv = true },

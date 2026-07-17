@@ -234,6 +234,8 @@ if SERVER then
 		local suspectPos = suspect:GetPos()
 		local suspectLocation = suspectPos + ( vector_up * 50 )
 
+		local availablerbs = {}
+
 		for id, rbdata in pairs( PRELOADED_ROADBLOCKS ) do
 			local location = rbdata.Location or rbdata.Maxs
 			local enemylocation = suspectLocation
@@ -242,8 +244,12 @@ if SERVER then
 			local evectdot = vect:Dot(suspectVelocity)
 			local distSqr = distance:LengthSqr()
 			if not (distSqr < 25000000 or distSqr > 100000000 or evectdot > 0) and not UVLoadedRoadblocks[id] then
-				return UVSpawnRoadblock( id )	
+				table.insert(availablerbs, id)
 			end
+		end
+
+		if not next(availablerbs) ~= nil then
+			return UVSpawnRoadblock( availablerbs[math.random(1, #availablerbs)] )
 		end
 		
 	end

@@ -1155,13 +1155,13 @@ conVarList["bountycommander"] = 100000
 conVarList["bountyrhino"] = 50000
 
 local defaultdrivermodeltable = {
-	"police.json, police_fem.json", --Patrol
-	"police.json, police_fem.json", --Support
-	"police.json, police_fem.json", --Pursuit
-	"police.json, police_fem.json", --Interceptor
-	"combine_soldier.json", --Special
-	"combine_super_soldier.json", --Commander
-	"combine_soldier_prisonguard.json", --Rhino
+	"police.json, policefem.json", --Patrol
+	"police.json, policefem.json", --Support
+	"police.json, policefem.json", --Pursuit
+	"police.json, policefem.json", --Interceptor
+	"combine.json", --Special
+	"combineelite.json", --Commander
+	"combineprison.json", --Rhino
 }
 
 local defaultvoicetable = {

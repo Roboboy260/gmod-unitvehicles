@@ -1,0 +1,14 @@
+{
+	"ModelName": "models/player/combine_soldier.mdl",
+	"RandomizeBodygroups": true,
+	"RandomizeColor": false,
+	"Color": {
+		"r": 255,
+		"b": 255,
+		"a": 255,
+		"g": 255
+	},
+	"RandomizeSkin": true,
+	"Bodygroups": [],
+	"Skin": 0
+}

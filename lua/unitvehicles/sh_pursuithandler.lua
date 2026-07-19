@@ -1820,6 +1820,11 @@ if SERVER then
 				cont = true 
 			end
 
+			if string.match(key, "helicopters_limit") and not incomingData then
+				_setConVar( key, 1 )
+				cont = true 
+			end
+
 			if cont then
 				cont = nil
 				continue

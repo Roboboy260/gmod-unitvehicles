@@ -367,6 +367,16 @@ function ENT:PhysicsUpdate()
 			self:Remove()
 		end
 
+		local vel = self.phys:GetVelocity()
+
+		local outofbounds = {
+			["x"] = math.abs(p.x) > 16000 and 0 or vel.x,
+			["y"] = math.abs(p.y) > 16000 and 0 or vel.y,
+			["z"] = math.abs(p.z) > 16000 and 0 or vel.z
+		}
+
+		self.phys:SetVelocity(Vector(outofbounds.x, outofbounds.y, outofbounds.z))
+
 		self:SetPos(Vector(math.Clamp(p.x,-16000,16000),math.Clamp(p.y,-16000,16000),math.Clamp(p.z,-16000,16000))) -- out of bounds
 	end
 

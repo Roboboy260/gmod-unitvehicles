@@ -15,19 +15,19 @@ ENT.CanSwitchSiren = true
 DEFINE_BASECLASS( "base_glide_car" )
 
 ENT.SirenTable = {
-    ")uvcars/code3 rls/emv_wail.wav",
-    ")uvcars/code3 rls/emv_yelp.wav",
-    ")uvcars/code3 rls/emv_hyperyelp.wav",
-    ")uvcars/code3 rls/emv_hilo.wav",
+    ")uvcars/federal sig tm/emv_wail.wav",
+    ")uvcars/federal sig tm/emv_yelp.wav",
+    ")uvcars/federal sig tm/emv_jingle.wav",
+    ")uvcars/federal sig tm/emv_scan.wav"
 }
 
 if CLIENT then
 
     ENT.SirenVolume = 1
 
-    ENT.SirenLoopSound = ")uvcars/code3 rls/emv_wail.wav"
-    ENT.SirenLoopAltSound = ")uvcars/code3 rls/emv_horn.wav"
-    ENT.HornSound = ")uvcars/code3 rls/emv_horn.wav"
+    ENT.SirenLoopSound = ")uvcars/federal sig tm/emv_horn.wav"
+    ENT.SirenLoopAltSound = ")uvcars/federal sig tm/emv_horn.wav"
+    ENT.HornSound = ")uvcars/federal sig tm/emv_horn.wav"
 
     ENT.CameraOffset = Vector( -230, 0, 65 )
 

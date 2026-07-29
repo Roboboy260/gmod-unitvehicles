@@ -905,19 +905,6 @@ function UVRestoreResourcePoints()
 			UVResourcePointsRefreshing = false
 		end
 	end)
-	-- if UVHeatLevel == 1 then --Heat Level 1
-	-- 	UVResourcePoints = UVUUnitsAvailable1:GetInt()
-	-- elseif UVHeatLevel == 2 then --Heat Level 2
-	-- 	UVResourcePoints = UVUUnitsAvailable2:GetInt()
-	-- elseif UVHeatLevel == 3 then --Heat Level 3
-	-- 	UVResourcePoints = UVUUnitsAvailable3:GetInt()
-	-- elseif UVHeatLevel == 4 then --Heat Level 4
-	-- 	UVResourcePoints = UVUUnitsAvailable4:GetInt()
-	-- elseif UVHeatLevel == 5 then --Heat Level 5
-	-- 	UVResourcePoints = UVUUnitsAvailable5:GetInt()
-	-- else --Heat Level 6
-	-- 	UVResourcePoints = UVUUnitsAvailable6:GetInt()
-	-- end
 	
 	local unitsAvailableConVar = GetConVar( "unitvehicle_unit_unitsavailable" .. UVHeatLevel )
 	

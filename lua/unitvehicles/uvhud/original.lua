@@ -1084,7 +1084,8 @@ local function original_pursuit_main( ... )
         UVResourcePointsColor = Color( 255, 255, 255)
 
         local num = UVBackupTimerSeconds or 0
-        if UVHUDDisplayBackupTimer and num <= 10 and math.floor(num)~=math.Round(num) then
+        local unitsAvailableConVar = GetConVar( "unitvehicle_unit_unitsavailable" .. UVHeatLevel ):GetInt()
+        if UVHUDDisplayBackupTimer and UVResourcePoints < unitsAvailableConVar and num <= 10 and math.floor(num)~=math.Round(num) then
 			UVResourcePointsColor = Color( 255, 255, 0)
 		end
         
@@ -1177,7 +1178,7 @@ local function original_pursuit_main( ... )
                 local busttime = math.Round((BustedTimer:GetFloat()-UVBustingProgress),3)
                 
                 if BustingProgress == 0 then
-                    if not UVHUDDisplayBackupTimer then
+                    if not UVHUDDisplayBackupTimer or UVResourcePoints >= unitsAvailableConVar then
                         local uloc, utype = "uv.hud.original.chase.unit", UnitsChasing
                         if not UVHUDCopMode then
                             if UnitsChasing ~= 1 then 

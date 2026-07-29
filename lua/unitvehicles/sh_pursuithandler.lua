@@ -3222,7 +3222,6 @@ if SERVER then
 		if UVTargeting then
 
 			if not UVHUDPursuit then
-				UVRestoreResourcePoints()
 				if game.SinglePlayer() and ActionCamSpotted:GetBool() then --SPOTTED CAMERA
 					local ply = Entity(1)
 					local v = UVGetVehicle(ply)
@@ -4433,6 +4432,7 @@ else -- CLIENT Settings | HUD/Options
 		UVBustingProgress = net.ReadString()
 		UVHUDDisplayBusting = true
 		UVBustedColor = Color( 255, 255, 255, 50 )
+		UVNotificationColor = Color( 255, 0, 0)
 		UVNotification = lang("uv.chase.busting")
 		UVBustingTimeLeft = math.Round((BustedTimer:GetFloat()-UVBustingProgress),3)
 

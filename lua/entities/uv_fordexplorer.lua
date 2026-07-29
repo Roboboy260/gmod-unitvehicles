@@ -20,10 +20,10 @@ ENT.NitrousRegenRate = 0.1
 ENT.NitrousRegenDelay = 0.6
 
 ENT.SirenTable = {
-    ")uvcars/federal sig omega 90/emv_wail.wav",
-    ")uvcars/federal sig omega 90/emv_yelp.wav",
-    ")uvcars/federal sig omega 90/emv_hilo.wav",
-    ")uvcars/federal sig omega 90/emv_sweep.wav"
+    ")uvcars/federal sig ss/emv_wail.wav",
+    ")uvcars/federal sig ss/emv_yelp.wav",
+    ")uvcars/federal sig ss/emv_priority.wav",
+    ")uvcars/federal sig ss/emv_hilo.wav"
 }
 
 if CLIENT then
@@ -33,9 +33,9 @@ if CLIENT then
 
     ENT.SirenVolume = 1
 
-    ENT.SirenLoopSound = ")uvcars/federal sig omega 90/emv_wail.wav"
-    ENT.SirenLoopAltSound = ")uvcars/federal sig omega 90/emv_horn.wav"
-    ENT.HornSound = ")uvcars/federal sig omega 90/emv_horn.wav"
+    ENT.SirenLoopSound = ")uvcars/federal sig ss/emv_wail.wav"
+    ENT.SirenLoopAltSound = ")uvcars/federal sig ss/emv_horn.wav"
+    ENT.HornSound = ")uvcars/federal sig ss/emv_horn.wav"
 
     ENT.ExhaustOffsets = {
         {

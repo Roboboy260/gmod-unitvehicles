@@ -883,6 +883,10 @@ if SERVER then
 		UVSetVehiclePerformanceMultiplier(self.v, mult, catchup)
 		self.perfmult = mult
 	end
+
+	function ENT:PickOvertakePoint()
+		self.overtakepoint = math.random(1,2) == 1 and Vector(-200, 0, 0) or Vector(200, 0, 0)
+	end
 	
 	function ENT:Think()
 		if not IsValid(self.v) then SafeRemoveEntity(self) return end
@@ -1136,8 +1140,12 @@ if SERVER then
 			
 			local eedist = self.e:WorldSpaceCenter() - self.v:WorldSpaceCenter() --Fixed distance between the vehicle and the enemy.
 			local eedistSqr = eedist:LengthSqr()
+			
 			local selfvelocity = self.v:GetVelocity():LengthSqr()
 			local enemyvelocity = self.e:GetVelocity():LengthSqr()
+
+			local suspectPos = self.e:WorldSpaceCenter()
+			local suspectLocal = self.e:WorldToLocal(suspectPos)
 
 			-- pursuit tactic
 			local forward = self.__vehicleForward or (self.v.IsSimfphyscar and self.v:LocalToWorldAngles(self.v.VehicleData.LocalAngForward):Forward() or self.v:GetForward())
@@ -1152,9 +1160,19 @@ if SERVER then
 			local suspectBehindNPC = eedist:Dot(forward) < 0
 			local suspectSameDirectionAsNPC = enemyVelLenSqr > 30976 and enemyVel:GetNormalized():Dot(forward) > 0
 
+			local selfOvertake = (self.formationpoint and
+			(math.abs(self.formationpoint.x) == 0) and
+			self.formationpoint.y > 0 or self.driveinfront) and
+			not suspectBehindNPC and
+			suspectSameDirectionAsNPC and
+			selfvelocity > (enemyVelLenSqr)
+
+			if not self.overtakepoint then
+				self:PickOvertakePoint()
+			end
+
 			local suspectOnWaypointGrid = true
 			if dvd and next(dvd.Waypoints or {}) ~= nil and not InfMap then
-				local suspectPos = self.e:WorldSpaceCenter()
 				local nearestToSuspect = dvd.GetNearestWaypoint(suspectPos)
 				if nearestToSuspect then
 					local waypointSize = dvd.WaypointSize or 200
@@ -1201,20 +1219,20 @@ if SERVER then
 					self.NavigateCooldown = nil
 					timer.Remove(self._cooldownString)
 				end
-				if (not self.formationpoint or enemyvelocity <= UVBustSpeed * 30)
-					or UVCalm or (eScope and eScope.EnemyEscaping) or obstaclesNearbySide then
+				local point = selfOvertake and self.e:LocalToWorld(self.overtakepoint) or self.formationpoint and self.e:LocalToWorld(self.formationpoint) or self.e:WorldSpaceCenter()
+				if (not self.formationpoint or enemyvelocity <= UVBustSpeed)
+					or UVCalm or (eScope and eScope.EnemyEscaping) then
 					if self.v.rhino then
 						self.targetpos = (self.e:WorldSpaceCenter() + (self.e:GetVelocity() / 2)) --Drive infront of the enemy (Rhino)
-					elseif (not self.driveinfront or obstaclesNearbySide) then
-						self.targetpos = self.e:WorldSpaceCenter() --Drive towards the enemy
+					elseif obstaclesNearbySide then
+						self.targetpos = self.e:WorldSpaceCenter()
 					else
-						self.targetpos = (self.e:WorldSpaceCenter() + self.e:GetVelocity()) --Drive infront of the enemy
+						self.targetpos = (point + self.e:GetVelocity())
 					end
 				else
-					self.targetpos = (self.e:LocalToWorld(self.formationpoint) + self.e:GetVelocity())
+					self.targetpos = (point + self.e:GetVelocity())
 				end
 			elseif followSuspectHeadingOnGrid and not self.v.rhino then
-				local suspectPos = self.e:WorldSpaceCenter()
 				local suspectDir = enemyVelLenSqr > 0 and enemyVel:GetNormalized() or forward
 				local aheadDist = 2000
 				local aheadTarget = suspectPos + suspectDir * aheadDist
@@ -1810,15 +1828,10 @@ if SERVER then
 					if MathAggressive == 1 then
 						if not self.aggressive and UVTargeting then
 							self.aggressive = true
-							if Chatter:GetBool() and self:StraightToTarget(self.e) and not UVCalm then
-								UVChatterAggressive(self) 
-							end
 						else
 							self.aggressive = nil
-							if Chatter:GetBool() and self:StraightToTarget(self.e) and not UVCalm then
-								UVChatterPassive(self) 
-							end
 						end
+						self:PickOvertakePoint()
 					elseif MathAggressive == 2 then
 						if Chatter:GetBool() and HeatLevels:GetBool() and IsValid(self.v) and not UVCalm and #UVUnitsChasing == 1 then
 							UVChatterRequestBackup(self)

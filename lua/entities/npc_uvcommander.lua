@@ -902,6 +902,10 @@ if SERVER then
 		UVSetVehiclePerformanceMultiplier(self.v, mult, catchup)
 		self.perfmult = mult
 	end
+
+	function ENT:PickOvertakePoint()
+		self.overtakepoint = math.random(1,2) == 1 and Vector(-200, 0, 0) or Vector(200, 0, 0)
+	end
 	
 	function ENT:Think()
 		if not IsValid(self.v) then SafeRemoveEntity(self) return end
@@ -1150,48 +1154,165 @@ if SERVER then
 			
 			local eedist = self.e:WorldSpaceCenter() - self.v:WorldSpaceCenter() --Fixed distance between the vehicle and the enemy.
 			local eedistSqr = eedist:LengthSqr()
-			local eedist2DSqr = eedist:Length2DSqr()
 
 			local selfvelocity = self.v:GetVelocity():LengthSqr()
 			local enemyvelocity = self.e:GetVelocity():LengthSqr()
+
+			local suspectPos = self.e:WorldSpaceCenter()
+			local suspectLocal = self.e:WorldToLocal(suspectPos)
+
+			-- pursuit tactic
+			local forward = self.__vehicleForward or (self.v.IsSimfphyscar and self.v:LocalToWorldAngles(self.v.VehicleData.LocalAngForward):Forward() or self.v:GetForward())
+			self.__vehicleForward = forward
+
+			local enemyVel = self.e:GetVelocity()
+			local enemyVelLenSqr = enemyVel:LengthSqr()
+			local eedistNorm = eedist:GetNormalized()
+			local suspectPulledOver = enemyVelLenSqr <= UVBustSpeed * 30
+			local suspectHeadingTowardNPC = enemyVelLenSqr > 30976 and enemyVel:GetNormalized():Dot(eedistNorm) < -0.3
+			local suspectHeadingAwayFromNPC = enemyVelLenSqr > 30976 and enemyVel:GetNormalized():Dot(eedistNorm) > 0.3
+			local suspectBehindNPC = eedist:Dot(forward) < 0
+			local suspectSameDirectionAsNPC = enemyVelLenSqr > 30976 and enemyVel:GetNormalized():Dot(forward) > 0
+
+			local selfOvertake = (self.formationpoint and
+			(math.abs(self.formationpoint.x) == 0) and
+			self.formationpoint.y > 0 or self.driveinfront) and
+			not suspectBehindNPC and
+			suspectSameDirectionAsNPC and
+			selfvelocity > (enemyVelLenSqr)
+
+			if not self.overtakepoint then
+				self:PickOvertakePoint()
+			end
+
+			local suspectOnWaypointGrid = true
+			if dvd and next(dvd.Waypoints or {}) ~= nil and not InfMap then
+				local nearestToSuspect = dvd.GetNearestWaypoint(suspectPos)
+				if nearestToSuspect then
+					local waypointSize = dvd.WaypointSize or 200
+					local maxDistSqr = waypointSize ^ 4
+					suspectOnWaypointGrid = nearestToSuspect.Target:DistToSqr(suspectPos) <= maxDistSqr
+				else
+					suspectOnWaypointGrid = false
+				end
+			end
+
+			self.tableroutetoenemy = self.tableroutetoenemy or {}
 			local straightToEnemy = self:StraightToTarget(self.e, true)
-			local visualOnEnemy = self:VisualOnTarget(self.e)
+			local distanceCheck = true
+			if DVWaypointsDistanceBased:GetBool() then
+				distanceCheck = eedistSqr <= 1000000
+			end
+			local suspectInView = not (eScope and eScope.EnemyEscaping) and straightToEnemy
+			local shouldGoTowards = (suspectHeadingAwayFromNPC or suspectPulledOver or not suspectOnWaypointGrid)
+			local useDirectDriveBranch = suspectInView and shouldGoTowards and distanceCheck
+			-- if suspectSameDirectionAsNPC and not suspectPulledOver then
+			-- 	useDirectDriveBranch = suspectInView and distanceCheck
+			-- end
+			-- if suspectSameDirectionAsNPC and not suspectPulledOver and not suspectOnWaypointGrid and suspectBehindNPC then
+			-- 	followSuspectHeadingOnGrid = false
+			-- end
+			local followSuspectHeadingOnGrid = (suspectOnWaypointGrid and suspectBehindNPC and suspectSameDirectionAsNPC) or (InfMap and suspectOnWaypointGrid and suspectSameDirectionAsNPC and not suspectInView)
+			if InfMap and eedistSqr > 1000000 and not suspectBehindNPC then followSuspectHeadingOnGrid = false end
 			local obstaclesNearbySide = self:ObstaclesNearbySide()
-			
-			--Determine pursuit standards
-			if not (eScope and eScope.EnemyEscaping) and straightToEnemy then
-				self:InvalidateNavigationPath()
-				if self.NavigateBlind then 
-					self.NavigateBlind = nil 
+
+			if InfMap and ( suspectSameDirectionAsNPC and not suspectPulledOver and suspectOnWaypointGrid and ( not suspectInView or suspectBehindNPC ) ) then
+				followSuspectHeadingOnGrid = true
+				useDirectDriveBranch = false
+			end
+
+			if useDirectDriveBranch then
+				if (not suspectOnWaypointGrid or suspectHeadingAwayFromNPC or suspectPulledOver) and next(self.tableroutetoenemy) ~= nil then
+					self:InvalidateNavigationPath()
+				end
+				if self.NavigateBlind then
+					self.NavigateBlind = nil
 				end
 				if self.NavigateCooldown then
 					self.NavigateCooldown = nil
 					timer.Remove(self._cooldownString)
 				end
-				if (not self.formationpoint or enemyvelocity <= UVBustSpeed) 
-				or not straightToEnemy or UVCalm or (eScope and eScope.EnemyEscaping) or 
-				obstaclesNearbySide then
-					if not self.driveinfront or obstaclesNearbySide then
-						self.targetpos = self.e:WorldSpaceCenter() --Drive towards the enemy
-					else
-						self.targetpos = (self.e:WorldSpaceCenter()+self.e:GetVelocity()) --Drive infront of the enemy
-					end
+				local point = selfOvertake and self.e:LocalToWorld(self.overtakepoint) or self.formationpoint and self.e:LocalToWorld(self.formationpoint) or self.e:WorldSpaceCenter()
+				if (not self.formationpoint or enemyvelocity <= UVBustSpeed)
+				or UVCalm or (eScope and eScope.EnemyEscaping) or obstaclesNearbySide then
+					self.targetpos = self.e:WorldSpaceCenter()
 				else
-					self.targetpos = (self.e:LocalToWorld(self.formationpoint)+self.e:GetVelocity()) --Drive in formation
+					self.targetpos = (point + self.e:GetVelocity())
 				end
+			elseif followSuspectHeadingOnGrid then
+				local suspectDir = enemyVelLenSqr > 0 and enemyVel:GetNormalized() or forward
+				local aheadDist = 2000
+				local aheadTarget = suspectPos + suspectDir * aheadDist
+
+				local myPos = self.v:WorldSpaceCenter()
+				local Waypoint, WaypointID = dvd.GetNearestWaypoint(myPos)
+				
+				self.targetpos = myPos + suspectDir * 2000
+
+				if Waypoint and Waypoint.Target then
+
+					-- searches for waypoints that are neighboring the nearest waypoint to unit (right way)
+					local laneStart = Waypoint.Target
+					local neighborTarget
+
+					local bestDot = -1
+
+					if Waypoint.Neighbors then	
+						for _, n in pairs( Waypoint.Neighbors ) do
+							local waypoint = dvd.Waypoints[n]
+
+							local dir = ( waypoint.Target - laneStart ):GetNormalized()
+							local dot = dir:Dot( suspectDir )
+
+							if dot > bestDot then
+								bestDot = dot
+								neighborTarget = waypoint.Target
+							end
+						end
+					end
+
+					-- if we can't find any viable neighbors then we can assume that the pursuit is going the wrong way,
+					-- for which we must look for waypoints that connect to the nearest waypoint
+					-- (tried to keep it optimized ¯\_(ツ)_/¯)
+					if 0 > bestDot then
+						local possibleNeighbors = {}
+						local bestDot = -1
+						
+						for _, waypoint in pairs( dvd.Waypoints ) do
+							if not waypoint.Neighbors then continue end
+							if not table.HasValue( waypoint.Neighbors, WaypointID ) then continue end
+							
+							local direction = ( waypoint.Target - laneStart ):GetNormalized()
+							local dot = direction:Dot( suspectDir )
+							
+							if dot > bestDot then
+								bestDot = dot
+								neighborTarget = waypoint.Target
+							end
+						end
+					end
+
+					if neighborTarget then
+						self.targetpos = neighborTarget
+					else
+						self.targetpos = myPos + suspectDir * 2000
+					end
+				end
+
 			else
 				self:TryRefreshPathToTarget(self.e)
 				self.targetpos = self:DriveOnPath()
 			end
 			
 			--Driving techniques
-			local forward = self.v.IsSimfphyscar and self.v:LocalToWorldAngles(self.v.VehicleData.LocalAngForward):Forward() or self.v:GetForward() --Forward vector.
+			forward = self.v.IsSimfphyscar and self.v:LocalToWorldAngles(self.v.VehicleData.LocalAngForward):Forward() or self.v:GetForward() --Forward vector.
 			local dist = self.targetpos - self.v:WorldSpaceCenter() --Varied distance between the vehicle and the enemy.
 			local distSqr = dist:LengthSqr()
 			local dist2DSqr = dist:Length2DSqr()
 			local distDotForward = dist:Dot(forward)
 			local edist2DSqr = edist:Length2DSqr()
 			local edistDotForward = edist:Dot(forward)
+			local eedist2DSqr = eedist:Length2DSqr()
 			local eedistDotForward = eedist:Dot(forward)
 			local vect = dist:GetNormalized() --Enemy direction vector.
 			local vectdot = vect:Dot(self.v:GetVelocity()) --Dot product, velocity and direction.
@@ -1210,6 +1331,8 @@ if SERVER then
 			local eright = vect:Cross(eforward) --The pursuer is right side or not
 			local eevect = eedist:GetNormalized() --Fixed enemy direction vector.
 			local eeeright = eevect:Cross(forward) --Fixed value for when enemy is right side or not.
+			local straightToEnemy = self:StraightToTarget(self.e, true)
+			local visualOnEnemy = self:VisualOnTarget(self.e)
 			local ph = self.v:GetPhysicsObject() --Get pursuer's physics
 			if not (ph and IsValid(ph)) then return end
 			local eph = self.e:GetPhysicsObject() --Get enemy's physics
@@ -1294,7 +1417,7 @@ if SERVER then
 				end --Brake checking
 				if selfvelocity > enemyvelocity and edistDotForward > 0 and edistDotEForward > 0 and eevectdot > 0 and eeevectdot > 0 and edist2DSqr < 250000 and enemyvelocity > 250000 and not UVCalm then
 					if self.aggressive and not self.formationpoint and eright.z > -0.5 and eright.z < 0.5 then throttle = 2 end
-				end --PIT technique/get infront	
+				end --PIT technique/get infront
 				if edistDotForward < 0 and (edist2DSqr > 100000 or self.formationpoint) and eevectdot < 0 then
 					if eeevectdot > 0 or enemyvelocity < 100000 then
 						throttle = 0
@@ -1411,8 +1534,8 @@ if SERVER then
 							if fvectdot > 0 then
 								if UVCalm and fdist:LengthSqr() < 100000 then
 									throttle = -1
-								elseif fdist:LengthSqr() < 100000 and enemyvelocity > 200000 then
-									if selfvelocity > f:GetVelocity():LengthSqr() and fdist:Dot(forward) > 0 and not self.formationpoint then
+								elseif fdist:LengthSqr() < 100000 and enemyvelocity > 200000 and not self.formationpoint then
+									if selfvelocity > f:GetVelocity():LengthSqr() and fdist:Dot(forward) > 0 then
 										throttle = 2
 									end
 								end
@@ -1428,7 +1551,7 @@ if SERVER then
 						end -- Surronding target vehicles
 					end
 				end
-			end	
+			end
 
 			-- PURSUIT TECH
 			if self.v.PursuitTech then
@@ -1639,17 +1762,12 @@ if SERVER then
 					if MathAggressive == 1 then
 						if not self.aggressive and UVTargeting then
 							self.aggressive = true
-							if Chatter:GetBool() and straightToEnemy and not UVCalm then
-								UVChatterAggressive(self) 
-							end
 						else
 							self.aggressive = nil
-							if Chatter:GetBool() and straightToEnemy and not UVCalm then
-								UVChatterPassive(self) 
-							end
 						end
+						self:PickOvertakePoint()
 					elseif MathAggressive == 2 then
-						if Chatter:GetBool() and IsValid(self.v) and not UVCalm then
+						if Chatter:GetBool() and HeatLevels:GetBool() and IsValid(self.v) and not UVCalm and #UVUnitsChasing == 1 then
 							UVChatterRequestBackup(self)
 						end
 					elseif MathAggressive == 3 then
@@ -1661,6 +1779,13 @@ if SERVER then
 						if Chatter:GetBool() and MathAggressive2 == 1 and not (eScope and eScope.EnemyEscaping) then
 							UVChatterRequestDisengage(self)
 						end
+					end
+					local driver = UVGetDriver(self.e)
+					if isfunction(self.e.GetDriver) and IsValid(driver) and driver:IsPlayer() then 
+						self.edriver = driver
+						
+					else
+						self.edriver = nil
 					end
 					local MathSiren = math.random(1,100)
 					if MathSiren < 30 then

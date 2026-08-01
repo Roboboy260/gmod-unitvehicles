@@ -2516,7 +2516,6 @@ if SERVER then
 	UVWantedTableDriver = {}
 	UVPotentialSuspects = {}
 	UVMaxUnits = 3
-	UVTacticFormationNo = 1
 	UVVehicleInitializing = {}
 	UVPlayerUnitTablePlayers = {}
 	UVCommanders = {}
@@ -2619,10 +2618,7 @@ if SERVER then
 				if HeatLevels:GetBool() then
 					UVUpdateHeatLevel()
 				end
-				if #UVUnitsChasing < 2 then
-					UVTacticFormationNo = math.random(0,6)
-				end
-				UVChangeTactics(UVTacticFormationNo)
+				UVUpdateGlobalStrategy()
 				UVBackupTimer = CurTime()
 			end
 		end

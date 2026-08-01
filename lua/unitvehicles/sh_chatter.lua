@@ -1043,20 +1043,14 @@ if SERVER then
 	end
 	
 	function UVChatterArrest(self, enemy)
-		local randomno = math.random(1,2)
-		if randomno == 1 then
-			UVChatterQueue = {}
-			if next(UVCommanders) ~= nil and mathrandomno == 1 then
-				local random_entry = math.random(#UVCommanders)
-				local unit = UVCommanders[random_entry]
-				self = unit
-			end
-			local time = UVSoundChatter(self, self.voice, "arrest", nil)
-			return time == 0 and 5 or time
-		else
-			local time = UVSoundChatter(self, self.voice, "arrest", 2, enemy)
-			return time == 0 and 5 or time
+		UVChatterQueue = {}
+		if next(UVCommanders) ~= nil and mathrandomno == 1 then
+			local random_entry = math.random(#UVCommanders)
+			local unit = UVCommanders[random_entry]
+			self = unit
 		end
+		local time = UVSoundChatter(self, self.voice, "arrest", nil)
+		return time == 0 and 5 or time
 	end
 	
 	function UVChatterArrestAcknowledge(self)
@@ -1424,18 +1418,17 @@ if SERVER then
 			local unit = UVCommanders[random_entry]
 			self = unit
 		end
-		local randomno = math.random(1,3)
+		local randomno = math.random(1,5)
 		if randomno == 1 then
+			return UVSoundChatter(self, self.voice, "closetoenemy", 2)
+		else
 			return UVSoundChatter(self, self.voice, "closetoenemy")
-		elseif target.UVHUDBusting then
-			local randomnu = math.random(1,2)
-			if randomnu == 1 then
-				return UVSoundChatter(self, self.voice, "closetoenemy", 2)
-			else
-				return UVSoundChatter(self, self.voice, "arrest", 2)
-			end
 		end
 		return 0
+	end
+
+	function UVChatterCloseToArrest(self)
+		return UVSoundChatter(self, self.voice, "arrest", 2)
 	end
 	
 	function UVChatterFoundEnemy(self)

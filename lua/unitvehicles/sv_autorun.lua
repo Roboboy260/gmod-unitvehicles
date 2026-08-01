@@ -421,6 +421,10 @@ concommand.Add( "uv_setheat", function( ply, cmd, args )
 		local unit = units[random_entry]
 		UVChatterReportHeat(unit, _highestHeatLevel)
 	end
+
+	timer.Simple(0.5, function()
+		UVRestoreResourcePoints()
+	end)
 end)
 
 function UV_DespawnVehicles(ply)
@@ -3066,8 +3070,210 @@ function UVAddUnit(vehicle, ply)
 	end
 end
 
-function UVChangeTactics(tactic)
-    if not tactic or next(UVUnitsChasing) == nil then return end
+local FormationVectors = {
+    -- Far Front
+    ["Front Front Front"]            = Vector(0, 900, 0),
+
+    -- Mid Front
+    ["Front Front"]                  = Vector(0, 600, 0),
+    ["Left Front Front"]             = Vector(-200, 600, 0),
+    ["Right Front Front"]            = Vector(200, 600, 0),
+
+    -- Near Front
+    ["Front"]                        = Vector(0, 300, 0),
+    ["Left Front"]                   = Vector(-200, 300, 0),
+    ["Right Front"]                  = Vector(200, 300, 0),
+    ["Left Left Front"]              = Vector(-400, 300, 0),
+    ["Right Right Front"]            = Vector(400, 300, 0),
+
+    -- Sides
+    ["Left"]                         = Vector(-200, 0, 0),
+    ["Right"]                        = Vector(200, 0, 0),
+
+    -- Near Rear
+    ["Rear"]                         = Vector(0, -300, 0),
+    ["Left Rear"]                    = Vector(-200, -300, 0),
+    ["Right Rear"]                   = Vector(200, -300, 0),
+    ["Left Left Rear"]               = Vector(-400, -300, 0),
+    ["Right Right Rear"]             = Vector(400, -300, 0),
+
+    -- Mid Rear
+    ["Rear Rear"]                    = Vector(0, -600, 0),
+    ["Left Rear Rear"]               = Vector(-200, -600, 0),
+    ["Right Rear Rear"]              = Vector(200, -600, 0),
+	["Left Left Rear Rear"] 		 = Vector(-400, -600, 0),
+	["Right Right Rear Rear"]        = Vector(400, -600, 0),
+
+    -- Far Rear
+    ["Rear Rear Rear"]               = Vector(0, -900, 0),
+    ["Left Left Rear Rear Rear"]     = Vector(-400, -900, 0),
+    ["Right Right Rear Rear Rear"]   = Vector(400, -900, 0),
+}
+
+UVGlobalStrategy = {
+	["None"] = {
+		["None"] = {}
+	},
+	["Passive"] = {
+		["Follow Left"] = {
+			"Rear",
+			"Left Rear",
+			"Right Rear"
+		},
+		["Follow Right"] = {
+			"Rear",
+			"Right Rear",
+			"Left Rear"
+		},
+		["Herd Left"] = {
+			"Rear",
+			"Left",
+			"Right"
+		},
+		["Herd Right"] = {
+			"Rear",
+			"Left",
+			"Right"
+		},
+		["Diagonal Left"] = {
+			"Left Rear",
+			"Right Rear",
+			"Left Front",
+			"Right Front"
+		},
+		["Diagonal Right"] = {
+			"Right Rear",
+			"Left Rear",
+			"Right Front",
+			"Left Front"
+		},
+		["Triangle Left"] = {
+			"Front Front",
+			"Left Rear",
+			"Right Rear",
+		},
+		["Triangle Right"] = {
+			"Front Front",
+			"Right Rear",
+			"Left Rear"
+		},
+		["Reverse Triangle Left"] = {
+			"Left Front Front",
+			"Right Front Front",
+			"Rear"
+		},
+		["Reverse Triangle Right"] = {
+			"Right Front Front",
+			"Left Front Front",
+			"Rear"
+		}
+	},
+	["Aggressive"] = {
+		["Box Left"] = {
+			"Front",
+			"Rear",
+			"Left",
+			"Right",
+			"Left Front",
+			"Right Front",
+			"Left Rear",
+			"Right Rear",
+		},
+		["Box Right"] = {
+			"Front",
+			"Rear",
+			"Right",
+			"Left",
+			"Right Front",
+			"Left Front",
+			"Right Rear",
+			"Left Rear"
+		},
+		["Rolling Roadblock Left"] = {
+			"Front",
+			"Rear",
+			"Left Front",
+			"Right Front",
+			"Left Left Front",
+			"Right Right Front",
+			"Left Rear",
+			"Right Rear",
+			"Left Left Rear",
+			"Right Right Rear"
+		},
+		["Rolling Roadblock Right"] = {
+			"Front",
+			"Rear",
+			"Right Front",
+			"Left Front",
+			"Right Right Front",
+			"Left Left Front",
+			"Right Rear",
+			"Left Rear",
+			"Right Right Rear",
+			"Left Left Rear"
+		},
+		["Spearhead Left"] = {
+			"Front Front",
+			"Rear Rear",
+			"Left Front",
+			"Right Front",
+			"Left Left",
+			"Right Right",
+			"Left Rear",
+			"Right Rear",
+			"Left Left Rear Rear",
+			"Right Right Rear Rear"
+		},
+		["Spearhead Right"] = {
+			"Front Front",
+			"Rear Rear",
+			"Right Front",
+			"Left Front",
+			"Right Right",
+			"Left Left",
+			"Right Rear",
+			"Left Rear",
+			"Right Right Rear Rear",
+			"Left Left Rear Rear"
+		}
+	}
+}
+
+UVCurrentStrategy = "None"
+UVCurrentFormation = "None"
+UVCurrentFormationPoints = {}
+
+local function ChangeFormation( strategy, formation )
+	UVCurrentStrategy = strategy
+	UVCurrentFormation = formation
+	UVCurrentFormationPoints = UVGlobalStrategy[strategy][formation]
+
+	print("Strategy: " .. strategy .. "\nFormation: " .. formation)
+
+	if next(UVUnitsChasing) == nil then return end
+	local randomunit = UVUnitsChasing[math.random(1, #UVUnitsChasing)]
+	local chatter = UVCurrentStrategy == "Aggressive" and UVChatterAggressive(randomunit) or UVChatterPassive(randomunit) 
+end
+
+function UVUpdateGlobalStrategy()
+    if next(UVUnitsChasing) == nil then return end
+
+	local strategyoptions = {
+		["Aggressive"] = 0,
+		["Passive"] = 0
+	}
+
+	--More aggressive units will make the strategy aggressive, and vice versa
+	for k, v in pairs(UVUnitsChasing) do
+		if v.aggressive then
+			strategyoptions["Aggressive"] = strategyoptions["Aggressive"] + 1
+		else
+			strategyoptions["Passive"] = strategyoptions["Passive"] + 1
+		end
+	end
+
+	local currentStrategy = strategyoptions["Aggressive"] > strategyoptions["Passive"] and "Aggressive" or "Passive"
 
 	--Clear existing formations
     local AvailableUnits = {}
@@ -3078,97 +3284,13 @@ function UVChangeTactics(tactic)
         table.insert(AvailableUnits, v)
     end
 
-    local FormationPoints
+	local currentFormationPoints, currentFormation = table.Random(UVGlobalStrategy[currentStrategy])
 
-    if tactic == 0 then --No formation
-		return
-	elseif tactic == 1 then --Box formation
-		FormationPoints = {
-			Vector(0,300,0), --Front
-			Vector(0,-300,0), --Rear
-			Vector(-200,0,0), --Left
-			Vector(200,0,0), --Right
-			Vector(-200,300,0), --Left Front
-			Vector(200,300,0),	--Right Front
-			Vector(-200,-300,0), --Left Rear
-			Vector(200,-300,0), --Right Rear
-			Vector(0,-600,0), --Rear Rear
-			Vector(0,-900,0), --Rear Rear Rear
-		}
-	elseif tactic == 2 then --Rolling Roadblock formation
-		FormationPoints = {
-			Vector(0,300,0), --Front
-			Vector(0,-300,0), --Rear
-			Vector(-200,300,0), --Left Front
-			Vector(200,300,0), --Right Front
-			Vector(-400,300,0), --Left Left Front
-			Vector(400,300,0), --Right Right Front
-			Vector(-200,-300,0), --Left Rear
-			Vector(200,-300,0), --Right Rear
-			Vector(-400,-300,0), --Left Left Rear
-			Vector(400,-300,0), --Right Right Rear
-		}
-	elseif tactic == 3 then --Spearhead formation
-		FormationPoints = {
-			Vector(0,600,0), --Front Front
-			Vector(0,-300,0), --Rear
-			Vector(-200,300,0), --Left Front
-			Vector(200,300,0), --Right Front
-			Vector(-400,0,0), --Left Left
-			Vector(400,0,0), --Right Right
-			Vector(-200,-600,0), --Left Rear Rear
-			Vector(200,-600,0), --Right Rear Rear
-			Vector(-400,-900,0), --Left Left Rear Rear Rear
-			Vector(400,-900,0), --Right Right Rear Rear Rear
-		}
-	elseif tactic == 4 then --Box formation (right priority)
-		FormationPoints = {
-			Vector(0,300,0), --Front
-			Vector(0,-300,0), --Rear
-			Vector(200,0,0), --Right
-			Vector(-200,0,0), --Left
-			Vector(200,300,0),	--Right Front
-			Vector(-200,300,0), --Left Front
-			Vector(200,-300,0), --Right Rear
-			Vector(-200,-300,0), --Left Rear
-			Vector(0,-600,0), --Rear Rear
-			Vector(0,-900,0), --Rear Rear Rear
-		}
-	elseif tactic == 5 then --Rolling Roadblock formation (right priority)
-		FormationPoints = {
-			Vector(0,300,0), --Front
-			Vector(0,-300,0), --Rear
-			Vector(200,300,0), --Right Front
-			Vector(-200,300,0), --Left Front
-			Vector(400,300,0), --Right Right Front
-			Vector(-400,300,0), --Left Left Front
-			Vector(200,-300,0), --Right Rear
-			Vector(-200,-300,0), --Left Rear
-			Vector(400,-300,0), --Right Right Rear
-			Vector(-400,-300,0), --Left Left Rear
-		}
-	elseif tactic == 6 then --Spearhead formation (right priority)
-		FormationPoints = {
-			Vector(0,600,0), --Front Front
-			Vector(0,-300,0), --Rear
-			Vector(200,300,0), --Right Front
-			Vector(-200,300,0), --Left Front
-			Vector(400,0,0), --Right Right
-			Vector(-400,0,0), --Left Left
-			Vector(200,-600,0), --Right Rear Rear
-			Vector(-200,-600,0), --Left Rear Rear
-			Vector(400,-900,0), --Right Right Rear Rear Rear
-			Vector(-400,-900,0), --Left Left Rear Rear Rear
-		}
+	if math.random(1, 10) == 1 then
+		ChangeFormation(currentStrategy, currentFormation)
 	end
 
-    local oneunit = #AvailableUnits == 1
-    local shouldstaybehind = {
-        npc_uvpatrol = true,
-        npc_uvsupport = true,
-    }
-
-    if FormationPoints and istable(FormationPoints) then
+    if UVCurrentFormationPoints and next(UVCurrentFormationPoints) ~= nil then
         local centerPos = Vector(0, 0, 0)
         local centerYaw = 0
         local validCount = 0
@@ -3195,8 +3317,8 @@ function UVChangeTactics(tactic)
         local centerAng = Angle(0, centerYaw, 0)
 
         local mappedPoints = {}
-        for i = 1, #FormationPoints do
-            local localPt = FormationPoints[i]
+        for i = 1, #UVCurrentFormationPoints do
+            local localPt = FormationVectors[UVCurrentFormationPoints[i]] or vector_origin
             local worldPt = Vector(localPt.x, localPt.y, localPt.z)
             worldPt:Rotate(centerAng)
             worldPt = centerPos + worldPt
@@ -3232,10 +3354,6 @@ function UVChangeTactics(tactic)
 
             if closestUnit then
                 local finalPoint = Vector(localPt.x, localPt.y, localPt.z)
-
-                if oneunit and shouldstaybehind[closestUnit:GetClass()] then
-                    finalPoint = Vector(0, -300, 0)
-                end
 
                 if closestUnit.e then
                     if closestUnit.e.IsSimfphyscar and closestUnit.e.VehicleData and closestUnit.e.VehicleData.LocalAngForward then
@@ -3791,19 +3909,7 @@ function UVCheckIfBeingBusted(enemy)
 				enemy.UVHUDBustingDelayed = nil
 			end)
 			if Chatter:GetBool() and IsValid(closestunit) and scope.InPursuit then
-				local randomno = math.random(1,2)
-				local airUnits = ents.FindByClass("uvair")
-				if next(airUnits) ~= nil and randomno == 1 then
-					local random_entry = math.random(#airUnits)	
-					local unit = airUnits[random_entry]
-					if unit:GetTarget() == enemy then
-						UVChatterBusting(unit)
-					else
-						UVChatterBusting(closestunit.UnitVehicle)
-					end
-				else
-					UVChatterBusting(closestunit.UnitVehicle)
-				end
+				UVChatterBusting(closestunit.UnitVehicle)
 			end
 			if IsValid(enemyDriver) then
 				enemyDriver:EmitSound("ui/pursuit/busting_start.wav", 0, 100, 0.5)
@@ -3821,6 +3927,9 @@ function UVCheckIfBeingBusted(enemy)
 		enemy.UVBustingProgress = enemy.UVBustingLastProgress2 + (CurTime() - enemy.UVBustingLastProgress) * (enemy.UVBustingPenaltyMult or 1)
 		if enemy.UVBustingProgress >= (btimeout-1) and not enemy.nearbust then
 			enemy.nearbust = true
+			if Chatter:GetBool() and IsValid(closestunit) and scope.InPursuit then
+				UVChatterCloseToArrest(closestunit.UnitVehicle)
+			end
 		end
 		
 		if enemy.PursuitTech and not (enemy:GetDriver() and enemy:GetDriver():IsPlayer()) and enemy.randomptuse < enemy.UVBustingProgress then
@@ -3864,19 +3973,7 @@ function UVCheckIfBeingBusted(enemy)
 					end
 				end
 				if Chatter:GetBool() and IsValid(closestunit.UnitVehicle) and scope.InPursuit then
-					local randomno = math.random(1,2)
-					local airUnits = ents.FindByClass("uvair")
-					if next(airUnits) ~= nil and randomno == 1 then
-						local random_entry = math.random(#airUnits)	
-						local unit = airUnits[random_entry]
-						if unit:GetTarget() == enemy then
-							UVChatterBustEvaded(unit)
-						else
-							UVChatterBustEvaded(closestunit.UnitVehicle)
-						end
-					else
-						UVChatterBustEvaded(closestunit.UnitVehicle)
-					end
+					UVChatterBustEvaded(closestunit.UnitVehicle)
 				end
 				if IsValid(enemyDriver) then
 					if enemy.UVHighestBustingProgress then

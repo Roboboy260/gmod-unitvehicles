@@ -1000,7 +1000,7 @@ if SERVER then
 						closestscope = scope
 					end
 				end
-				if closestdistancetosuspect > 100000000 and self.uvmarkedfordeletion then
+				if self.disengaging and self.uvmarkedfordeletion and closestdistancetosuspect > 100000000 then
 					SafeRemoveEntity(self)
 				end
 			end
@@ -2083,7 +2083,7 @@ if SERVER then
 			UVCFInitialize(self)
 		end
 		
-		local deletiontime = self.v.roadblocking and 10 or 1
+		local deletiontime = (self.v.roadblocking or not UVTargeting) and 10 or 1
 		local roadblockingtime = math.random(20,60)
 
 		if self.uvscripted then

@@ -710,7 +710,7 @@ end
 function UVDisengageUnits()
 	for unit, _ in pairs( UVUnitVehicles ) do
 		if not IsValid(unit) or not unit.UnitVehicle or unit.UnitVehicle:IsPlayer() then continue end
-		if unit.UnitVehicle:GetClass() == "npc_uvcommander" or unit.rhino or not unit.unitscript then continue end
+		if UVTargeting and unit.UnitVehicle:GetClass() == "npc_uvcommander" or unit.rhino or not unit.unitscript then continue end
 
 		local unitType = string.sub( unit.UnitVehicle:GetClass(), 7 )
 		local assignedUnits = string.Trim( GetConVar( 'unitvehicle_unit_units' .. unitType .. UVHeatLevel ):GetString() )
@@ -858,9 +858,6 @@ function HandleVehicleSpawning(Patrolling)
 			local units = ents.FindByClass("npc_uv*")
 			local unit = units[math.random(#units)]
 			if not UVDeployRoadblock(unit) then UVAutoSpawn(nil) end
-		end,
-		['commander'] = function()
-			UVAutoSpawn(nil, nil, nil, nil, UVCommanderRespawning)
 		end,
 		['normal'] = function()
 			UVAutoSpawn(nil)
@@ -1667,7 +1664,7 @@ hook.Add("OnEntityCreated", "UVCollisionJeep", function(vehicle)
 		if car.UnitVehicle or (car.UVWanted and not AutoHealth:GetBool()) then --DAMAGE
 			if not car.healthset then
 				if car.uvclasstospawnon == "npc_uvcommander" or car.UVCommander then
-					local health = car.uvlasthealth or UVUOneCommanderHealth:GetInt()
+					local health = UVUOneCommanderHealth:GetInt()
 					car:SetMaxHealth(UVUOneCommanderHealth:GetInt())
 					car:SetHealth(health)
 				else

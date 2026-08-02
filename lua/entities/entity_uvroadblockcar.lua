@@ -37,15 +37,15 @@ if SERVER then
 		if SpawnMainUnits:GetBool() then
 			if self.Disperse == true then
 				if self.Rhino == true then
-					UVAutoSpawn(nil, true, nil, nil, nil, pos, Angles, true)
+					UVAutoSpawn(nil, true, nil, nil, pos, Angles, true)
 				else
-					UVAutoSpawn(nil, nil, nil, nil, nil, pos, Angles, true)
+					UVAutoSpawn(nil, nil, nil, nil, pos, Angles, true)
 				end
 			else
 				if self.Rhino == true then
-					UVAutoSpawn(nil, true, nil, nil, nil, pos, Angles)
+					UVAutoSpawn(nil, true, nil, nil, pos, Angles)
 				else
-					UVAutoSpawn(nil, nil, nil, nil, nil, pos, Angles)
+					UVAutoSpawn(nil, nil, nil, nil, pos, Angles)
 				end
 			end
 		end

@@ -1908,8 +1908,6 @@ if SERVER then
 		UVCallLocation = nil
 		uvcallexists = nil
 		UVHiding = nil
-		UVCommanderLastHealth = nil
-		UVCommanderLastEngineHealth = nil
 		UVCommanders = {}
 		UVWantedTableDriver = {}
 		UVPlayerUnitTablePlayers = {}
@@ -2555,10 +2553,8 @@ if SERVER then
 
 		--One Commander Active
 		if UVOneCommanderActive then
-			if not UVCommanderRespawning and next(UVCommanders) == nil then
+			if next(UVCommanders) == nil then
 				UVOneCommanderActive = nil
-				UVCommanderLastHealth = nil
-				UVCommanderLastEngineHealth = nil
 				net.Start( "UVHUDStopOneCommander" )
 				net.Broadcast()
 			end
@@ -2582,13 +2578,6 @@ if SERVER then
 				if not UVOneCommanderActive then
 					UVOneCommanderDeployed = nil
 				end
-			end
-			if UVCommanderRespawning then
-				UVCommanderRespawning = nil
-			end
-			if UVCommanderLastHealth then
-				UVCommanderLastHealth = nil
-				UVCommanderLastEngineHealth = nil
 			end
 		end
 
@@ -2715,7 +2704,7 @@ if SERVER then
 			for k, car in pairs(UVVehicleInitializing) do
 				if IsValid(car) and ((isfunction(car.IsInitialized) and car:IsInitialized()) or car.IsGlideVehicle or (car.LVS and car:IsInitialized()) or car:GetClass() == "prop_vehicle_jeep") then
 					if car.uvclasstospawnon == "npc_uvcommander" then
-						local health = car.uvlasthealth or UVUOneCommanderHealth:GetInt()
+						local health = UVUOneCommanderHealth:GetInt()
 						local enginehealth = car.uvlastenginehealth or 1.0
 						if car.IsSimfphyscar then
 							car:SetCurHealth(health)
@@ -2733,7 +2722,6 @@ if SERVER then
 								car:SetHealth(health)
 							end
 						end
-						UVCommanderRespawning = nil
 					else
 						if car:GetClass() == "prop_vehicle_jeep" and not vcmod_main then
 							local mass = car:GetPhysicsObject():GetMass()

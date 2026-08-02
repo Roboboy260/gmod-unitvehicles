@@ -52,22 +52,7 @@ if SERVER then
 		if table.HasValue(UVUnitsChasing, self) then
 			table.RemoveByValue(UVUnitsChasing, self)
 		end
-		if not self.wrecked and self.v then
-			if self.v.IsSimfphyscar then
-				UVCommanderLastHealth = self.v:GetCurHealth()
-			elseif self.v.IsGlideVehicle then
-				UVCommanderLastHealth = self.v:GetChassisHealth()
-				uvcommanderlastenginehealth = self.v:GetEngineHealth()
-			elseif self.v:GetClass() == "prop_vehicle_jeep" then
-				if vcmod_main then
-					UVCommanderLastHealth = self.v:VC_getHealth()
-				else
-					UVCommanderLastHealth = self.v:Health()
-				end
-			end
-			UVCommanderRespawning = self.v.unitscript
-		end
-		if table.HasValue(UVCommanders, self.v) and self.wrecked then
+		if table.HasValue(UVCommanders, self.v) then
 			UVCommanders = {}
 		end
 		local isValid = IsValid(self.v)
@@ -987,11 +972,7 @@ if SERVER then
 			end
 			if closestdistancetosuspect > 100000000 and 
 			not (eScope and eScope.EnemyBusted) and not (eScope and eScope.EnemyEscaped) and self.uvmarkedfordeletion then
-				if ( self.v.disengaging or self.v.roadblockingmissed ) or not OptimizeRespawn:GetBool() or (UVGlobalPursuit.ResourcePoints <= (#ents.FindByClass("npc_uv*")) and #ents.FindByClass("npc_uv*") ~= 1) then
-					UVOptimizeRespawn(self.v)
-				elseif not self.v.roadblocking then
-					UVOptimizeRespawn(self.v)
-				end
+				UVOptimizeRespawn(self.v)
 				if Chatter:GetBool() and not (eScope and eScope.EnemyEscaping) and not self.invincible and not (eScope and eScope.EnemyBusted) then
 					UVChatterLeftPursuit(self) 
 				end
@@ -1012,8 +993,8 @@ if SERVER then
 						closestscope = scope
 					end
 				end
-				if closestdistancetosuspect > 100000000 and self.uvmarkedfordeletion then
-					UVOptimizeRespawn(self.v)
+				if self.disengaging and self.uvmarkedfordeletion and closestdistancetosuspect > 100000000 then
+					SafeRemoveEntity(self)
 				end
 			end
 		end
@@ -2212,7 +2193,7 @@ if SERVER then
 			UVCFInitialize(self)
 		end
 		
-		local deletiontime = self.v.roadblocking and 10 or 1
+		local deletiontime = (self.v.roadblocking or not UVTargeting) and 10 or 1
 		local roadblockingtime = math.random(20,60)
 
 		if self.uvscripted then

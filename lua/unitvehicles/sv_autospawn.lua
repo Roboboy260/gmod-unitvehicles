@@ -402,7 +402,7 @@ function UVCreateConstraintsFromTable( Constraint, EntityList )
 end
 
 --(Player, boolean)
-function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderrespawn, posspecified, angles, disperse)
+function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecified, angles, disperse)
 	
 	if playercontrolled then
 		if not ply then
@@ -466,12 +466,17 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		local prioritywaypointtable3 = {}
 	
 		local candidates = {}
+
+		local patrolling = not UVTargeting
 		
 		for k, v in ipairs( dvd.Waypoints ) do
 			local Waypoint = v.Target
 			local delta = enemylocation - Waypoint
 			local distSq = delta:LengthSqr()
-			if distSq <= POLICE_SPAWN_DIST_FAR_SQ or distSq >= POLICE_SPAWN_DIST_MAX_SQ then
+			if not patrolling and (distSq <= POLICE_SPAWN_DIST_FAR_SQ or distSq >= POLICE_SPAWN_DIST_MAX_SQ) then
+				continue
+			end
+			if patrolling and distSq < POLICE_SPAWN_DIST_MAX_SQ then
 				continue
 			end
 			
@@ -902,8 +907,6 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		if Ent.uvclasstospawnon == "npc_uvcommander" then
 			UVOneCommanderDeployed = true
 			table.insert(UVCommanders, Ent)
-			Ent.uvlasthealth = UVCommanderLastHealth
-			Ent.uvlastenginehealth = UVCommanderLastEngineHealth
 		end
 		
 		Ent:CallOnRemove( "UVGlideVehicleRemoved", function(car)
@@ -1183,8 +1186,6 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		if Ent.uvclasstospawnon == "npc_uvcommander" then
 			UVOneCommanderDeployed = true
 			table.insert(UVCommanders, Ent)
-			Ent.uvlasthealth = UVCommanderLastHealth
-			Ent.uvlastenginehealth = UVCommanderLastEngineHealth
 		end
 		
 		Ent:CallOnRemove( "UVGlideVehicleRemoved", function(car)
@@ -1541,7 +1542,6 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		if Ent.uvclasstospawnon == "npc_uvcommander" then
 			UVOneCommanderDeployed = true
 			table.insert(UVCommanders, Ent)
-			Ent.uvlasthealth = UVCommanderLastHealth
 		end
 		
 		if playercontrolled then
@@ -1774,7 +1774,6 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		if Ent.uvclasstospawnon == "npc_uvcommander" then
 			UVOneCommanderDeployed = true
 			table.insert(UVCommanders, Ent)
-			Ent.uvlasthealth = UVCommanderLastHealth
 		end
 		
 		Ent:CallOnRemove( "UVGlideVehicleRemoved", function(car)

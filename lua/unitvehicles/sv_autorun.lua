@@ -4452,7 +4452,7 @@ function UVNavigateDVWaypoint(self, vectors, full)
 	if operationStack then
 		self.tableroutetoenemy = {}
 
-		local maxNewWaypoints = 30
+		local maxNewWaypoints = 100
 		local added = 0
 
 		for i, v in ipairs( operationStack ) do

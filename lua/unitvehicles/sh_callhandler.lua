@@ -238,6 +238,7 @@ if SERVER then
             UVAutoSpawn()
             uvIdleSpawning = CurTime()
             UVPresenceMode = true
+            UVRestoreResourcePoints()
         end)
         
         timer.Simple(timecheck, function()

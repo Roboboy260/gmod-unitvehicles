@@ -1,35 +1,41 @@
 AddCSLuaFile()
 
---[[
-
-timer.Simple(5, function()
-	UVAddAirModel(uniquenamestring, {
-		["Model"] = string,
-		["Skin"] = number, --remove this for random skin
-		["Bodygroups"] = {
-			[0] = number, --specify bodygroups if you want
-		},
-		["Mass"] = number, --(volume * 2)
-		["SpotlightPos"] = Vector,
-		["StrobePos"] = Vector, --top of the fuselage
-		["StrobePos2"] = Vector, --bottom of the fuselage
-		["PortPos"] = Vector, --left side
-		["StarboardPos"] = Vector, --right side
-		["SternPos"] = Vector, --rear
-		["RotorSounds"] = {
-			string, --Add as many rotor sounds as you want
-		}
-		["OnWreck"] = function(wreck)
-			--Change bodygroups or whatever you want when the helicopter gets wrecked
-		end,
-	})
-end)
-
-]]
-
 if SERVER then
-	
-	local airtable = {
+    UVAirModelsData = UVAirModelsData or {}
+
+    function UVAddAirModel(name, data)
+        UVAirModelsData[name] = data
+
+        local senddata = {}
+        for k, v in pairs(data) do
+            if type(v) ~= "function" then
+                senddata[k] = v
+            end
+        end
+
+        net.Start("UVUnitManagerAddAirModel")
+            net.WriteString(name)
+            net.WriteTable(senddata)
+        net.Broadcast()
+    end
+
+    hook.Add("PlayerInitialSpawn", "UVSyncAirModels", function(ply)
+        for name, data in pairs(UVAirModelsData) do
+            local senddata = {}
+            for k, v in pairs(data) do
+                if type(v) ~= "function" then
+                    senddata[k] = v
+                end
+            end
+
+            net.Start("UVUnitManagerAddAirModel")
+                net.WriteString(name)
+                net.WriteTable(senddata)
+            net.Send(ply)
+        end
+    end)
+
+    local airtable = {
 		["Default"] = {
 			["Model"] = "models/uvair_default.mdl",
 			["Mass"] = 32764,
@@ -264,23 +270,35 @@ if SERVER then
 			end,
 		},
 	}
-	
-	timer.Simple(5, function()
-		for name, data in pairs(airtable) do
-			UVAddAirModel(name, data)
-		end
-	end)
+
+    timer.Simple(5, function()
+        for name, data in pairs(airtable) do
+            UVAddAirModel(name, data)
+        end
+    end)
 
 else
 
-	net.Receive("UVUnitManagerAddAirModel", function()
-		local name = net.ReadString()
-		UVAirModelsList = UVAirModelsList or {}
-		table.insert(UVAirModelsList, { name, name })
+    net.Receive("UVUnitManagerAddAirModel", function()
+        local name = net.ReadString()
 
-		local data = net.ReadTable()
-		UVAirModelsData = UVAirModelsData or {}
-		UVAirModelsData[name] = data
-	end)
+        UVAirModelsList = UVAirModelsList or {}
+
+        local exists = false
+        for _, entry in ipairs(UVAirModelsList) do
+            if entry[1] == name then
+                exists = true
+                break
+            end
+        end
+
+        if not exists then
+            table.insert(UVAirModelsList, { name, name })
+        end
+
+        local data = net.ReadTable()
+        UVAirModelsData = UVAirModelsData or {}
+        UVAirModelsData[name] = data
+    end)
 
 end

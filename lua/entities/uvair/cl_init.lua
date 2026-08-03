@@ -172,8 +172,10 @@ end
 function ENT:Think()
 	local speed = self:GetVelocity():Length()
 
-	for i=1, #self.RotorSounds do
-		self["RotorSound"..i]:ChangePitch(100+math.Round(math.Clamp(speed/80,0,5),1),1)
+	if self.RotorSounds then
+		for i=1, #self.RotorSounds do
+			self["RotorSound"..i]:ChangePitch(100+math.Round(math.Clamp(speed/80,0,5),1),1)
+		end
 	end
 	
 	if self.GotAllLights then

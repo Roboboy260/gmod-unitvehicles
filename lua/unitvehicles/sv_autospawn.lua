@@ -425,17 +425,8 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 	-- end
 
 	if next(dvd.Waypoints) == nil then
-		if not UVNoDVWaypointsNotify then
-			net.Start("UV_OpenDVWarning")
-			net.Broadcast()
-		end
-		return
-	end
-	UVNoDVWaypointsNotify = nil
-
-	if next(dvd.Waypoints) == nil then
 		net.Start("UV_OpenDVWarning")
-		net.Broadcast() -- or target a specific player
+		net.Broadcast()
 		return
 	end
 
@@ -1823,17 +1814,8 @@ function UVAutoSpawnTraffic()
 	local suspectvelocity = Vector(0,0,0)
 
 	if next(dvd.Waypoints) == nil then
-		if not UVNoDVWaypointsNotify then
-			net.Start("UV_OpenDVWarning")
-			net.Broadcast()
-		end
-		return
-	end
-	UVNoDVWaypointsNotify = nil
-
-	if next(dvd.Waypoints) == nil then
 		net.Start("UV_OpenDVWarning")
-		net.Broadcast() -- or target a specific player
+		net.Broadcast()
 		return
 	end
 
@@ -2647,14 +2629,10 @@ function UVAutoSpawnRacer()
 	local suspectvelocity = Vector(0,0,0)
 
 	if next(dvd.Waypoints) == nil then
-		if not UVNoDVWaypointsNotify then
-			net.Start("UV_OpenDVWarning")
-			net.Broadcast()
-		end
+		net.Start("UV_OpenDVWarning")
+		net.Broadcast()
 		return
 	end
-
-	UVNoDVWaypointsNotify = nil
 	
 	if next(UVPotentialSuspects) ~= nil then
 		local suspects = UVPotentialSuspects

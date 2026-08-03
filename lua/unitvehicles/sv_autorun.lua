@@ -3246,8 +3246,6 @@ local function ChangeFormation( strategy, formation )
 	UVCurrentFormation = formation
 	UVCurrentFormationPoints = UVGlobalStrategy[strategy][formation]
 
-	print("Strategy: " .. strategy .. "\nFormation: " .. formation)
-
 	if next(UVUnitsChasing) == nil then return end
 	local randomunit = UVUnitsChasing[math.random(1, #UVUnitsChasing)]
 	local chatter = UVCurrentStrategy == "Aggressive" and UVChatterAggressive(randomunit) or UVChatterPassive(randomunit) 

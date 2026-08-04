@@ -674,7 +674,7 @@ if SERVER then
 			local requestFiles = CachedFileFind("sound/chatter2/"..unitVoiceProfile.."/dispatch/unitrequest/*", "GAME")
 			table.Shuffle(requestFiles)
 			local requestFile
-			if requestFiles then
+			if requestFiles and next(requestFiles) ~= nil then
 				requestFile = "chatter2/"..unitVoiceProfile.."/dispatch/unitrequest/"..requestFiles[1]
 			end
 

@@ -4700,7 +4700,7 @@ else -- CLIENT Settings | HUD/Options
 			end
 		elseif (UVHUDDisplayPursuit or UVHUDDisplayRacing) then
 			--if not RacingMusicPriority:GetBool() then
-			if (UVHUDDisplayRacing and not RacingMusic:GetBool() and not UVHUDDisplayPursuit) or (UVHUDDisplayPursuit and not PlayMusic:GetBool()) then
+			if (UVHUDDisplayRacing and not RacingMusic:GetBool() and not UVHUDDisplayPursuit) or (UVHUDDisplayPursuit and not PlayMusic:GetBool() and not (UVHUDDisplayRacing and RacingMusic:GetBool())) then
 				UVStopSound()
 				if UVSoundLoop then
 					UVSoundLoop:Stop()

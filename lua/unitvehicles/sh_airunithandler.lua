@@ -248,6 +248,27 @@ if SERVER then
 				end
 			end,
 		},
+		["NFS High Stakes"] = {
+			["Model"] = "models/nfs_hs_CHOP/nfs_hs_CHOP.mdl",
+			["Mass"] = 12382,
+			["SpotlightPos"] = Vector(107.89,-0.2,1.26),
+			["StrobePos"] = Vector(11.08,-0.9,16.22),
+			["StrobePos2"] = Vector(-270.31,-0.05,125.71),
+			["PortPos"] = Vector(-210.84,-7.32,91.73),
+			["StarboardPos"] = Vector(-210.84,7.32,91.73),
+			["SternPos"] = Vector(-265.13,-0.3,92.41),
+			["RotorSounds"] = {
+				"<chopper/mwheli.wav",
+				"<chopper/mwheli2.wav",
+				"<chopper/mwheli3.wav",
+				"<chopper/mwheli4.wav",
+			},
+			["OnWreck"] = function(wreck)
+				for k,v in pairs(wreck:GetBodyGroups()) do
+					wreck:SetBodygroup(k, wreck:GetBodygroup(k)+1)
+				end
+			end,
+		},
 		["The Crew"] = {
 			["Model"] = "models/thecrewheli/thecrewheli.mdl",
 			["Mass"] = 5026,

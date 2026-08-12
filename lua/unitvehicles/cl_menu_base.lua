@@ -200,6 +200,21 @@ UVMenuSound({
     }
 })
 
+UVMenuSound({
+    name = "HS",
+    displayname = "High Stakes",
+    sounds = {
+       menuopen  = "uvui/HS/ZFESFX8.wav",
+        menuclose = "uvui/HS/ZFESFX9.wav",
+        hover     = "uvui/HS/ZFESFX5.wav",
+        hovertab  = "uvui/HS/ZFESFX5.wav",
+        click     = "uvui/HS/ZFESFX1.wav",
+        clickopen = "uvui/HS/ZFESFX9.wav",
+        clickback = "uvui/HS/ZFESFX9.wav",
+        confirm   = "uvui/HS/ZFESFX1.wav"
+    }
+})
+
 
 -- if cffunctions then -- Hero's Glide Extras
 	-- UVAddon({
@@ -263,6 +278,16 @@ UVMenu.Sounds = {
         clickback = "uvui/HP2/fesfx#15.wav",
         confirm   = "uvui/HP2/fesfx#1.wav"
     },
+	["HS"] = {
+       menuopen  = "uvui/HS/ZFESFX8.wav",
+        menuclose = "uvui/HS/ZFESFX9.wav",
+        hover     = "uvui/HS/ZFESFX5.wav",
+        hovertab  = "uvui/HS/ZFESFX5.wav",
+        click     = "uvui/HS/ZFESFX1.wav",
+        clickopen = "uvui/HS/ZFESFX9.wav",
+        clickback = "uvui/HS/ZFESFX9.wav",
+        confirm   = "uvui/HS/ZFESFX1.wav"
+	}
 }
 
 --[[ 

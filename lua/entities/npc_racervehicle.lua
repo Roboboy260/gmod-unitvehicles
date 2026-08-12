@@ -1603,7 +1603,7 @@ if SERVER then
 
 			if UVTargeting then
 				for k, v in pairs(self.v.PursuitTech) do
-					if v.Tech ~= 'Shockwave' and v.Tech ~= 'Jammer' and v.Tech ~= 'Repair Kit' and self:IsUnitCloseBy() then
+					if v.Tech ~= 'Shockwave' and v.Tech ~= 'Repair Kit' and self:IsUnitCloseBy() then
 						UVDeployWeapon(self.v, k)
 					end
 				end

@@ -1268,6 +1268,10 @@ if SERVER then
                 end
 
                 table.insert( victimNames, victimName )
+
+                if v.RacerVehicle then
+                    v.RacerVehicle:AddEnemy(user)
+                end
             end
 
         elseif isentity( target ) then
@@ -1278,6 +1282,10 @@ if SERVER then
             end
 
             victimNames = UVGetDriverName( target )
+
+            if target.RacerVehicle then
+                target.RacerVehicle:AddEnemy(user)
+            end
         end
 
         if not attacker then attacker = nil end
@@ -2302,7 +2310,7 @@ if SERVER then
         local effect = EffectData()
         effect:SetEntity(car)
         util.Effect("entity_remove", effect)
-        util.ScreenShake( carPos, 5, 5, 1, 1000 )
+        util.ScreenShake( carPos, 5, 5, 1, 1000, true )
 
         if #affectedTargets > 0 then
             ReportPTEvent( car, affectedTargets, 'Shockwave', 'Hit' )
@@ -2352,6 +2360,10 @@ if SERVER then
         end
         
         UVSoundChatter(car, 1, "", 3)
+
+        for _, v in pairs(ents.FindByClass("npc_racervehicle")) do
+            v:AddEnemy(car)
+        end
         
     end
     
@@ -2499,7 +2511,7 @@ if SERVER then
         local effect = EffectData()
         effect:SetEntity(car)
         util.Effect("entity_remove", effect)
-        util.ScreenShake( carPos, 5, 5, 1, 1000 )
+        util.ScreenShake( carPos, 5, 5, 1, 1000, true )
 
         if car.UnitVehicle then
             UVChatterShockRamDeployed(car.UnitVehicle)

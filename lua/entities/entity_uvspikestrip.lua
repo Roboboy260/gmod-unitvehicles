@@ -32,6 +32,7 @@ if SERVER then
 		local e = EffectData()
 		e:SetEntity(self)
 		util.Effect("entity_remove", e)
+		self.victims = {}
 		if self.racerdeployed then
 			self:SetSkin(1)
 			constraint.NoCollide(self.racerdeployed,self,0,0)
@@ -106,6 +107,10 @@ if SERVER then
 				damage = damage / table.Count(car.wheels)
 			end
 
+			if not table.HasValue(self.victims, car) then
+				table.insert(self.victims, car)
+			end
+
 			timer.Simple(1, function()
 				if IsValid(self) then
 					self:UVSpikeStripHit(car)
@@ -145,6 +150,10 @@ if SERVER then
 			ent:DestroyTire()
 			constraint.NoCollide(ent,self,0,0)
 
+			if not table.HasValue(self.victims, car) then
+				table.insert(self.victims, car)
+			end
+
 			timer.Simple(1, function()
 				if IsValid(self) then
 					self:UVSpikeStripHit(car)
@@ -183,6 +192,10 @@ if SERVER then
 
 			ent:SetDamaged(true)
 			constraint.NoCollide(ent,self,0,0)
+
+			if not table.HasValue(self.victims, car) then
+				table.insert(self.victims, car)
+			end
 
 			timer.Simple(1, function()
 				if IsValid(self) then
@@ -254,7 +267,14 @@ if SERVER then
 			ent.cnWheelHealth = true
 			ent:EmitSound("spikestrip/tiredeflatesound.wav")
 			ent:EmitSound("weapons/357_fire2.wav")
-			self:UVSpikeStripHit(ent)
+
+			if not table.HasValue(self.victims, ent) then
+				table.insert(self.victims, ent)
+			end
+
+			if IsValid(self) then
+				self:UVSpikeStripHit(ent)
+			end
 		end
 
 		UVDamage(car, damage)
@@ -262,7 +282,7 @@ if SERVER then
 
 	function ENT:UVSpikeStripHit(victim)
 
-		ReportPTEvent( self.unitdeployed or self.racerdeployed, victim, 'Spikestrip', 'Hit' )
+		ReportPTEvent( self.unitdeployed or self.racerdeployed, self.victims, 'Spikestrip', 'Hit' )
 
 		local e = EffectData()
 		e:SetEntity(self)

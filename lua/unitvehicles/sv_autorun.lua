@@ -1135,6 +1135,10 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 				UVDetachWheels(car, coldata.HitPos)
 			end
 
+			if (dmg >= 100 or object.juggernauton) and car.RacerVehicle and (object:IsVehicle() or object.LVS) then
+                car.RacerVehicle:AddEnemy(object)
+            end
+
 			if object.PursuitBreakerActive then
 				local driver = car.UnitVehicle or car.TrafficVehicle
                     
@@ -1396,6 +1400,10 @@ hook.Add("simfphysPhysicsCollide", "UVCollisionSimfphys", function(car, coldata,
 		UVDetachWheels(car, coldata.HitPos)
 	end
 
+	if (dmg >= 100 or object.juggernauton) and car.RacerVehicle and (object:IsVehicle() or object.LVS) then
+        car.RacerVehicle:AddEnemy(object)
+    end
+
 	if car.DecentVehicle or car.TrafficVehicle or object.rammed then
 		UVRamVehicle(car)
 	end
@@ -1647,6 +1655,10 @@ hook.Add("OnEntityCreated", "UVCollisionJeep", function(vehicle)
 			e:SetOrigin(coldata.HitPos)
 			util.Effect("cball_explode", e)
 		end
+
+		if (dmg >= 100 or object.juggernauton) and car.RacerVehicle and (object:IsVehicle() or object.LVS) then
+            car.RacerVehicle:AddEnemy(object)
+        end
 
 		if car.DecentVehicle or car.TrafficVehicle or object.rammed then
 			UVRamVehicle(car)
@@ -1956,6 +1968,10 @@ hook.Add("OnEntityCreated", "UVCollisionLVS", function(lvsvehicle)
 				UVDetachWheels(car, coldata.HitPos)
 			end
 
+			if (dmg >= 100 or object.juggernauton) and car.RacerVehicle and (object:IsVehicle() or object.LVS) then
+                car.RacerVehicle:AddEnemy(object)
+            end
+
 			if object.PursuitBreakerActive then
 				local driver = car.UnitVehicle or car.TrafficVehicle
                     
@@ -2262,17 +2278,9 @@ function UVRamVehicle(vehicle)
 
 	vehicle.rammed = true
 
-	-- if update and vehicle.IsGlideVehicle then
-	-- 	vehicle.ogAngularDrag = vehicle.AngularDrag or vector_origin
-	-- 	vehicle.AngularDrag = vector_origin
-	-- end
-
 	timer.Create("UVRamVehicle"..vehicle:EntIndex(), 3, 1, function() 
 		if IsValid(vehicle) and not vehicle.wrecked then 
 			vehicle.rammed = nil
-			-- if vehicle.IsGlideVehicle then
-			-- 	vehicle.AngularDrag = vehicle.ogAngularDrag
-			-- end
 		end 
 	end)
 end
@@ -3915,7 +3923,6 @@ function UVCheckIfBeingBusted(enemy)
 		end
 		if not enemy.uvbustingincrease then
 			enemy.uvbustingincrease = true
-			enemy.randomptuse = math.random(1, BustedTimer:GetFloat() * .7)
 			enemy.UVBustingLastProgress = CurTime()
 			enemy.UVBustingLastProgress2 = enemy.UVBustingProgress
 		end
@@ -3924,14 +3931,6 @@ function UVCheckIfBeingBusted(enemy)
 			enemy.nearbust = true
 			if Chatter:GetBool() and IsValid(closestunit) and scope.InPursuit then
 				UVChatterCloseToArrest(closestunit.UnitVehicle)
-			end
-		end
-		
-		if enemy.PursuitTech and not (enemy:GetDriver() and enemy:GetDriver():IsPlayer()) and enemy.randomptuse < enemy.UVBustingProgress then
-			for k, v in pairs(enemy.PursuitTech) do
-				if v.Tech == 'Shockwave' then
-					UVDeployWeapon( enemy, k )
-				end
 			end
 		end
 	else

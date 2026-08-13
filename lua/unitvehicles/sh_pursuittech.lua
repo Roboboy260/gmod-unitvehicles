@@ -255,13 +255,37 @@ UV_PT.Spikestrip = {
             displayMe = true
         end
 
-        local userString = "%s hit your spikestrips!"
-        local targetString = "You hit %s's spikestrips!"
+		local userString = "uv.ptech.spikes.hit"
+        local targetString = "uv.ptech.spikes.hit.you"
 
-        -- UV_UI.general.events.CenterNotification({
-            -- text = string.format( (displayMe and UVString( userString )) or UVString( targetString ), (displayMe and tbl.Target) or tbl.User),
-        -- })
-    end
+        local display = nil
+
+        if displayMe then
+            local targets = tbl.Target or {}
+		    local firstName = targets[1] or "UNKNOWN"
+		    local extraCount = #targets - 1
+
+		-- Build name string: "Name" or "Name (+X)"
+		    display = UVString( firstName )
+		    if extraCount > 0 then
+			    display = string.format("%s (+%d)", UVString( firstName ), extraCount)
+		    end
+        else
+            display = UVString( tbl.User )
+        end
+
+		-- Format text with nameDisplay
+		local formattedText = string.format(
+			(displayMe and UVString( userString )) or UVString( targetString ),
+			display
+		)
+
+		-- Trigger notification
+		UV_UI.general.events.CenterNotification({
+			text = formattedText,
+		})
+
+    end,
 }
 UV_PT.StunMine = {
     Hit = function(tbl)

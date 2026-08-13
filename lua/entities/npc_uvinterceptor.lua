@@ -885,6 +885,20 @@ if SERVER then
 	function ENT:PickOvertakePoint()
 		self.overtakepoint = math.random(1,2) == 1 and Vector(-200, 0, 0) or Vector(200, 0, 0)
 	end
+
+	function ENT:DeployWeapon(car, slot)
+		if not IsValid(car) or self.deploying then return end
+		self.deploying = true
+
+		local reactionTime = math.Rand( 0, 1 )
+
+		timer.Simple(reactionTime, function()
+			if IsValid(self) and IsValid(car) then
+				UVDeployWeapon(car, slot)
+				self.deploying = nil
+			end
+		end)
+	end
 	
 	function ENT:Think()
 		if not IsValid(self.v) then SafeRemoveEntity(self) return end
@@ -1081,11 +1095,6 @@ if SERVER then
 			if UVEnemyBusted then
 				self.moving = CurTime()
 			end
-			self.deploying = CurTime()
-			self.rdeploying = CurTime()
-			self.ks = CurTime()
-			--self.heli = CurTime()
-			--self.bountytimer = CurTime()
 			
 			self.idle = true
 			
@@ -1576,73 +1585,20 @@ if SERVER then
 			end	
 			
 			-- PURSUIT TECH
-			if self.v.PursuitTech then
+			if self.v.PursuitTech and PursuitTech:GetBool() then
 				for i, v in pairs(self.v.PursuitTech) do
-					if v.Tech == 'Spikestrip' then
-						if UVCalm or (eScope and eScope.EnemyEscaping) then
-							self.deploying = CurTime() 
-						end
-						if (eScope and eScope.EnemyEscaping) then 
-							self.deploying = CurTime() 
-						end
-						if not (eeevectdot < 0 and eedist:Length2DSqr() < 25000000 and eedist:Length2DSqr() > 100000) then
-							self.deploying = CurTime()
-						end
-						local stimeout = 0.5
-						if stimeout and stimeout > 0 then
-							if CurTime() > self.deploying + stimeout and self.aggressive and PursuitTech:GetBool() and not self.v.roadblocking then
-								UVDeployWeapon(self.v, i)
-								self.deploying = CurTime()
-							end
-						end
-					elseif v.Tech == 'ESF' then
-						local pttimeout = 0.5
-						if not (eedistSqr < 6250000) then
-							self.esf = CurTime()
-						end
-						if UVCalm or (eScope and eScope.EnemyEscaping) or not self.aggressive or self.v.rhino then
-							self.esf = CurTime() 
-						end
-						if self.esf ~= CurTime() and pttimeout > 0 and PursuitTech:GetBool() and not self.v.roadblocking then
-							UVDeployWeapon(self.v, i)
-							self.esf = CurTime()
-						end
-					elseif v.Tech == 'EMP' then
-						local pttimeout = 0.5
-						if not (eedistSqr < 1000000) then
-							self.emp = CurTime()
-						end
-						if UVCalm or (eScope and eScope.EnemyEscaping) or not self.aggressive or self.v.rhino then
-							self.emp = CurTime() 
-						end
-						if self.emp ~= CurTime() and pttimeout > 0 and PursuitTech:GetBool() and not self.v.roadblocking then
-							UVDeployWeapon(self.v, i)
-							self.emp = CurTime()
-						end
-					elseif v.Tech == 'Killswitch' then
-						local pttimeout = 0.5
-						if not (eedistSqr < 250000) then
-							self.ks = CurTime()
-						end
-						if UVCalm or (eScope and eScope.EnemyEscaping) or not self.aggressive or self.v.rhino then
-							self.ks = CurTime() 
-						end
-						if self.ks ~= CurTime() and pttimeout > 0 and PursuitTech:GetBool() and not self.v.roadblocking then
-							UVDeployWeapon(self.v, i)
-							self.ks = CurTime()
-						end
-					elseif v.Tech == 'Repair Kit' then
+					if v.Tech == 'Repair Kit' then
 						if self.v.IsGlideVehicle then
 							if self.v:GetChassisHealth() <= (self.v.MaxChassisHealth / 3) then
-								UVDeployWeapon(self.v, k)
+								self:DeployWeapon(self.v, k)
 							else
 								for _, v in pairs(self.v.wheels) do
 									if IsValid(v) and v.bursted and not self.repairtimer then
 										local id = "tire_repair"..self.v:EntIndex()
 										self.repairtimer = true
-										
+
 										timer.Create(id, 1, 1, function()
-											UVDeployWeapon(self.v, k)
+											self:DeployWeapon(self.v, k)
 											timer.Simple(5, function() self.repairtimer = false; end)
 										end)
 										break
@@ -1651,15 +1607,15 @@ if SERVER then
 							end
 						elseif self.v.IsSimfphyscar then
 							if self.v:GetCurHealth() <= (self.v:GetMaxHealth() / 3) then
-								UVDeployWeapon(self.v, k)
+								self:DeployWeapon(self.v, k)
 							else
 								for _, wheel in pairs(self.v.Wheels) do
 									if IsValid(wheel) and wheel:GetDamaged() and not self.repairtimer then
 										local id = "tire_repair"..self.v:EntIndex()
 										self.repairtimer = true
-										
+
 										timer.Create(id, 1, 1, function()
-											UVDeployWeapon(self.v, k)
+											self:DeployWeapon(self.v, k)
 											timer.Simple(5, function() self.repairtimer = false; end)
 										end)
 										break
@@ -1668,52 +1624,46 @@ if SERVER then
 							end
 						elseif vcmod_main and self.v:GetClass() == "prop_vehicle_jeep" then
 							if self.v:VC_getHealth() and self.v:VC_getHealthMax() and self.v:VC_getHealth() <= (self.v:VC_getHealthMax() / 3) then
-								UVDeployWeapon(self.v, k)
+								self:DeployWeapon(self.v, k)
 							end
 						end
-					elseif v.Tech == 'Shock Ram' then
-						if not self.shrampreferredrange then
-							self.shrampreferredrange = math.random(10000, 1000000) --Each Unit has their own preferred range :)
-						end
-						
-						local pttimeout = 0.5
-						if not (UVIsVehicleInCone( self.v, self.e, 20, self.shrampreferredrange )) then
-							self.shram = CurTime()
-						end
-						if eevectdot < 0 or UVCalm or (eScope and eScope.EnemyEscaping) or not self.aggressive or self.v.rhino then
-							self.shram = CurTime() 
-						end
-						if self.shram ~= CurTime() and pttimeout > 0 and PursuitTech:GetBool() and not self.v.roadblocking and not self.e.UVHUDBusting then
-							UVDeployWeapon(self.v, i)
-							self.shram = CurTime()
-						end
-					elseif v.Tech == 'GPS Dart' then
-						if not self.gpspreferredrange then
-							self.gpspreferredrange = math.random(10000, 1000000) --Each Unit has their own preferred range :)
-						end
-						
-						local pttimeout = 0.5
-						if not (UVIsVehicleInCone( self.v, self.e, 10, self.gpspreferredrange )) then
-							self.gps = CurTime()
-						end
-						if UVCalm or (eScope and eScope.EnemyEscaping) or not self.aggressive or self.v.rhino then
-							self.gps = CurTime() 
-						end
-						if self.gps ~= CurTime() and pttimeout > 0 and PursuitTech:GetBool() and not self.v.roadblocking then
-							UVDeployWeapon(self.v, i)
-							self.gps = CurTime()
-						end
-					elseif v.Tech == 'Grappler' then
-						local pttimeout = 0.5
-						if not (eedistSqr < 1000000) then
-							self.grappler = CurTime()
-						end
-						if IsValid(self.v.grappler) or UVCalm or (eScope and eScope.EnemyEscaping) or not self.aggressive or self.v.rhino then
-							self.grappler = CurTime() 
-						end
-						if self.grappler ~= CurTime() and pttimeout > 0 and PursuitTech:GetBool() and not self.v.roadblocking then
-							UVDeployWeapon(self.v, i)
-							self.grappler = CurTime()
+					elseif not (self.v.roadblocking or UVCalm or (eScope and eScope.EnemyEscaping) or not self.aggressive or self.v.rhino) then
+						if v.Tech == 'Spikestrip' then
+							if eeevectdot < 0 and eedist:Length2DSqr() < 25000000 and eedist:Length2DSqr() > 100000 then
+								self:DeployWeapon(self.v, i)
+							end
+						elseif v.Tech == 'ESF' then
+							if eedistSqr < 6250000 then
+								self:DeployWeapon(self.v, i)
+							end
+						elseif v.Tech == 'EMP' then
+							if UVIsVehicleInCone( self.v, self.e, 90, 1000000 ) then
+								self:DeployWeapon(self.v, i)
+							end
+						elseif v.Tech == 'Killswitch' then
+							if eedistSqr < 250000 then
+								self:DeployWeapon(self.v, i)
+							end
+						elseif v.Tech == 'Shock Ram' then
+							if not self.shrampreferredrange then
+								self.shrampreferredrange = math.random(10000, 1000000) --Each Unit has their own preferred range :)
+							end
+
+							if UVIsVehicleInCone( self.v, self.e, 20, self.shrampreferredrange ) then
+								self:DeployWeapon(self.v, i)
+							end
+						elseif v.Tech == 'GPS Dart' then
+							if not self.gpspreferredrange then
+								self.gpspreferredrange = math.random(10000, 1000000) --Each Unit has their own preferred range :)
+							end
+
+							if UVIsVehicleInCone( self.v, self.e, 10, self.gpspreferredrange ) then
+								self:DeployWeapon(self.v, i)
+							end
+						elseif v.Tech == 'Grappler' then
+							if eedistSqr < 1000000 and not IsValid(self.v.grappler) then
+								self:DeployWeapon(self.v, i)
+							end
 						end
 					end
 				end
@@ -2010,14 +1960,9 @@ if SERVER then
 		self:SetModel(self.Modelname)
 		self:SetHealth(-1)
 		self.bountytimer = CurTime()
-		-- self.callsign = "uv.unit.interceptor"..self:EntIndex()
 		self.callsign = "uv.unit.interceptor"
 		self.type = "interceptor"
 		self.moving = CurTime()
-		self.deploying = CurTime()
-		self.rdeploying = CurTime()
-		self.ks = CurTime()
-		self.heli = CurTime()
 		self.stuck = nil
 		self.spawned = true
 		self.toofar = true

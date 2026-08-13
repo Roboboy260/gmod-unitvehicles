@@ -720,6 +720,38 @@ if SERVER then
 		return steerOffset, targetSpeed
 	end
 
+	function ENT:AddEnemy(car)
+		if self.enemies and IsValid(car) then
+			if not self.enemies[car:EntIndex()] then
+				self.enemies[car:EntIndex()] = car
+
+				local selfname = self.v.racer or tostring(self)
+				local carname = car.racer or (car.UnitVehicle and car.UnitVehicle:GetClass()) or (UVGetDriver(car) and UVGetDriver(car):IsPlayer() and UVGetDriver(car):Nick()) or tostring(car)
+				print(selfname .. " hates " .. carname )
+			end
+		end
+	end
+
+	function ENT:RemoveEnemy(index)
+		if self.enemies then
+			self.enemies[index] = nil
+		end
+	end
+
+	function ENT:DeployWeapon(car, slot)
+		if not IsValid(car) or self.deploying then return end
+		self.deploying = true
+
+		local reactionTime = math.Rand( 0, 1 )
+
+		timer.Simple(reactionTime, function()
+			if IsValid(self) and IsValid(car) then
+				UVDeployWeapon(car, slot)
+				self.deploying = nil
+			end
+		end)
+	end
+
 	function ENT:FindRace()
 		if (self.v.uvraceparticipant and UVRaceInEffect) and (UVRaceTable['Participants'] and UVRaceTable['Participants'][self.v]) then
 			if not UVRaceInProgress then self.PatrolWaypoint = nil; return end
@@ -1556,12 +1588,12 @@ if SERVER then
 		end
 		
 		--Pursuit Tech
-		if self.v.PursuitTech then
+		if self.v.PursuitTech and RacerPursuitTech:GetBool() then
 			for k, v in pairs(self.v.PursuitTech) do
 				if v.Tech == "Repair Kit" then
 					if self.v.IsGlideVehicle then
 						if self.v:GetChassisHealth() <= (self.v.MaxChassisHealth / 3) then
-							UVDeployWeapon(self.v, k)
+							self:DeployWeapon(self.v, k)
 						else
 							for _, v in pairs(self.v.wheels) do
 								if IsValid(v) and v.bursted and not self.repairtimer then
@@ -1569,7 +1601,7 @@ if SERVER then
 									self.repairtimer = true
 
 									timer.Create(id, 1, 1, function()
-										UVDeployWeapon(self.v, k)
+										self:DeployWeapon(self.v, k)
 										timer.Simple(5, function() self.repairtimer = false; end)
 									end)
 									break
@@ -1578,7 +1610,7 @@ if SERVER then
 						end
 					elseif self.v.IsSimfphyscar then
 						if self.v:GetCurHealth() <= (self.v:GetMaxHealth() / 3) then
-							UVDeployWeapon(self.v, k)
+							self:DeployWeapon(self.v, k)
 						else
 							for _, wheel in pairs(self.v.Wheels) do
 								if IsValid(wheel) and wheel:GetDamaged() and not self.repairtimer then
@@ -1586,7 +1618,7 @@ if SERVER then
 									self.repairtimer = true
 
 									timer.Create(id, 1, 1, function()
-										UVDeployWeapon(self.v, k)
+										self:DeployWeapon(self.v, k)
 										timer.Simple(5, function() self.repairtimer = false; end)
 									end)
 									break
@@ -1595,25 +1627,21 @@ if SERVER then
 						end
 					elseif vcmod_main and self.v:GetClass() == "prop_vehicle_jeep" then
 						if self.v:VC_getHealth() <= (self.v:VC_getHealthMax() / 3) then
-							UVDeployWeapon(self.v, k)
+							self:DeployWeapon(self.v, k)
 						end
 					end
-				end
-			end
-
-			if UVTargeting then
-				for k, v in pairs(self.v.PursuitTech) do
-					if v.Tech ~= 'Shockwave' and v.Tech ~= 'Repair Kit' and self:IsUnitCloseBy() then
-						UVDeployWeapon(self.v, k)
+				else
+					if self:IsEnemyCloseBy() then
+						self:DeployWeapon(self.v, k)
 					end
 				end
 			end
 		end	
 	end
 
-	function ENT:IsUnitCloseBy()
+	function ENT:IsEnemyCloseBy()
 		for _, ent in pairs(ents.FindInSphere(self.v:GetPos(), 300)) do
-			if ent.UnitVehicle then
+			if (UVTargeting and ent.UnitVehicle) or self.enemies and next(self.enemies) ~= nil and self.enemies[ent:EntIndex()] then
 				return true
 			end
 		end
@@ -1677,6 +1705,14 @@ if SERVER then
 			debugoverlay.Line(self.v:WorldSpaceCenter(), targetPos, 1, colorLine, true)
 			debugoverlay.Sphere(targetPos, 20, 1, colorSphere, true)
 		end
+		
+		if self.enemies then
+			for index, enemy in pairs(self.enemies) do
+				if not IsValid(Entity(index)) then
+					self:RemoveEnemy(index)
+				end
+			end
+		end
 	end
 
 	function ENT:Initialize()
@@ -1694,6 +1730,8 @@ if SERVER then
 		self:SetHealth(-1)
 		
 		self.moving = CurTime()
+
+		self.enemies = {}
 		
 		timer.Simple(3, function()
 			if IsValid(self.v) then

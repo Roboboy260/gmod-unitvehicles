@@ -1023,8 +1023,6 @@ if SERVER then
 			if UVEnemyBusted then
 				self.moving = CurTime()
 			end
-			self.rdeploying = CurTime()
-			--self.bountytimer = CurTime()
 
 			if UVTargeting then 
 				self:InvalidateNavigationPath()
@@ -1852,13 +1850,8 @@ if SERVER then
 		self:SetHealth(-1)
 		self.bountytimer = CurTime()
 		self.type = "patrol"
-		-- self.callsign = "uv.unit.patrol"..self:EntIndex()
 		self.callsign = "uv.unit.patrol"
 		self.moving = CurTime()
-		self.deploying = CurTime()
-		self.rdeploying = CurTime()
-		self.ks = CurTime()
-		self.heli = CurTime()
 		self.stuck = nil
 		self.spawned = true
 		self.toofar = true

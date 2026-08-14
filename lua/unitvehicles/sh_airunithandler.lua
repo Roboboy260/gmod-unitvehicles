@@ -254,8 +254,8 @@ if SERVER then
 			["SpotlightPos"] = Vector(107.89,-0.2,1.26),
 			["StrobePos"] = Vector(11.08,-0.9,16.22),
 			["StrobePos2"] = Vector(-270.31,-0.05,125.71),
-			["PortPos"] = Vector(-210.84,-7.32,91.73),
-			["StarboardPos"] = Vector(-210.84,7.32,91.73),
+			["PortPos"] = Vector(151.53,44.92,-12.36),
+			["StarboardPos"] = Vector(151.53,-44.92,-12.36),
 			["SternPos"] = Vector(-265.13,-0.3,92.41),
 			["RotorSounds"] = {
 				"<chopper/mwheli.wav",

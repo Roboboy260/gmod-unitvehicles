@@ -83,10 +83,10 @@ if CLIENT then
 
         { type = "reverse", offset = Vector( -102.33, 0, 11.08 ), color = Color(255,255,255), dir = Vector( -1, 0.5, 0 ), size = 20 },
 		
-        { type = "signal_left", offset = Vector( 77.07, 37.73, 22.13 ), dir = Vector( 1, 0.5, 0 ), color = Color(255, 192, 0), size = 30 },
+        { type = "signal_left", offset = Vector( 80.19, 28.35, 22.8), dir = Vector( 1, 0.5, 0 ), color = Color(255, 192, 0), size = 30 },
         { type = "signal_left", offset = lightpos.rear.l, dir = Vector( -1, 0.85, 0 ), color = Color(255, 0, 0), size = 30 },
 				
-        { type = "signal_right", offset = Vector( 77.07, -37.73, 22.13 ), dir = Vector( 1, -0.5, 0 ), color = Color(255, 192, 0), size = 30 },
+        { type = "signal_right", offset = Vector( 80.19, -28.35, 22.8 ), dir = Vector( 1, -0.5, 0 ), color = Color(255, 192, 0), size = 30 },
         { type = "signal_right", offset = lightpos.rear.r, dir = Vector( -1, -0.85, 0 ), color = Color(255, 0, 0), size = 30 },
     }
 

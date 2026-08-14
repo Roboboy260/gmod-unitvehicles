@@ -792,7 +792,7 @@ local function CheckVehicleLimit()
 						closestdistancetosuspect, closestsuspect = distance, w
 					end
 				end
-				if (car.markedfordeletion and closestdistancetosuspect > 25000000) or (closestdistancetosuspect > 100000000) then
+				if (car.markedfordeletion and closestdistancetosuspect > 25000000) or (not car.uvbusted and closestdistancetosuspect > 100000000) then
 					car:Remove()
 					wreckedUnitsCount = wreckedUnitsCount - 1
 				end

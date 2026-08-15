@@ -71,8 +71,8 @@ if CLIENT then
 
     ENT.LightSprites = {
 		-- Headlights
-        { type = "headlight", offset = lightpos.front.l, color = Color(255,255,255), dir = Vector( 1, 0, 0 ), size = 40},
-        { type = "headlight", offset = lightpos.front.r, color = Color(255,255,255), dir = Vector( 1, 0, 0 ), size = 40},
+        { type = "headlight", offset = lightpos.front.l, color = Color(215,240,255), dir = Vector( 1, 0, 0 ), size = 40},
+        { type = "headlight", offset = lightpos.front.r, color = Color(215,240,255), dir = Vector( 1, 0, 0 ), size = 40},
 
 		-- Rear Lights
         { type = "taillight", offset = lightpos.rear.l, color = Color(255,0,0,50), dir = Vector( -1, 0.5, 0 ), size = 30},

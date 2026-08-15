@@ -57,11 +57,11 @@ if CLIENT then
     ENT.Headlights = {
         {
             offset = Vector(104,30.14,29.56),
-            color = Color(160,205,255)
+            color = Color(255,255,255)
         },
         {
             offset = Vector(104,-30.14,29.56),
-            color = Color(160,205,255)
+            color = Color(255,255,255)
         },
     }
 
@@ -76,8 +76,8 @@ if CLIENT then
         { type = "brake", offset = Vector(-101.48,-34.27,34.81), size = 50, color = Color(255,0,0,50), dir = Vector( -1, -0.5, 0 ) },
         { type = "taillight", offset = Vector(-101.48,34.27,34.81), size = 50, color = Color(255,0,0,50), dir = Vector( -1, 0.5, 0 ) },
         { type = "taillight", offset = Vector(-101.48,-34.27,34.81), size = 50, color = Color(255,0,0,50), dir = Vector( -1, -0.5, 0 ) },
-        { type = "headlight", offset = Vector(99.21,30.14,29.56), size = 40, color = Color(215,240,255), dir = Vector( 1, 0, 0 ) },
-        { type = "headlight", offset = Vector(99.21,-30.14,29.56), size = 40, color = Color(215,240,255), dir = Vector( 1, 0, 0 ) },
+        { type = "headlight", offset = Vector(99.21,30.14,29.56), size = 40, color = Color(255,255,255), dir = Vector( 1, 0, 0 ) },
+        { type = "headlight", offset = Vector(99.21,-30.14,29.56), size = 40, color = Color(255,255,255), dir = Vector( 1, 0, 0 ) },
         { type = "reverse", offset = Vector(-99.94,35.2,40.17), dir = Vector( -1, 0, 0 ),size = 30 },
         { type = "reverse", offset = Vector(-99.94,-35.2,40.17), dir = Vector( -1, 0, 0 ),size = 30 },
 
@@ -101,8 +101,8 @@ if CLIENT then
 
         -- WIG-WAG
 
-        { offset = Vector(99.21,30.14,29.56), time = 0, duration = 0.5, size = 50, color = Color(215,240,255) },
-        { offset = Vector(99.21,-30.14,29.56), time = 0.5, duration = 0.5, size = 50, color = Color(215,240,255) },
+        { offset = Vector(99.21,30.14,29.56), time = 0, duration = 0.5, size = 50, color = Color(255,255,255) },
+        { offset = Vector(99.21,-30.14,29.56), time = 0.5, duration = 0.5, size = 50, color = Color(255,255,255) },
 
         -- RED
 

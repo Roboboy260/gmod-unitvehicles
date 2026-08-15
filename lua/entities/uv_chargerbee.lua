@@ -61,23 +61,20 @@ if CLIENT then
     ENT.Headlights = {
         {
             offset = Vector(98.33,33.81,25.32),
-            color = Color(160,205,255)
+            color = Color(255,255,255)
         },
         {
             offset = Vector(98.33,-33.81,25.32),
-            color = Color(160,205,255)
+            color = Color(255,255,255)
         },
     }
 
     ENT.LightSprites = {
-        { type = "headlight", offset = Vector(98.33,33.81,25.32),color = Color(215,240,255), dir = Vector( 1, 0, 0 ),beamType = "low",size = 40 },
-        { type = "headlight", offset = Vector(98.33,-33.81,25.32),color = Color(215,240,255), dir = Vector( 1, 0, 0 ),beamType = "low",size = 40 },
+        { type = "headlight", offset = Vector(98.33,33.81,25.32),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),size = 40 },
+        { type = "headlight", offset = Vector(98.33,-33.81,25.32),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),size = 40 },
 
-        { type = "headlight", offset = Vector(98.33,33.81,25.32),color = Color(215,240,255), dir = Vector( 1, 0, 0 ),beamType = "high",size = 40 },
-        { type = "headlight", offset = Vector(98.33,-33.81,25.32),color = Color(215,240,255), dir = Vector( 1, 0, 0 ),beamType = "high",size = 40 },
-
-        { type = "headlight", offset = Vector(101.99,27.79,24.44),color = Color(215,240,255), dir = Vector( 1, 0, 0 ),beamType = "high",size = 40 },
-        { type = "headlight", offset = Vector(101.99,-27.79,24.44),color = Color(215,240,255), dir = Vector( 1, 0, 0 ),beamType = "high",size = 40 },
+        { type = "headlight", offset = Vector(101.99,27.79,24.44),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),beamType = "high",size = 40 },
+        { type = "headlight", offset = Vector(101.99,-27.79,24.44),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),beamType = "high",size = 40 },
 
         { type = "taillight", offset = Vector(-103.7,26.83,35.59),color = Color(255,0,0,55), dir = Vector( -1, 0, 0 ),size = 30 },
         { type = "taillight", offset = Vector(-103.7,-26.83,35.59),color = Color(255,0,0,55), dir = Vector( -1, 0, 0 ),size = 30 },
@@ -111,8 +108,8 @@ if CLIENT then
 
     -- WIG-WAG
 
-        { offset = Vector(98.33,33.81,25.32), time = 0, duration = 0.5,  size = 50, color = Color(215,240,255) },
-        { offset = Vector(98.33,-33.81,25.32), time = 0.5, duration = 0.5, size = 50, color = Color(215,240,255) },
+        { offset = Vector(98.33,33.81,25.32), time = 0, duration = 0.5,  size = 50, color = Color(255,255,255) },
+        { offset = Vector(98.33,-33.81,25.32), time = 0.5, duration = 0.5, size = 50, color = Color(255,255,255) },
 
 	-- RED
     

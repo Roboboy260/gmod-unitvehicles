@@ -50,18 +50,18 @@ if CLIENT then
     ENT.Headlights = {
         {
             offset = Vector(104.45,33.79,29.08),
-            color = Color(160,205,255)
+            color = Color(255,255,255)
         },
         {
             offset = Vector(104.45,-33.79,29.08),
-             color = Color(160,205,255)
+             color = Color(255,255,255)
         },
     }
 
     ENT.LightSprites = {
 
-        { type = "headlight", offset = Vector( 100.45,33.79,29.08 ),color = Color(215,240,255), dir = Vector( 1, 0, 0 ),size = 40 },
-        { type = "headlight", offset = Vector( 100.45,-33.79,29.08 ),color = Color(215,240,255), dir = Vector( 1, 0, 0 ),size = 40 },
+        { type = "headlight", offset = Vector( 100.45,33.79,29.08 ),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),size = 40 },
+        { type = "headlight", offset = Vector( 100.45,-33.79,29.08 ),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),size = 40 },
 
         { type = "taillight", offset = Vector(-118.22,34.98,29.74),color = Color(255,0,0,55),dir = Vector( -1, 0, 0 ),size = 30 },
         { type = "taillight", offset = Vector(-118.22,-34.98,29.74),color = Color(255,0,0,55),dir = Vector( -1, 0, 0 ),size = 30 },
@@ -98,8 +98,8 @@ if CLIENT then
 
     -- WIG-WAG
 
-        { offset = Vector( 100.45,33.79,29.08 ), color = Color(215,240,255), time = 0, duration = 0.5, size = 50 },
-        { offset = Vector( 100.45,-33.79,29.08 ), color = Color(215,240,255), time = 0.5, duration = 0.5, size = 50 },
+        { offset = Vector( 100.45,33.79,29.08 ), color = Color(255,255,255), time = 0, duration = 0.5, size = 50 },
+        { offset = Vector( 100.45,-33.79,29.08 ), color = Color(255,255,255), time = 0.5, duration = 0.5, size = 50 },
 
 	-- RED
 

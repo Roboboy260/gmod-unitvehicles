@@ -1,6 +1,6 @@
 "VertexLitGeneric"
 {
-	"$basetexture" "models\unitvehiclescars\uv_fordcrownvic\BlackPlastic"
+	"$basetexture" "models\unitvehiclescars\uv_fordcrownvic\CopProps"
 	
 
 	"$envmap" "env_cubemap"

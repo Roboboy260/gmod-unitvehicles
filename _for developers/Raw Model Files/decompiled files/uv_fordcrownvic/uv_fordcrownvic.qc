@@ -63,6 +63,11 @@ $bodygroup "Trunk"
 	studio "trunk_2.smd"
 	blank
 }
+$bodygroup "Police Siren"
+{
+	studio "policesiren.smd"
+	blank
+}
 $bodygroup "Blue"
 {
 	studio "blue.smd"

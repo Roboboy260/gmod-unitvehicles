@@ -709,8 +709,7 @@ end
 
 function UVDisengageUnits()
 	for unit, _ in pairs( UVUnitVehicles ) do
-		if not IsValid(unit) or not unit.UnitVehicle or unit.UnitVehicle:IsPlayer() then continue end
-		if UVTargeting and unit.UnitVehicle:GetClass() == "npc_uvcommander" or unit.rhino or not unit.unitscript then continue end
+		if not IsValid(unit) or not unit.UnitVehicle or unit.UnitVehicle:IsPlayer() or not unit.unitscript then continue end
 
 		local unitType = string.sub( unit.UnitVehicle:GetClass(), 7 )
 		local assignedUnits = string.Trim( GetConVar( 'unitvehicle_unit_units' .. unitType .. UVHeatLevel ):GetString() )
@@ -1351,6 +1350,9 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 				if (NPC and NPC:IsPlayer()) and not UVTargeting and not UVEnemyEscaped and not UVEnemyBusted and table.HasValue(UVPotentialSuspects, object) then
 					UVTargeting = true
 				end
+				if dmg >= 100 and NPC:IsNPC() then
+					NPC.emergencystop = true
+				end
 			elseif car.TrafficVehicle then --TRAFFIC
 				if dmg >= 100 then
 					if IsValid(car.TrafficVehicle) then
@@ -1611,6 +1613,9 @@ hook.Add("simfphysPhysicsCollide", "UVCollisionSimfphys", function(car, coldata,
 		end
 		if (NPC and NPC:IsPlayer()) and not UVTargeting and not UVEnemyEscaped and not UVEnemyBusted and table.HasValue(UVPotentialSuspects, object) then
 			UVTargeting = true
+		end
+		if dmg >= 100 and NPC:IsNPC() then
+			NPC.emergencystop = true
 		end
 	elseif car.TrafficVehicle then --TRAFFIC
 		if dmg >= 100 then
@@ -1889,6 +1894,9 @@ hook.Add("OnEntityCreated", "UVCollisionJeep", function(vehicle)
 
 			if (NPC and NPC:IsPlayer()) and not UVTargeting and not UVEnemyEscaped and not UVEnemyBusted and table.HasValue(UVPotentialSuspects, object) then
 				UVTargeting = true
+			end
+			if dmg >= 100 and NPC:IsNPC() then
+				NPC.emergencystop = true
 			end
 		elseif car.TrafficVehicle then --TRAFFIC
 			if dmg >= 100 then
@@ -2183,6 +2191,9 @@ hook.Add("OnEntityCreated", "UVCollisionLVS", function(lvsvehicle)
 				end
 				if (NPC and NPC:IsPlayer()) and not UVTargeting and not UVEnemyEscaped and not UVEnemyBusted and table.HasValue(UVPotentialSuspects, object) then
 					UVTargeting = true
+				end
+				if dmg >= 100 and NPC:IsNPC() then
+					NPC.emergencystop = true
 				end
 			elseif car.TrafficVehicle then --TRAFFIC
 				if dmg >= 100 then
@@ -3908,6 +3919,15 @@ function UVCheckIfBeingBusted(enemy)
 		if not enemy.UVHUDBusting and not enemy.UVHUDBustingDelayed then
 			enemy.UVHUDBusting = true
 			enemy.UVHUDBustingDelayed = true
+			local key = "VehicleReset_"..enemy:EntIndex()
+            if timer.Exists( key ) then
+                timer.Remove(key)
+				if enemyDriver and enemyDriver:IsPlayer() then
+                	net.Start("uvresetfailed")
+                	net.WriteString("uv.resetting.cancel")
+                	net.Send(enemyDriver)
+				end
+			end
 			timer.Simple(1, function()
 				enemy.UVHUDBustingDelayed = nil
 			end)

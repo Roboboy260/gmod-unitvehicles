@@ -1683,7 +1683,7 @@ UV_UI.pursuit.mostwanted.scannerConfig = {
 	radius = 30,
 	innerRadius = 14,
 	blipRadius = 8,
-	maxRange = 5000,
+	maxRange = 10000,
 	maxArc = 130,
 	posX = ScrW() * 0.5,
 	posY = ScrH() * 0.1,
@@ -1693,7 +1693,7 @@ local function ScannerCode(cfg)
     local radius = cfg.radius or 30
     local innerRadius = cfg.innerRadius or 14
     local blipRadius = cfg.blipRadius or 8
-    local maxRange = cfg.maxRange or 5000
+    local maxRange = cfg.maxRange or 10000
     local maxArc = cfg.maxArc or 360
     local centerx = cfg.posX
     local centery = cfg.posY

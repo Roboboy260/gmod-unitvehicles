@@ -73,6 +73,8 @@ if CLIENT then
 		-- Headlights
         { type = "headlight", offset = lightpos.front.l, color = Color(215,240,255), dir = Vector( 1, 0, 0 ), size = 40},
         { type = "headlight", offset = lightpos.front.r, color = Color(215,240,255), dir = Vector( 1, 0, 0 ), size = 40},
+        { type = "headlight", offset = Vector(8.6,34.51,40.66),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),beamType = "high",size = 50 },
+        { type = "headlight", offset = Vector(8.6,-34.51,40.66),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),beamType = "high",size = 50 },
 
 		-- Rear Lights
         { type = "taillight", offset = lightpos.rear.l, color = Color(255,0,0,50), dir = Vector( -1, 0.5, 0 ), size = 30},
@@ -466,13 +468,13 @@ if SERVER then
                 self:SetBodygroup( 0, 1 )
                 self:SetBodygroup( 3, 1 )
                 self:SetBodygroup( 7, 1 )
-                self:SetSubMaterial(17, "models/unitvehiclescars/shared/windowdamage")
+                self:SetSubMaterial(7, "models/unitvehiclescars/shared/windowdamage1")
                 self.leftdamaged = 1
             elseif self.leftdamaged < 2 then
                 self:SetBodygroup( 0, 1 )
                 self:SetBodygroup( 3, 1 )
                 self:SetBodygroup( 7, 1 )
-                self:SetSubMaterial(17, "models/unitvehiclescars/shared/windowdamage")
+                self:SetSubMaterial(7)
                 self.leftdamaged = 2
 			end
         end
@@ -482,13 +484,13 @@ if SERVER then
                 self:SetBodygroup( 0, 1 )
                 self:SetBodygroup( 4, 1 )
                 self:SetBodygroup( 7, 1 )
-                self:SetSubMaterial(17, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(7, "models/unitvehiclescars/shared/windowdamage1")
                 self.rightdamaged = 1
             elseif self.rightdamaged < 2 then
                 self:SetBodygroup( 0, 1 )
                 self:SetBodygroup( 4, 1 )
                 self:SetBodygroup( 7, 1 )
-                self:SetSubMaterial(17, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(7, "models/unitvehiclescars/shared/windowdamage1")
                 self.rightdamaged = 2
             end
         end

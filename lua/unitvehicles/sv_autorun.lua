@@ -2279,19 +2279,20 @@ hook.Add("OnNPCKilled", "UVRunOverDeathPlayerNPC", function( npc, attacker, infl
 end)
 
 function UVRamVehicle(vehicle)
-	local update
-
 	if vehicle.rammed then
 		vehicle.rammed = nil
-	else
-		update = true
 	end
 
 	vehicle.rammed = true
 
+	if math.random(0,10) == 1 then
+		vehicle.honkwhenrammed = true
+	end
+
 	timer.Create("UVRamVehicle"..vehicle:EntIndex(), 3, 1, function() 
 		if IsValid(vehicle) and not vehicle.wrecked then 
 			vehicle.rammed = nil
+			vehicle.honkwhenrammed = nil
 		end 
 	end)
 end

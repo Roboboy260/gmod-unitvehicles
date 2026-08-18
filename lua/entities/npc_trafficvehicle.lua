@@ -365,25 +365,7 @@ if SERVER then
 				end
 			end --K turn
 
-			local turn = self:ObstaclesNearbySide()
-			if turn then
-				if turn == -1 then
-					if vectdot > 0 then
-						steer = -1
-					else
-						steer = 1
-					end
-				end
-				if turn == 1 then
-					if vectdot > 0 then
-						steer = 1
-					else
-						steer = -1
-					end
-				end
-			end
-
-			if self.honkwhenhit and self.v.rammed then
+			if self.v.honkwhenrammed then
 				self:SetHorn(true)
 			else
 				self:SetHorn(false)
@@ -422,10 +404,10 @@ if SERVER then
 			end
 
 			-- === START OF NEW OBSTACLE DETECTION STOP LOGIC ===
-			local lookDist = math.max(250, speedInUnits)
+			local carLength = self.v.length or 120
+			local lookDist = carLength + math.max(250, speedInUnits)
 			
 			local traceStart = self.v:WorldSpaceCenter()
-			local carLength = self.v.length or 120
 			-- Project trace slightly ahead of the vehicle to prevent clipping own bumper
 			traceStart = traceStart + (forward * (carLength * 0.5 + 10))
 
@@ -695,10 +677,6 @@ if SERVER then
 		self:SetModel(self.Modelname)
 		self:SetHealth(-1)
 		self.spawned = true
-
-		if math.random(0,1) == 1 then
-			self.honkwhenhit = true
-		end
 		
 		self.Speeding = (SpeedLimit:GetFloat()*17.6)^2 --MPH to in/s^2
 		timer.Simple(1, function() 

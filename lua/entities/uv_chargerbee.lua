@@ -220,8 +220,8 @@ if SERVER then
     }
 
     function ENT:CreateFeatures()
-        self:CreateSeat( Vector(-8.5,18.5,5), Angle( 0.000000, -90.000000, 5.000000 ), Vector( 0.000000,  80.000000, 10.000000 ), true )
-        self:CreateSeat( Vector(4,-18.5,9), Angle( 0.000000, -90.000000, 18.000000 ), Vector( 0.000000, -80.000000, 15.000000 ), true )
+        self:CreateSeat( Vector(-4.5,18.5,5), Angle( 0.000000, -90.000000, 5.000000 ), Vector( 0.000000,  80.000000, 10.000000 ), true )
+        self:CreateSeat( Vector(8,-18.5,9), Angle( 0.000000, -90.000000, 18.000000 ), Vector( 0.000000, -80.000000, 15.000000 ), true )
         self:CreateSeat( Vector(-32,-16,12), Angle( 0.000000, -90.000000, 18.000000 ), Vector( 0.000000, -80.000000, 15.000000 ), true )
         self:CreateSeat( Vector(-32,16,12), Angle( 0.000000, -90.000000, 18.000000 ), Vector( 0.000000, -80.000000, 15.000000 ), true )
 
@@ -541,7 +541,7 @@ end
 
 function ENT:GetFirstPersonOffset( _, localEyePos )
     if self:GetDriver() == LocalPlayer() then
-        return Vector(-2,18.5,45)
+        return Vector(2,18.5,45)
     else return localEyePos
     end
 end

@@ -759,7 +759,7 @@ if SERVER then
 				end
 			end
 
-			if self.honkwhenhit and self.v.rammed then
+			if self.v.honkwhenrammed then
 				self:SetHorn(true)
 			else
 				self:SetHorn(false)
@@ -924,12 +924,6 @@ if SERVER then
 				else
 					self.v:SetSteering(steer, 0)
 				end
-			end
-
-			if self.v.rammed then
-				self:SetHorn(true)
-			else
-				self:SetHorn(false)
 			end
 			
 			--Resetting
@@ -2039,10 +2033,6 @@ if SERVER then
 		self.stuck = nil
 		self.spawned = true
 		self.perfmult = 1
-
-		if math.random(0,1) == 1 then
-			self.honkwhenhit = true
-		end
 
 		local selectedVoice = GetConVar("unitvehicle_unit_commander_voice"):GetString()
 		local splittedText = string.Explode( ",", selectedVoice )

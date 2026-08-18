@@ -78,6 +78,8 @@ if CLIENT then
         { type = "taillight", offset = Vector(-101.48,-34.27,34.81), size = 50, color = Color(255,0,0,50), dir = Vector( -1, -0.5, 0 ) },
         { type = "headlight", offset = Vector(99.21,30.14,29.56), size = 40, color = Color(255,255,255), dir = Vector( 1, 0, 0 ) },
         { type = "headlight", offset = Vector(99.21,-30.14,29.56), size = 40, color = Color(255,255,255), dir = Vector( 1, 0, 0 ) },
+        { type = "headlight", offset = Vector(45.51,38.38,58.18),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),beamType = "high",size = 50 },
+        { type = "headlight", offset = Vector(45.51,-38.38,58.18),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),beamType = "high",size = 50 },
         { type = "reverse", offset = Vector(-99.94,35.2,40.17), dir = Vector( -1, 0, 0 ),size = 30 },
         { type = "reverse", offset = Vector(-99.94,-35.2,40.17), dir = Vector( -1, 0, 0 ),size = 30 },
 
@@ -423,7 +425,7 @@ if SERVER then
 
         if enginehealth < .5 then --BASE
             self:SetSubMaterial(12, "models/unitvehiclescars/shared/windowdamage")
-            self:SetSubMaterial(8, "models/unitvehiclescars/uv_fordexplorer/skin_0dam")
+            self:SetSubMaterial(7, "models/unitvehiclescars/uv_fordexplorer/skin_0dam")
             if enginehealth < .25 then
                 self:SetSubMaterial(12, "models/unitvehiclescars/shared/windowdamage1")
             end

@@ -293,27 +293,27 @@ if SERVER then
 		self:SetTurboCharged( true )
 		self:SetFastTransmission( true ) 
 
-        self:CreateWheel( Vector( 69.0, 37.0, 11.5 ), {
+        self:CreateWheel( Vector( 69.0, 38.5, 11.5 ), {
             model = "models/unitvehiclescars/uv_fordcrownvic/uv_fordcrownvic_wheel.mdl",
             modelAngle = Angle( 0.000000, 90.000000, 0.000000 ),
             steerMultiplier = 1,
             modelScale = Vector( 1, 1, 1 ),
 			radius = 17.0
         } )
-        self:CreateWheel( Vector( 69.0, -37.0, 11.5 ), {
+        self:CreateWheel( Vector( 69.0, -38.5, 11.5 ), {
             model = "models/unitvehiclescars/uv_fordcrownvic/uv_fordcrownvic_wheel.mdl",
             modelAngle = Angle( -0.000000, -90.000000, -0.000000 ),
             steerMultiplier = 1,
             modelScale = Vector( 1, 1, 1 ),
 			radius = 17.0
         } )
-        self:CreateWheel( Vector( -60, 37.5, 11.5 ), {
+        self:CreateWheel( Vector( -60, 38.5, 11.5 ), {
             model = "models/unitvehiclescars/uv_fordcrownvic/uv_fordcrownvic_wheel.mdl",
             modelAngle = Angle( 0.000000, 90.000000, 0.000000 ),
             modelScale = Vector( 1, 1, 1 ),
 			radius = 17.0
         } )
-        self:CreateWheel( Vector( -60, -37.5, 11.5 ), {
+        self:CreateWheel( Vector( -60, -38.5, 11.5 ), {
             model = "models/unitvehiclescars/uv_fordcrownvic/uv_fordcrownvic_wheel.mdl",
             modelAngle = Angle( -0.000000, -90.000000, -0.000000 ),
             modelScale = Vector( 1, 1, 1 ),

@@ -74,6 +74,9 @@ if CLIENT then
         { type = "headlight", offset = Vector(82.13,30.39,23.2), size = 30, color = Color(215,240,255),ifBodygroupId = 12, ifSubModelId = 0, dir = Vector( 1, 0, 0 ) },
         { type = "headlight", offset = Vector(82.13,-30.39,23.2), size = 30, color = Color(215,240,255),ifBodygroupId = 12, ifSubModelId = 0, dir = Vector( 1, 0, 0 ) },
 
+        { type = "headlight", offset = Vector(20.72,35.38,40.53),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),beamType = "high",size = 50 },
+        { type = "headlight", offset = Vector(20.72,-35.38,40.53),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),beamType = "high",size = 50 },
+
         { type = "taillight", offset = Vector(-93.69,27.14,32.45), size = 35, color = Color(255,0,0,50),ifBodygroupId = 11, ifSubModelId = 0, dir = Vector( -1, 0, 0 ) },
         { type = "taillight", offset = Vector(-93.69,-27.14,32.45), size = 35, color = Color(255,0,0,50),ifBodygroupId = 11, ifSubModelId = 0, dir = Vector( -1, 0, 0 ) },
         { type = "taillight", offset = Vector(-96.23,17.32,31.97), size = 30, color = Color(255,0,0,50),ifBodygroupId = 11, ifSubModelId = 0, dir = Vector( -1, 0, 0 ) },

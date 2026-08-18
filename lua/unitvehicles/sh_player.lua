@@ -588,6 +588,7 @@ if SERVER then
     function UVOptimizeRespawn( vehicle, player )
         if UVOptimizeRespawnDelayed and not player then return end
         if UVJammerDeployed and not player then return end
+        if vehicle.grappler then return end
 
         local rhino = vehicle.rhino
         local commander = vehicle.uvclasstospawnon == "npc_uvcommander" or vehicle.UVCommander

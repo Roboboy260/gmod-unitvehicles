@@ -5167,7 +5167,7 @@ else -- CLIENT Settings | HUD/Options
 				radius = 30,
 				innerRadius = 14,
 				blipRadius = 8,
-				maxRange = 5000,
+				maxRange = 10000,
 				maxArc = 360,
 				posX = w/2,
 				posY = h/10,

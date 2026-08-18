@@ -152,7 +152,7 @@ if SERVER then
 			
 		end
 		
-		if self.metwithenemy and not UVResourcePointsRefreshing and UVGlobalPursuit.ResourcePoints > 1 and not UVOneCommanderActive and not self.roadblocking then
+		if self.v and not self.v.disengaging and self.metwithenemy and not UVResourcePointsRefreshing and UVGlobalPursuit.ResourcePoints > 1 and not UVOneCommanderActive and not self.roadblocking then
 			UVUpdateGlobalPursuit('ResourcePoints', UVGlobalPursuit.ResourcePoints - 1)
 		end	
 		
@@ -564,6 +564,8 @@ if SERVER then
 				self.patrolling = true
 			end
 			
+			local forceStop = false
+			
 			--Set handbrake
 			if self.v.IsScar then
 				self.v:HandBrakeOff()
@@ -715,9 +717,15 @@ if SERVER then
 					end
 				end
 			end
+
+			local speedInUnits = self.v:GetVelocity():Length()
+
+			if self.PatrolWaypoint.TrafficLight and IsValid(self.PatrolWaypoint.TrafficLight) and self.PatrolWaypoint.TrafficLight:GetNWInt("DVTL_LightColor") == 3 then
+				forceStop = true
+			end
 			
 			--When there
-			if dist:LengthSqr() < 250000 and UVStraightToWaypoint(self.v:WorldSpaceCenter(), self.waypointPos) then
+			if not forceStop and dist:LengthSqr() < 250000 and UVStraightToWaypoint(self.v:WorldSpaceCenter(), self.waypointPos) then
 				if not self.respondingtocall and not self.returningtopatrol then
 					if self.PatrolWaypoint.Neighbors then
 						local WaypointTable = {}
@@ -750,24 +758,147 @@ if SERVER then
 					end --When there
 				end
 			end
+
+			if self.honkwhenhit and self.v.rammed then
+				self:SetHorn(true)
+			else
+				self:SetHorn(false)
+			end
 			
-			--Set throttle
+			-- === START OF NEW OBSTACLE DETECTION STOP LOGIC ===
+			local lookDist = math.max(250, speedInUnits)
+			
+			local traceStart = self.v:WorldSpaceCenter()
+			local carLength = self.v.length or 120
+			-- Project trace slightly ahead of the vehicle to prevent clipping own bumper
+			traceStart = traceStart + (forward * (carLength * 0.5 + 10))
+
+			-- Gather all parts of the vehicle to prevent self-collision in trace
+			local filterTable = {self, self.v}
+			if self.v.UVConstrainedEntities then
+				for _, ent in pairs(self.v.UVConstrainedEntities) do
+					if IsValid(ent) then table.insert(filterTable, ent) end
+				end
+			else
+				local constraints = constraint.GetAllConstrainedEntities(self.v)
+				if constraints then
+					for _, ent in pairs(constraints) do
+						if IsValid(ent) then table.insert(filterTable, ent) end
+					end
+				end
+			end
+
+			local trBlock = util.TraceHull({
+				start = traceStart,
+				endpos = traceStart + (forward * lookDist),
+				mins = Vector(-30, -30, -10),
+				maxs = Vector(30, 30, 50),
+				filter = filterTable
+			})
+
+			if trBlock.Hit and IsValid(trBlock.Entity) then
+				local hitEnt = trBlock.Entity
+				local class = string.lower(hitEnt:GetClass() or "")
+				
+				-- Ignore wheels entirely to prevent phantom stops
+				if not string.find(class, "wheel") then
+					local isPerson = hitEnt:IsPlayer() or hitEnt:IsNPC() or hitEnt:IsNextBot()
+					local isVehicle = hitEnt:IsVehicle() or string.find(class, "simfphys") or string.find(class, "lvs") or string.find(class, "scar") or string.find(class, "vehicle")
+					local isProp = string.find(class, "prop_")
+					
+					if isPerson or isVehicle or isProp then
+						forceStop = true
+						throttle = 0
+						steer = 0
+					end
+				end
+			end
+			-- === END OF NEW OBSTACLE DETECTION STOP LOGIC ===
+
+			--Emergency Stop
+			if self.emergencystop then
+				if not self.emergencystopcooldown then
+					self.emergencystopcooldown = true
+					timer.Simple(10, function()
+						if IsValid(self) then
+							self.emergencystop = nil
+							self.emergencystopcooldown = nil
+						end
+					end)
+				end
+
+				throttle = 0
+				
+				forceStop = true
+			end
+
+			if forceStop then
+				self.moving = CurTime()
+			end
+
+			--Set throttle/steering based on forced stop values
 			if self.v.IsScar then
-				if throttle > 0 then
-					self.v:GoForward(throttle)
+				if forceStop then
+					self.v:GoForward(0)
+					self.v:GoBack(0)
+					self.v:HandBrakeOn()
+					self.v:NotTurning()
 				else
-					self.v:GoBack(-throttle)
+					if throttle > 0 then
+						self.v:GoForward(throttle)
+					else
+						self.v:GoBack(-throttle)
+					end
+					if steer > 0 then
+						self.v:TurnRight(steer)
+					elseif steer < 0 then
+						self.v:TurnLeft(-steer)
+					else
+						self.v:NotTurning()
+					end
 				end
 			elseif self.v.IsSimfphyscar then
 				self.v:SetActive(true)
 				self.v:StartEngine()
 				self.v.PressedKeys = self.v.PressedKeys or {}
 				self.v.PressedKeys["Shift"] = false
+				
+				if forceStop then
+					if selfvelocity > 10000 then
+						if self.v:GetGear() >= 3 then
+							throttle = -1
+						else
+							throttle = 1
+						end
+					else
+						throttle = 0
+						self.v.PressedKeys["Space"] = true
+					end
+				end
+
 				self.v.PressedKeys["joystick_throttle"] = throttle
 				self.v.PressedKeys["joystick_brake"] = throttle * -1
+				
+				self.v:PlayerSteerVehicle(self, steer < 0 and -steer or 0, steer > 0 and steer or 0)
 			elseif self.v.IsGlideVehicle then
+				if forceStop then
+					if selfvelocity > 10000 then
+						if self.v:GetGear() >= 1 then
+							throttle = -1
+						else
+							throttle = 1
+						end
+					else
+						throttle = 0
+						self.v:TriggerInput("Handbrake", 1)
+					end
+				end
+
 				self.v:TriggerInput("Throttle", throttle)
 				self.v:TriggerInput("Brake", throttle * -1)
+				
+				steer = steer * 2 
+				self.v:TriggerInput("Steer", steer)
 			elseif isfunction(self.v.SetThrottle) and not self.v.IsGlideVehicle then
 				local lvsReverse = false
 				if throttle < 0 and self.v.LVS then
@@ -775,36 +906,30 @@ if SERVER then
 					local norm = velo:GetNormalized()
 					local dot = forward:Dot(norm)
 
-					lvsReverse = dot < 0 or selfvelocity < 50000
-					if lvsReverse then throttle = math.abs(throttle) end
+					lvsReverse = dot < 0 or selfvelocity < 10000
+					throttle = math.abs(throttle)
 				end
 
-				if self.v.LVS then 
-					self.v:SetReverse( lvsReverse ) 
-					self.v:LerpBrake( (lvsReverse or throttle > 0) and 0 or math.abs(throttle) )
-				end
+				if self.v.LVS then self.v:SetReverse( lvsReverse ) end
 				self.v:SetThrottle(throttle)
+				
+				if forceStop then
+					if isfunction(self.v.SetHandbrake) then
+						self.v:SetHandbrake(true)
+					end
+				end
+				
 				if self.v.LVS then
 					self.v:SetSteer(steer * self.v:GetMaxSteerAngle())
+				else
+					self.v:SetSteering(steer, 0)
 				end
 			end
-			if self.v.IsScar then
-				if steer > 0 then
-					self.v:TurnRight(steer)
-				elseif steer < 0 then
-					self.v:TurnLeft(-steer)
-				else
-					self.v:NotTurning()
-				end
-			elseif self.v.IsSimfphyscar then
-				self.v:SetActive(true)
-				self.v:StartEngine()
-				self.v:PlayerSteerVehicle(self, steer < 0 and -steer or 0, steer > 0 and steer or 0)
-			elseif self.v.IsGlideVehicle then
-				steer = steer * 2 --Attempt to make steering more sensitive.
-				self.v:TriggerInput("Steer", steer)
-			elseif isfunction(self.v.SetSteering) and not self.v.IsGlideVehicle and not self.v.LVS then
-				self.v:SetSteering(steer, 0)
+
+			if self.v.rammed then
+				self:SetHorn(true)
+			else
+				self:SetHorn(false)
 			end
 			
 			--Resetting
@@ -821,12 +946,10 @@ if SERVER then
 			local timeout = 1
 			if timeout and timeout > 0 then
 				if CurTime() > self.moving + timeout and not UVTargeting then --If it has got stuck for enough time.
-					self.invincible = true
 					self.stuck = true
 					self.moving = CurTime()
 					self.PatrolWaypoint = nil
 
-					timer.Simple(1, function() if IsValid(self.v) then self.invincible = nil end end)
 					timer.Simple(1, function() if IsValid(self.v) then self.stuck = nil end end)
 					-- if not self.respondingtocall then
 					-- 	self.returningtopatrol = false
@@ -986,8 +1109,12 @@ if SERVER then
 			end
 			if closestdistancetosuspect > 100000000 and 
 			not (eScope and eScope.EnemyBusted) and not (eScope and eScope.EnemyEscaped) and self.uvmarkedfordeletion then
-				UVOptimizeRespawn(self.v)
-				if Chatter:GetBool() and not (eScope and eScope.EnemyEscaping) and not self.invincible and not (eScope and eScope.EnemyBusted) then
+				if self.v.disengaging then
+					SafeRemoveEntity(self)
+				else
+					UVOptimizeRespawn(self.v)
+				end
+				if Chatter:GetBool() and not (eScope and eScope.EnemyEscaping) and not (eScope and eScope.EnemyBusted) then
 					UVChatterLeftPursuit(self) 
 				end
 			end
@@ -1007,7 +1134,7 @@ if SERVER then
 						closestscope = scope
 					end
 				end
-				if self.disengaging and self.uvmarkedfordeletion and closestdistancetosuspect > 100000000 then
+				if closestdistancetosuspect > 100000000 and self.uvmarkedfordeletion then
 					SafeRemoveEntity(self)
 				end
 			end
@@ -1044,7 +1171,6 @@ if SERVER then
 						self.edriver = nil
 					end
 					self.moving = CurTime()
-					self.toofar = nil
 					if Chatter:GetBool() then
 						if self.v.roadblocking then
 							UVChatterRoadblockDeployed(self)
@@ -1070,7 +1196,6 @@ if SERVER then
 	
 						self.moving = CurTime()
 						self.idle = nil
-						self.toofar = nil
 						self.aggressive = nil
 	
 						if not UVCalm then
@@ -1134,6 +1259,8 @@ if SERVER then
 			end
 			
 			--Figures
+			local forceStop = false
+
 			local edist --Fixed/Varied distance between the vehicle and the enemy.
 			if not self.formationpoint then
 				edist = self.e:WorldSpaceCenter() - self.v:WorldSpaceCenter()
@@ -1223,8 +1350,7 @@ if SERVER then
 					timer.Remove(self._cooldownString)
 				end
 				local point = selfOvertake and self.e:LocalToWorld(self.overtakepoint) or self.formationpoint and self.e:LocalToWorld(self.formationpoint) or self.e:WorldSpaceCenter()
-				if (not self.formationpoint or enemyvelocity <= UVBustSpeed)
-				or UVCalm or (eScope and eScope.EnemyEscaping) or obstaclesNearbySide then
+				if UVCalm or (eScope and eScope.EnemyEscaping) or obstaclesNearbySide then
 					self.targetpos = self.e:WorldSpaceCenter()
 				else
 					self.targetpos = (point + self.e:GetVelocity())
@@ -1346,9 +1472,6 @@ if SERVER then
 						end
 					end
 				end --K turn
-				if not self.invincible then
-					self.invincible = true
-				end
 				local turn = obstaclesNearbySide
 				if turn then
 					if turn == -1 then
@@ -1366,34 +1489,23 @@ if SERVER then
 						end
 					end
 				end
-				if self.v.IsSimfphyscar then
-					if obstaclesNearby then
-						if self.v:GetGear() >= 3 then
-							throttle = -1
-						else
-							throttle = 1
-						end
-					end
-				elseif self.v.IsGlideVehicle then
-					if obstaclesNearby then
-						if self.v:GetGear() >= 1 then
-							throttle = -1
-						else
-							throttle = 1
-						end
-					end
-				elseif self.v.LVS then
-					if obstaclesNearby then
-						if not self.v:GetReverse() then
-							throttle = -1
-						else
-							throttle = 1
-						end
-					end
+				if obstaclesNearby then
+					forceStop = true
 				end --Slow down
 			elseif (distSqr > 250000 or distSqr < 250000 and not straightToEnemy) and self.stuck then --No eyes on the target
 				if right.z > 0 then steer = -1 else steer = 1 end
 				if (eScope and eScope.EnemyEscaping) then throttle = -1 else throttle = throttle * -1 end
+			elseif UVCalm then
+				if distDotForward < 0 and dist2DSqr > 250000 and vectdot > 0 and not self.stuck then
+					if eeevectdot > 0 or enemyvelocity < 100000 then
+						if right.z > 0 then steer = -1 else steer = 1 end
+					else
+						throttle = throttle * -1
+					end
+				end --K/J turn
+				if selfvelocity > math.max(250000, enemyvelocity) or eedistSqr < 250000 then
+					forceStop = true
+				end
 			else --Getting unstuck
 				if distDotForward < 0 and dist2DSqr > 250000 and vectdot > 0 and not self.stuck then
 					if eeevectdot > 0 or enemyvelocity < 100000 then
@@ -1405,7 +1517,7 @@ if SERVER then
 				if eeeright.z > -0.2 and eeeright.z < 0.2 and eeevectdot < 0 and eedistDotForward < 0 and eedist2DSqr < 250000 and self.aggressive then
 					throttle = -1
 				end --Brake checking
-				if selfvelocity > enemyvelocity and edistDotForward > 0 and edistDotEForward > 0 and eevectdot > 0 and eeevectdot > 0 and edist2DSqr < 250000 and enemyvelocity > 250000 and not UVCalm then
+				if selfvelocity > enemyvelocity and edistDotForward > 0 and edistDotEForward > 0 and eevectdot > 0 and eeevectdot > 0 and edist2DSqr < 250000 and enemyvelocity > 250000 then
 					if self.aggressive and not self.formationpoint and eright.z > -0.5 and eright.z < 0.5 then throttle = 2 end
 				end --PIT technique/get infront
 				if edistDotForward < 0 and (edist2DSqr > 100000 or self.formationpoint) and eevectdot < 0 then
@@ -1442,9 +1554,6 @@ if SERVER then
 					steer = eright.z
 					if eright.z < 0.5 and eright.z > -0.5 then if right.z > 0.75 then steer = -1 elseif right.z < -0.75 then steer = 1 end end
 				end --Herding
-				if UVCalm and edist2DSqr < 250000 then
-					throttle = 0
-				end --No ramming
 				
 				--Ramming
 				if edistDotForward > 0 and eeevectdot < 0 and enemyvelocity > 100000 and (straightToEnemy or not self.aggressive) then
@@ -1473,11 +1582,8 @@ if SERVER then
 				end --Herding technique
 				if enemyvelocity < 30976 and dist2DSqr < 100000 and straightToEnemy then
 					throttle = 0 
-					if vectdot < 0 or eright.z > -0.2 and eright.z < 0.2 or UVCalm then self:UVHandbrakeOn() end
+					if vectdot < 0 or eright.z > -0.2 and eright.z < 0.2 then self:UVHandbrakeOn() end
 				end --Pinning/boxing in
-				if self.invincible then
-					self.invincible = nil
-				end
 			end
 			
 			--Roadblocking
@@ -1648,10 +1754,12 @@ if SERVER then
 			local timeout = 1
 			if timeout and timeout > 0 then
 				if CurTime() > self.moving + timeout then --If it has got stuck for enough time.
-					self.invincible = true
 					self.stuck = true
 					self.moving = CurTime()
-					timer.Simple(2, function() if IsValid(self.v) then self.invincible = nil end end)
+					if self.toofar then
+						UVOptimizeRespawn(self.v)
+						self.stuck = nil
+					end
 					timer.Simple(1, function() if IsValid(self.v) then self.stuck = nil end end)
 				end
 			end
@@ -1664,19 +1772,6 @@ if SERVER then
 					UVChatterOnScene(self) 
 				end
 			end
-
-			--Spawning
-			if self.toofar and edistSqr < 25000000 and straightToEnemy then
-				if not self.spawncooldown then
-					timer.Simple(1, function() if IsValid(self.v) then self.invincible = nil end end)
-					self.invincible = true
-					self.toofar = nil
-					self:ChangeELSSiren()
-					if Chatter:GetBool() and not UVCalm and not (eScope and eScope.EnemyEscaping) and self.driveinfront then
-						UVChatterEnemyInfront(self) 
-					end
-				end	
-			end	
 			
 			--Bounty
 			local botimeout = 10
@@ -1729,6 +1824,11 @@ if SERVER then
 			end
 			
 			if GetConVar("unitvehicle_tractioncontrol"):GetBool() and selfvelocity > 10000 and not self.stuck then
+				if not (eScope and eScope.EnemyEscaping) and straightToEnemy and self.metwithenemy then
+					if math.abs(steer) > 0.5 and selfvelocity > math.max(250000, enemyvelocity) then
+						forceStop = true
+					end --Cornering
+				end
 				if self.v.IsSimfphyscar then
 					if istable(self.v.Wheels) then
 						for i = 1, table.Count( self.v.Wheels ) do
@@ -1738,15 +1838,6 @@ if SERVER then
 								throttle = throttle * Wheel:GetGripLoss() --Simfphys traction control
 							end
 						end
-					end
-					if not (eScope and eScope.EnemyEscaping) and straightToEnemy and self.metwithenemy and not self.stuck then
-						if math.abs(steer) > 0.5 and selfvelocity > 100000 and enemyvelocity < selfvelocity then
-							if self.v:GetGear() >= 3 then
-								throttle = -1
-							else
-								throttle = 1
-							end
-						end --Cornering
 					end
 				elseif self.v.IsGlideVehicle then
 					local maxSlip = 0
@@ -1767,15 +1858,6 @@ if SERVER then
 						steer = 0
 						throttle = 1
 					end --Straighten out
-					if not (eScope and eScope.EnemyEscaping) and straightToEnemy and self.metwithenemy and not self.stuck then
-						if math.abs(steer) > 0.5 and selfvelocity > 100000 and enemyvelocity < selfvelocity then
-							if self.v:GetGear() >= 1 then
-								throttle = -1
-							else
-								throttle = 1
-							end
-						end --Cornering
-					end
 				else
 					if vectdot > 0 and evectdot > 0 and distDotForward > 0 and dist2DSqr > 250000 and straightToEnemy then 
 						local maththrottle = throttle - math.abs(steer)
@@ -1792,49 +1874,85 @@ if SERVER then
 			end
 
 			if IsValid(self.v.grappler) then
-				if self.v.IsSimfphyscar then
-					if self.v:GetGear() >= 3 then
-						throttle = -1
-					else
-						throttle = 1
-					end
-				elseif self.v.IsGlideVehicle then
-					if self.v:GetGear() >= 1 then
-						throttle = -1
-					else
-						throttle = 1
-					end
-				elseif self.v.LVS then
-					if not self.v:GetReverse() then
-						throttle = -1
-					else
-						throttle = 1
-					end
-				end --Slow down when grappling
+				forceStop = true --Slow down when grappling
+			end
+
+			if self.v.disengaging then
+				if selfvelocity > 774400 then
+					throttle = 0
+				end
+			end
+
+			if forceStop then
+				self.moving = CurTime()
 			end
 			
 			--Set throttle/steering
 			if self.v.IsScar then
-				if throttle > 0 then
-					self.v:GoForward(throttle)
-				else
-					self.v:GoBack(-throttle)
-				end
-				if steer > 0 then
-					self.v:TurnRight(steer)
-				elseif steer < 0 then
-					self.v:TurnLeft(-steer)
-				else
+				if forceStop then
+					self.v:GoForward(0)
+					self.v:GoBack(0)
+					self.v:HandBrakeOn()
 					self.v:NotTurning()
+				else
+					if throttle > 0 then
+						self.v:GoForward(throttle)
+					else
+						self.v:GoBack(-throttle)
+					end
+					if steer > 0 then
+						self.v:TurnRight(steer)
+					elseif steer < 0 then
+						self.v:TurnLeft(-steer)
+					else
+						self.v:NotTurning()
+					end
 				end
 			elseif self.v.IsSimfphyscar then
 				self.v:SetActive(true)
 				self.v:StartEngine()
 				self.v.PressedKeys = self.v.PressedKeys or {}
 				self.v.PressedKeys["Shift"] = false
+				
+				if forceStop then
+					if selfvelocity > 10000 then
+						if self.v:GetGear() >= 3 then
+							throttle = -1
+						else
+							throttle = 1
+						end
+					else
+						throttle = 0
+						self.v.PressedKeys["Space"] = true
+					end
+				end
+
 				self.v.PressedKeys["joystick_throttle"] = throttle
 				self.v.PressedKeys["joystick_brake"] = throttle * -1
+				
 				self.v:PlayerSteerVehicle(self, steer < 0 and -steer or 0, steer > 0 and steer or 0)
+			elseif self.v.IsGlideVehicle then
+				if cffunctions then
+					CFtoggleNitrous( self.v, self.usenitrous )
+				end
+				if forceStop then
+					if selfvelocity > 10000 then
+						if self.v:GetGear() >= 1 then
+							throttle = -1
+						else
+							throttle = 1
+						end
+					else
+						throttle = 0
+						self.v:TriggerInput("Handbrake", 1)
+					end
+				end
+
+				self.v:TriggerInput("Throttle", throttle)
+				self.v:TriggerInput("Brake", throttle * -1)
+				
+				steer = steer * 2 
+				self.v:TriggerInput("Steer", steer)
 			elseif isfunction(self.v.SetThrottle) and not self.v.IsGlideVehicle then
 				local lvsReverse = false
 				if throttle < 0 and self.v.LVS then
@@ -1842,28 +1960,24 @@ if SERVER then
 					local norm = velo:GetNormalized()
 					local dot = forward:Dot(norm)
 
-					lvsReverse = dot < 0 or selfvelocity < 50000
-					if lvsReverse then throttle = math.abs(throttle) end
+					lvsReverse = dot < 0 or selfvelocity < 10000
+					throttle = math.abs(throttle)
 				end
 
-				if self.v.LVS then 
-					self.v:SetReverse( lvsReverse ) 
-					self.v:LerpBrake( (lvsReverse or throttle > 0) and 0 or math.abs(throttle) )
-				end
+				if self.v.LVS then self.v:SetReverse( lvsReverse ) end
 				self.v:SetThrottle(throttle)
+				
+				if forceStop then
+					if isfunction(self.v.SetHandbrake) then
+						self.v:SetHandbrake(true)
+					end
+				end
+				
 				if self.v.LVS then
 					self.v:SetSteer(steer * self.v:GetMaxSteerAngle())
 				else
 					self.v:SetSteering(steer, 0)
 				end
-			elseif self.v.IsGlideVehicle then
-				if cffunctions then
-					CFtoggleNitrous( self.v, self.usenitrous )
-				end
-				self.v:TriggerInput("Throttle", throttle)
-				self.v:TriggerInput("Brake", throttle * -1)
-				steer = steer * 2 --Attempt to make steering more sensitive.
-				self.v:TriggerInput("Steer", steer)
 			end
 			
 			--Losing conditions
@@ -1885,8 +1999,15 @@ if SERVER then
 			self:SetELSSound(true)
 			
 			--When too far to chase enemy
-			if edistSqr > 25000000 and not self.toofar and not visualOnEnemy then
-				self.toofar = true
+			if edistSqr > 25000000 and not visualOnEnemy then
+				if not self.toofar then
+					self.toofar = true
+				end
+			else
+				if self.toofar then
+					self.toofar = nil
+					self:ChangeELSSiren()
+				end
 			end
 			
 		end --if not self:Validate(self.e)
@@ -1917,8 +2038,11 @@ if SERVER then
 		self.moving = CurTime()
 		self.stuck = nil
 		self.spawned = true
-		self.toofar = true
 		self.perfmult = 1
+
+		if math.random(0,1) == 1 then
+			self.honkwhenhit = true
+		end
 
 		local selectedVoice = GetConVar("unitvehicle_unit_commander_voice"):GetString()
 		local splittedText = string.Explode( ",", selectedVoice )
@@ -2138,7 +2262,7 @@ if SERVER then
 			UVCFInitialize(self)
 		end
 		
-		local deletiontime = (self.v.roadblocking or not UVTargeting) and 10 or 1
+		local deletiontime = self.v.roadblocking and 10 or not UVTargeting and math.random(10, 60) or 1
 		local roadblockingtime = math.random(20,60)
 
 		if self.uvscripted then

@@ -448,7 +448,7 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 	end
 
 	if waypointLookup then
-		local enemywaypoint = dvd.GetNearestWaypoint(enemylocation)
+		local enemywaypoint = UVGetNearestVisibleWaypoint(enemylocation)
 		local enemywaypointgroup = UVTargeting and enemywaypoint["Group"] or 0
 
 		local waypointtable = {}
@@ -2647,7 +2647,7 @@ function UVAutoSpawnRacer()
 		enemylocation = ply:GetPos() + Vector(0, 0, 50)
 	end
 	
-	local enemywaypoint = dvd.GetNearestWaypoint(enemylocation)
+	local enemywaypoint = UVGetNearestVisibleWaypoint(enemylocation)
 	local waypointtable = {}
 	for k, v in ipairs(dvd.Waypoints) do
 		local Waypoint = v["Target"]

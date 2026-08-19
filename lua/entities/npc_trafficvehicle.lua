@@ -254,7 +254,7 @@ if SERVER then
 			return
 		end
 
-		local Waypoint = dvd.GetNearestWaypoint(self.v:WorldSpaceCenter())
+		local Waypoint = UVGetNearestVisibleWaypoint(self.v:WorldSpaceCenter())
 		if Waypoint.Neighbors then
 			local WaypointTable = {}
 			for k, v in pairs(Waypoint.Neighbors) do

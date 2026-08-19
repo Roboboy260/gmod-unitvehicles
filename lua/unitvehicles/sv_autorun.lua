@@ -4400,6 +4400,36 @@ function UVPlayerWreck(vehicle)
 	end
 end
 
+function UVGetNearestVisibleWaypoint(pos, filter)
+    if not isvector(pos) then return end
+    local r = not isfunction(filter) and isnumber(filter) and filter or math.huge
+    local mindistance, waypoint, waypointID = r^2, nil, nil
+
+    for i, w in ipairs(dvd.Waypoints) do
+        local distance = w.Target:DistToSqr(pos)
+        if distance < mindistance and (
+            not isfunction(filter)
+            or filter(i, waypointID, mindistance)) then
+
+            local tr = util.TraceLine({
+                start = pos,
+                endpos = w.Target,
+                mask = MASK_NPCWORLDSTATIC
+            })
+
+            if not tr.Hit then
+                mindistance, waypoint, waypointID = distance, w, i
+            end
+        end
+    end
+
+	if not waypoint then
+		return dvd.GetNearestWaypoint(pos)
+	end
+
+    return waypoint, waypointID
+end
+
 function UVNavigateDVWaypointOptimized( self, vectors )
 	if not dvd or not dvd.Waypoints or next( dvd.Waypoints ) == nil then
 		self.NavigateBlind = true
@@ -4417,7 +4447,7 @@ function UVNavigateDVWaypointOptimized( self, vectors )
 	for i = 0, maxWaypoints - 1 do
 		local t = ( maxWaypoints > 1 ) and ( i / (maxWaypoints - 1) ) or 0
 		local samplePos = startPos + ( endPos - startPos ) * t
-		local wp = dvd.GetNearestWaypoint( samplePos )
+		local wp = UVGetNearestVisibleWaypoint( samplePos )
 		if wp and wp.Target then
 			local v = wp.Target
 			if ( lastAdded == nil or v:DistToSqr( lastAdded ) > minStepSq ) then

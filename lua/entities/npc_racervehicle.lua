@@ -929,7 +929,7 @@ if SERVER then
 			
 			-- Only pick a starting waypoint if we don't already have one
 			if not self.DVCurrentWaypoint then
-				self.DVCurrentWaypoint = dvd.GetNearestWaypoint(self.v:WorldSpaceCenter())
+				self.DVCurrentWaypoint = UVGetNearestVisibleWaypoint(self.v:WorldSpaceCenter())
 			end
 
 			if self.DVCurrentWaypoint then

@@ -479,8 +479,8 @@ if SERVER then
 			if dvd and not InfMap then
 				local friendly_position = self.v:WorldSpaceCenter()
 
-				enemy_nearest_waypoint = dvd.GetNearestWaypoint( suspectPos )
-				friendly_nearest_waypoint = dvd.GetNearestWaypoint( friendly_position )
+				enemy_nearest_waypoint = UVGetNearestVisibleWaypoint( suspectPos )
+				friendly_nearest_waypoint = UVGetNearestVisibleWaypoint( friendly_position )
 
 				local friendly_waypoint_position = friendly_nearest_waypoint and friendly_nearest_waypoint.Target + ( vector_up * 50 ) or vector_origin
 				local enemy_waypoint_position = enemy_nearest_waypoint and enemy_nearest_waypoint.Target + ( vector_up * 50 ) or vector_origin
@@ -539,7 +539,7 @@ if SERVER then
 			return
 		end
 		
-		local Waypoint = dvd.GetNearestWaypoint(self.v:WorldSpaceCenter())
+		local Waypoint = UVGetNearestVisibleWaypoint(self.v:WorldSpaceCenter())
 		if UVTargeting and Waypoint.Neighbors then --Keep going straight whilst in pursuit
 			self.PatrolWaypoint = dvd.Waypoints[Waypoint.Neighbors[math.random(#Waypoint.Neighbors)]]
 		else
@@ -1295,7 +1295,7 @@ if SERVER then
 
 			local suspectOnWaypointGrid = true
 			if dvd and next(dvd.Waypoints or {}) ~= nil and not InfMap then
-				local nearestToSuspect = dvd.GetNearestWaypoint(suspectPos)
+				local nearestToSuspect = UVGetNearestVisibleWaypoint(suspectPos)
 				if nearestToSuspect then
 					local waypointSize = dvd.WaypointSize or 200
 					local maxDistSqr = waypointSize ^ 4
@@ -1351,7 +1351,7 @@ if SERVER then
 				local aheadDist = 2000
 				local aheadTarget = suspectPos + suspectDir * aheadDist
 				local myPos = self.v:WorldSpaceCenter()
-				local Waypoint, WaypointID = dvd.GetNearestWaypoint(myPos)
+				local Waypoint, WaypointID = UVGetNearestVisibleWaypoint(myPos)
 				
 				self.targetpos = myPos + suspectDir * 2000
 				if Waypoint and Waypoint.Target then

@@ -648,6 +648,7 @@ if SERVER then
 					mapName = mapName:gsub("^[^_]+_", ""):gsub("(_.+)$", "")
 					-- print("Found no " .. game.GetMap() .. " files - switching to " .. mapName)
 					addressFiles = CachedFileFind("sound/chatter2/"..unitVoiceProfile.."/dispatch/addressgroup_map/"..mapName.."/*", "GAME")
+					table.Shuffle(addressFiles)
 					chosenPath = "chatter2/"..unitVoiceProfile.."/dispatch/addressgroup_map/"..mapName.."/"
 				end
 			end
@@ -1703,7 +1704,7 @@ if SERVER then
 	function UVChatterRequestBackup(self)
 		local timecheck = 5
 		local airrandomno = math.random(1,2)
-		local decisionrandomno = math.random(1,2)
+		local gotbackup = not UVBackupUnderway
 		local airUnits = ents.FindByClass("uvair")
 		local reportingUnit = nil
 		local mathrandomno = math.random(1,2)
@@ -1726,7 +1727,7 @@ if SERVER then
 			timecheck = UVSoundChatter(self, self.voice, "requestbackup", 1)
 			reportingUnit = self
 		end
-		if decisionrandomno == 1 then
+		if gotbackup then
 			UVChatterBackupOnTheWay(reportingUnit)
 		else
 			UVChatterDenyBackup(reportingUnit)

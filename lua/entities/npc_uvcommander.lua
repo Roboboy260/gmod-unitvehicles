@@ -1346,6 +1346,8 @@ if SERVER then
 				local point = selfOvertake and self.e:LocalToWorld(self.overtakepoint) or self.formationpoint and self.e:LocalToWorld(self.formationpoint) or self.e:WorldSpaceCenter()
 				if UVCalm or (eScope and eScope.EnemyEscaping) or obstaclesNearbySide then
 					self.targetpos = self.e:WorldSpaceCenter()
+				elseif enemyvelocity <= UVBustSpeed * 10 then
+					self.targetpos = (self.e:WorldSpaceCenter() + self.e:GetVelocity())
 				else
 					self.targetpos = (point + self.e:GetVelocity())
 				end
@@ -1975,7 +1977,7 @@ if SERVER then
 			end
 			
 			--Losing conditions
-			local visualrange = (eScope and eScope.Hiding) and 1000000 or 25000000
+			local visualrange = (eScope and eScope.Hiding) and 6250000 or 25000000
 			if visualOnEnemy and eedistSqr < visualrange then
 				self:ApplyUnitDifficulty()
 				if not table.HasValue(UVUnitsChasing, self) then

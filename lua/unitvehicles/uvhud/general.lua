@@ -545,3 +545,112 @@ local function ScannerCode(cfg)
 end
 
 UV_UI.pursuit.general.scanner = ScannerCode
+
+local function DetectionCode()
+	local function DrawDirectionalWedge(cx, cy, radius, thickness, centerAngle, arcWidth, color)
+	    surface.SetDrawColor(color)
+	    draw.NoTexture()
+
+	    local segs = 16
+	    local startAng = centerAngle - (arcWidth / 2)
+	    local step = arcWidth / segs
+
+	    for i = 0, segs - 1 do
+	        local a1 = math.rad(startAng + (i * step))
+	        local a2 = math.rad(startAng + ((i + 1) * step))
+
+	        local x1 = cx + math.sin(a1) * (radius - thickness)
+	        local y1 = cy - math.cos(a1) * (radius - thickness)
+	        local x2 = cx + math.sin(a1) * radius
+	        local y2 = cy - math.cos(a1) * radius
+	        local x3 = cx + math.sin(a2) * radius
+	        local y3 = cy - math.cos(a2) * radius
+	        local x4 = cx + math.sin(a2) * (radius - thickness)
+	        local y4 = cy - math.cos(a2) * (radius - thickness)
+
+	        surface.DrawPoly({
+	            { x = x1, y = y1 },
+	            { x = x2, y = y2 },
+	            { x = x3, y = y3 },
+	            { x = x4, y = y4 }
+	        })
+	    end
+	end
+
+	hook.Add("HUDPaint", "UVDetection", function()
+		if (UVHUDDisplayPursuit and not UVHUDDisplayCooldown) then return end
+
+		local Radius = 280
+		local MaxArcWidth = 44
+		local BaseThickness = 4
+		local MaxThickness = 12
+
+		local localPly = LocalPlayer()
+
+	    local cx, cy = ScrW() / 2, ScrH() / 2
+	    local plyPos = localPly:GetPos()
+	    local eyeAng = localPly:EyeAngles()
+	    local plyForward = eyeAng:Forward()
+	    local plyRight = eyeAng:Right()
+
+	    for _, unit in pairs(UnitTable) do
+			if IsValid(unit) then
+	        	local meter = unit:GetNWFloat("UVDetectionMeter", 0)
+	        	if meter <= 0 then continue end
+
+	        	local dirToUnit = (unit:WorldSpaceCenter() - plyPos):GetNormalized()
+	        	local forwardDot = plyForward:Dot(dirToUnit)
+	        	local rightDot = plyRight:Dot(dirToUnit)
+				
+	        	local relAngle = math.deg(math.atan2(rightDot, forwardDot))
+
+	        	local pct = meter / 100
+	        	local activeWidth = MaxArcWidth * math.Clamp(pct * 1.2, 0.2, 1.0)
+	        	local activeThickness = math.Remap(pct, 0, 1, BaseThickness, MaxThickness)
+
+	        	local indicatorColor
+	        	local r, g, b = 255, 255, 255
+
+    			if meter < 50 then
+    			    local fraction = meter / 50
+    			    b = Lerp(fraction, 255, 0)
+				
+    			else
+    			    local fraction = (meter - 50) / 50
+    			    g = Lerp(fraction, 255, 0)
+    			    b = 0
+    			end
+
+				indicatorColor = Color(r, g, b)
+
+	        	DrawDirectionalWedge(cx, cy, Radius, 2, relAngle, MaxArcWidth, Color(0, 0, 0, 100))
+
+	        	DrawDirectionalWedge(cx, cy, Radius, activeThickness, relAngle, activeWidth, indicatorColor)
+
+				local tipRad = math.rad(relAngle)
+				local dirX = math.sin(tipRad)
+				local dirY = -math.cos(tipRad)
+				local perpX = dirY
+				local perpY = -dirX
+				local baseDist = Radius + 2
+				local tipDist = Radius + 12
+				local halfWidth = 4
+				local tipX = cx + dirX * tipDist
+				local tipY = cy + dirY * tipDist
+				local leftX = cx + dirX * baseDist + perpX * halfWidth
+				local leftY = cy + dirY * baseDist + perpY * halfWidth
+				local rightX = cx + dirX * baseDist - perpX * halfWidth
+				local rightY = cy + dirY * baseDist - perpY * halfWidth
+				surface.SetDrawColor(indicatorColor)
+				draw.NoTexture()
+				surface.DrawPoly({
+				    { x = tipX,   y = tipY },
+				    { x = rightX, y = rightY },
+				    { x = leftX,  y = leftY }
+				})
+			end
+	    end
+	end)
+end
+
+UV_UI.pursuit.general.detection = DetectionCode

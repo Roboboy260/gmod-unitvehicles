@@ -2774,9 +2774,20 @@ if SERVER then
 		
 		for unit, _ in pairs(UVUnitVehicles) do
 			if not IsValid(unit) or not unit.UnitVehicle or unit.wrecked then
+				if IsValid(unit) then
+					unit:SetNWFloat("UVDetectionMeter", 0)
+				end
+
 				UVUnitVehicles[unit] = nil
 				continue
 			end
+
+			local decayRate = 25
+			if unit.lastdetected and CurTime() - unit.lastdetected > 1 and unit.DetectionMeter and unit.DetectionMeter > 0 then
+				unit.DetectionMeter = math.max(0, unit.DetectionMeter - (decayRate * FrameTime()))
+			end
+
+			unit:SetNWFloat("UVDetectionMeter", unit.DetectionMeter or 0)
 
 			if unit.uvkillswitching then
 				UVKillSwitchCheck(unit)
@@ -2789,6 +2800,20 @@ if SERVER then
 			end
 		end
 
+		for _, unit in pairs(ents.FindByClass("uvair")) do
+			if unit.Downed or unit.disengaging or unit.crashing then
+				unit:SetNWFloat("UVDetectionMeter", 0)
+				continue
+			end
+
+			local decayRate = 25
+			if unit.lastdetected and CurTime() - unit.lastdetected > 1 and unit.DetectionMeter and unit.DetectionMeter > 0 then
+				unit.DetectionMeter = math.max(0, unit.DetectionMeter - (decayRate * FrameTime()))
+			end
+
+			unit:SetNWFloat("UVDetectionMeter", unit.DetectionMeter or 0)
+		end
+
 		UVUnitsHavePlayers = next(UVGetPlayerCops()) ~= nil
 		
 		for _, v in pairs(UVWantedTableVehicle) do
@@ -2796,7 +2821,7 @@ if SERVER then
 			
 			local vScope = UVGetScope(v)
 			if not vScope then continue end
-			local visualrange = (vScope.Hiding or (not vScope.InPursuit and UVCheckIfHiding(v))) and 1000000 or 25000000
+			local visualrange = (vScope.Hiding or (not vScope.InPursuit and UVCheckIfHiding(v))) and 6250000 or 25000000
 			vScope.UnitsChasing = 0
 			
 			v.closestunit = nil
@@ -2807,9 +2832,9 @@ if SERVER then
 			-- Visibility check for helicopter, should they have busting enabled.
 			for _, j in pairs(ents.FindByClass("uvair")) do
 				if (not (j.Downed and j.disengaging and j.crashing)) and j:GetTarget() == v then
-					local isInRange = j:DistIgnoreZ( v:GetPos() ) <= ( vScope.Hiding and 2000 or 10000 )
+					local isInRange = j:DistIgnoreZ( v:GetPos() ) <= ( vScope.Hiding and 5000 or 10000 )
 					
-					if isInRange and ( v.inunitview or UVVisualOnTarget( j, v ) ) then
+					if isInRange and ( v.inunitview or UVDetectEnemy(j, v, vScope.Hiding, true) ) then
 						v.inunitview = true
 						vScope.UnitsChasing = vScope.UnitsChasing + 1
 						--check = true
@@ -2831,7 +2856,7 @@ if SERVER then
 				for unit, _ in pairs(UVUnitVehicles) do
 					local dist = unit:GetPos():DistToSqr(v:GetPos())
 					local withinRange = dist < visualrange
-					if withinRange and ( v.inunitview or UVVisualOnTarget( unit, v ) ) then
+					if withinRange and ( v.inunitview or UVDetectEnemy(unit, v, vScope.Hiding, nil) ) then
 						vScope.UnitsChasing = vScope.UnitsChasing + 1
 						v.inunitview = true
 						
@@ -3751,6 +3776,8 @@ else -- CLIENT Settings | HUD/Options
 
 	UVPoliceScanner = CreateClientConVar("unitvehicle_policescanner", 1, true, false, "Unit Vehicles: If set to 1, the police scanner will be enabled.")
 	UVPoliceScannerVehicle = CreateClientConVar("unitvehicle_policescanner_vehicle", 0, true, false, "Unit Vehicles: If set to 1, the police scanner will use your vehicle as its anchor rather than the camera viewpoint.")
+
+	UVDetection = CreateClientConVar("unitvehicle_detection", 1, true, false, "Unit Vehicles: If set to 1, a visual detection indicator will be displayed.")
 
 	-- for i = 1, MAX_HEAT_LEVEL do
 	-- 	local prevIterator = i - 1
@@ -4955,52 +4982,52 @@ else -- CLIENT Settings | HUD/Options
 		
 		local devMode = GetConVar("developer"):GetBool()
 		
-		-- if UVSubtitles:GetBool() and UV_CurrentSubtitle and CurTime() < (UV_SubtitleEnd or 0) then
-			-- local text = lang(UV_CurrentSubtitle)
-			-- local textcs = lang(UV_CurrentSubtitleCallsign or " ")
-			-- local font = "UVMostWantedLeaderboardFont"
-			-- local maxWidth = w * 0.4  -- maximum width of the subtitle block
-			-- local bgPadding = 8
-			-- local outlineAlpha = 150
+		if UVSubtitles:GetBool() and UV_CurrentSubtitle and CurTime() < (UV_SubtitleEnd or 0) then
+			local text = lang(UV_CurrentSubtitle)
+			local textcs = lang(UV_CurrentSubtitleCallsign or " ")
+			local font = "UVMostWantedLeaderboardFont"
+			local maxWidth = w * 0.4
+			local bgPadding = 8
+			local outlineAlpha = 150
 
-			-- surface.SetFont(font)
-			-- if text == "" or text == UV_CurrentSubtitle then -- invalid or missing localization; Active for debugging purposes
-			-- else
-				-- local lines = {}
-				-- local currentLine = ""
-				-- for word in text:gmatch("%S+") do
-					-- local testLine = (currentLine == "" and "" or currentLine .. " ") .. word
-					-- local textWidth, _ = surface.GetTextSize(testLine)
-					-- if textWidth > maxWidth then
-						-- if currentLine ~= "" then
-							-- table.insert(lines, currentLine)
-						-- end
-						-- currentLine = word
-					-- else
-						-- currentLine = testLine
-					-- end
-				-- end
-				-- if currentLine ~= "" then
-					-- table.insert(lines, currentLine)
-				-- end
+			surface.SetFont(font)
+			if text == "" or text == UV_CurrentSubtitle then
+			else
+				local lines = {}
+				local currentLine = ""
+				for word in text:gmatch("%S+") do
+					local testLine = (currentLine == "" and "" or currentLine .. " ") .. word
+					local textWidth, _ = surface.GetTextSize(testLine)
+					if textWidth > maxWidth then
+						if currentLine ~= "" then
+							table.insert(lines, currentLine)
+						end
+						currentLine = word
+					else
+						currentLine = testLine
+					end
+				end
+				if currentLine ~= "" then
+					table.insert(lines, currentLine)
+				end
 
-				-- local lineHeight = select(2, surface.GetTextSize("A")) * 1.2
-				-- local totalHeight = #lines * lineHeight + (h * 0.02)
+				local lineHeight = select(2, surface.GetTextSize("A")) * 1.2
+				local totalHeight = #lines * lineHeight + (h * 0.02)
 
-				-- local bgX = w * 0.5 - maxWidth * 0.5 - bgPadding
-				-- local bgY = h * 0.7275 - bgPadding
-				-- local bgW = maxWidth + bgPadding * 2
-				-- local bgH = totalHeight + bgPadding * 2
+				local bgX = w * 0.5 - maxWidth * 0.5 - bgPadding
+				local bgY = h * 0.7275 - bgPadding
+				local bgW = maxWidth + bgPadding * 2
+				local bgH = totalHeight + bgPadding * 2
 
-				-- draw.RoundedBox(12, bgX, bgY, bgW, bgH, Color(0, 0, 0, 150))
+				draw.RoundedBox(12, bgX, bgY, bgW, bgH, Color(0, 0, 0, 150))
 
-				-- for i, line in ipairs(lines) do
+				for i, line in ipairs(lines) do
 									
-					-- draw.SimpleTextOutlined( textcs, font, w * 0.5, h * 0.725, Color(255, 255, 100), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1.25, Color(0, 0, 0, outlineAlpha) )
-					-- draw.SimpleTextOutlined( line, font, w * 0.5, h * 0.755 + (i - 1) * lineHeight, pcol, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1.25, Color(0, 0, 0, outlineAlpha) )
-				-- end
-			-- end
-		-- end
+					draw.SimpleTextOutlined( textcs, font, w * 0.5, h * 0.725, Color(255, 255, 100), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1.25, Color(0, 0, 0, outlineAlpha) )
+					draw.SimpleTextOutlined( line, font, w * 0.5, h * 0.755 + (i - 1) * lineHeight, pcol, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1.25, Color(0, 0, 0, outlineAlpha) )
+				end
+			end
+		end
 
 		-- if UVHUDCopMode and input.IsKeyDown(var) and not gui.IsGameUIVisible() and vgui.GetKeyboardFocus() == nil then
 		if input.IsKeyDown(var) and not gui.IsGameUIVisible() and vgui.GetKeyboardFocus() == nil then
@@ -5193,6 +5220,16 @@ else -- CLIENT Settings | HUD/Options
 					w = w,
 					h = h
 				})
+			end
+		end
+
+		--Detection
+		if UVDetection:GetBool() and (not UVHUDDisplayPursuit or UVHUDDisplayCooldown) and not UVHUDCopMode and not uvclientjammed and localPlayer:InVehicle() and areUnitsPresent then
+			local detectionHandler
+			if not detectionHandler then detectionHandler = UV_UI.pursuit.general.detection end
+			
+			if detectionHandler then
+				detectionHandler()
 			end
 		end
 
@@ -5801,19 +5838,19 @@ else -- CLIENT Settings | HUD/Options
 					".bullhorn.",
 				}
 
-				-- local shouldUpdate = true
-				-- for _, substr in ipairs(excludeSubstrings) do
-					-- if string.find(key, substr, 1, true) then
-						-- shouldUpdate = false
-						-- break
-					-- end
-				-- end
+				local shouldUpdate = true
+				for _, substr in ipairs(excludeSubstrings) do
+					if string.find(key, substr, 1, true) then
+						shouldUpdate = false
+						break
+					end
+				end
 
-				-- if shouldUpdate then
-					-- UV_CurrentSubtitle = key
-					-- UV_SubtitleEnd = CurTime() + source:GetLength()
-					-- UV_CurrentSubtitleCallsign = callsign
-				-- end
+				if shouldUpdate then
+					UV_CurrentSubtitle = key
+					UV_SubtitleEnd = CurTime() + source:GetLength()
+					UV_CurrentSubtitleCallsign = callsign
+				end
 			end
 		end)
 	end)

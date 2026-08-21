@@ -587,7 +587,6 @@ if SERVER then
 
     function UVOptimizeRespawn( vehicle, player )
         if UVOptimizeRespawnDelayed and not player then return end
-        if UVJammerDeployed and not player then return end
         if vehicle.grappler then return end
 
         local rhino = vehicle.rhino
@@ -2380,7 +2379,7 @@ if SERVER then
         car:EmitSound( "gadgets/jammer/deactivate1.wav" )
         
         if UVTargeting then
-            UVSoundChatter(car, 1, "dispatchjammerend", 8)
+            UVSoundChatter(car, "nil", "dispatchjammerend", nil, "DISPATCH")
         end
     end
 

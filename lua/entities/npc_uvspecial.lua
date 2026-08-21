@@ -1350,6 +1350,8 @@ if SERVER then
 					self.targetpos = self.e:WorldSpaceCenter()
 				elseif self.v.rhino then
 					self.targetpos = (self.e:WorldSpaceCenter() + (self.e:GetVelocity() / 2))
+				elseif enemyvelocity <= UVBustSpeed * 10 then
+					self.targetpos = (self.e:WorldSpaceCenter() + self.e:GetVelocity())
 				else
 					self.targetpos = (point + self.e:GetVelocity())
 				end
@@ -2052,7 +2054,7 @@ if SERVER then
 			end
 			
 			--Losing conditions
-			local visualrange = (eScope and eScope.Hiding) and 1000000 or 25000000
+			local visualrange = (eScope and eScope.Hiding) and 6250000 or 25000000
 			if visualOnEnemy and eedistSqr < visualrange then
 				self:ApplyUnitDifficulty()
 				if not table.HasValue(UVUnitsChasing, self) then

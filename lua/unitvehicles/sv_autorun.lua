@@ -819,7 +819,6 @@ end
 -- Helper function for vehicle spawning logic
 function HandleVehicleSpawning(Patrolling)
 	
-	if UVJammerDeployed then return end
 	if not CheckVehicleLimit() then return end
 
 	-- Handle other special spawns
@@ -1098,6 +1097,42 @@ function UVStraightToWaypoint(origin, waypoint)
 	
 	local tr = util.TraceLine({start = origin, endpos = waypoint, mask = MASK_NPCWORLDSTATIC}).Fraction==1
 	return tobool(tr)
+end
+
+function UVDetectEnemy(unit, target, ishiding, ischopper)
+	if not unit or not target then return end
+	local vScope = UVGetScope(target)
+
+	unit.DetectionMeter = unit.DetectionMeter or 0
+
+	local range = ishiding and 6250000 or 25000000
+	local buildupRate = ishiding and 50 or 100
+
+	if UVJammerDeployed then
+		buildupRate = buildupRate / 2
+	end
+
+	if ischopper then
+		range = ishiding and 25000000 or 100000000
+	end
+
+    if UVVisualOnTarget( unit, target ) then
+		if UVTargeting and not vScope.EnemyEscaping then return true end
+
+		unit.lastdetected = CurTime()
+
+		local dist = unit:GetPos():DistToSqr(target:GetPos())
+        
+        local closeness = 1 - (dist / range)
+        local fillAmount = buildupRate * closeness * FrameTime()
+        
+        unit.DetectionMeter = math.min(100, unit.DetectionMeter + fillAmount)
+        if unit.DetectionMeter >= 100 then
+            return true
+        end
+    end
+
+	return nil
 end
 
 hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Override Glide collisions for the time being 

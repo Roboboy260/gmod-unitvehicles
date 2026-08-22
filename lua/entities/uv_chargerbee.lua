@@ -11,6 +11,7 @@ ENT.EntityModelName = "uv_chargerbee" -- Change this to the model name of your v
 ENT.GlideCategory = "unitvehiclesglide"
 ENT.ChassisModel = string.format( "models/unitvehiclescars/%s/%s.mdl", ENT.VehicleName, ENT.EntityModelName )
 ENT.CanSwitchSiren = true
+ENT.UVVehicleModel = "policecar"
 
 DEFINE_BASECLASS( "base_glide_car" )
 

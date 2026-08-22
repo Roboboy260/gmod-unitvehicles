@@ -12,6 +12,7 @@ ENT.PrintName = "#uv.veh.viper"
 ENT.GlideCategory = "unitvehiclesglide"
 ENT.ChassisModel = modelpath .. "base.mdl"
 ENT.CanSwitchSiren = true
+ENT.UVVehicleModel = "policecar"
 
 DEFINE_BASECLASS( "base_glide_car" )
 

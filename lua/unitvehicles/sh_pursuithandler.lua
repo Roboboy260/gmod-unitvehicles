@@ -5833,9 +5833,7 @@ else -- CLIENT Settings | HUD/Options
 				local excludeSubstrings = {
 					".misc.radioon",
 					".misc.radiooff",
-					".misc.emergency",
-					".dispatch.idletalk",
-					".bullhorn.",
+					".misc.emergency"
 				}
 
 				local shouldUpdate = true

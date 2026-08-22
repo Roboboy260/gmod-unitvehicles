@@ -10,6 +10,7 @@ ENT.PrintName = "#uv.veh.crownvic"
 ENT.GlideCategory = "unitvehiclesglide"
 ENT.ChassisModel = "models/unitvehiclescars/uv_fordcrownvic/uv_fordcrownvic.mdl"
 ENT.CanSwitchSiren = true
+ENT.UVVehicleModel = "policecar"
 
 ENT.NitrousPower = 2.5
 ENT.NitrousDepletionRate = 0.55

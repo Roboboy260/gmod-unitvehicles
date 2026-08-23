@@ -771,6 +771,7 @@ if SERVER then
 			local lookDist = math.max(250, speedInUnits)
 			
 			local traceStart = self.v:WorldSpaceCenter()
+			traceStart.z = traceStart.z + self.v.rideheight
 			local carLength = self.v.length or 120
 			-- Project trace slightly ahead of the vehicle to prevent clipping own bumper
 			traceStart = traceStart + (forward * (carLength * 0.5 + 10))

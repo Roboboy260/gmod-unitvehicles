@@ -4482,7 +4482,7 @@ function UVNavigateDVWaypointOptimized( self, vectors )
 	for i = 0, maxWaypoints - 1 do
 		local t = ( maxWaypoints > 1 ) and ( i / (maxWaypoints - 1) ) or 0
 		local samplePos = startPos + ( endPos - startPos ) * t
-		local wp = UVGetNearestVisibleWaypoint( samplePos )
+		local wp = dvd.GetNearestWaypoint( samplePos )
 		if wp and wp.Target then
 			local v = wp.Target
 			if ( lastAdded == nil or v:DistToSqr( lastAdded ) > minStepSq ) then

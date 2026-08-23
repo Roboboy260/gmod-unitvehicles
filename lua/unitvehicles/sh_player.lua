@@ -643,7 +643,7 @@ if SERVER then
 	    	enemylocation = ply:GetPos() + Vector(0, 0, 50)
 	    end
     
-	    local enemywaypoint = UVGetNearestVisibleWaypoint(enemylocation)
+	    local enemywaypoint = dvd.GetNearestWaypoint(enemylocation)
 	    local enemywaypointgroup = enemywaypoint["Group"]
 	    local waypointtable = {}
 	    local prioritywaypointtable = {}
@@ -986,7 +986,7 @@ if SERVER then
         -- Get last passed checkpoint
         if not UVRaceInProgress or not table.HasValue( UVRaceCurrentParticipants, vehicle ) then
             if not dvd then return end
-            local waypoint = UVGetNearestVisibleWaypoint( vehicle:GetPos() )
+            local waypoint = dvd.GetNearestWaypoint( vehicle:GetPos() )
 
             pos = waypoint.Target --+ ( vehicle:BoundingRadius() * vector_up )
             ang = waypoint.Neighbors[1] and ( dvd.Waypoints[waypoint.Neighbors[1]].Target - waypoint.Target ):GetNormalized():Angle() or Angle(0)

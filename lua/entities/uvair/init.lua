@@ -182,7 +182,7 @@ function ENT:FindPatrol()
 		return
 	end
 	
-	local Waypoint = UVGetNearestVisibleWaypoint(self:WorldSpaceCenter())
+	local Waypoint = dvd.GetNearestWaypoint(self:WorldSpaceCenter())
 	if Waypoint.Neighbors then
 		local WaypointTable = {}
 		for k, v in pairs(Waypoint.Neighbors) do

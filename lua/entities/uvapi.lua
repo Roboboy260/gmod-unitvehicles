@@ -843,10 +843,10 @@ function ENT:GetSuspectLeadPathTarget( enemy )
 		return leadPos
 	end
 
-	local wp, wpId = UVGetNearestVisibleWaypoint( suspectPos )
+	local wp, wpId = dvd.GetNearestWaypoint( suspectPos )
 
 	if not wp then
-		local wpAtLead = UVGetNearestVisibleWaypoint( leadPos )
+		local wpAtLead = dvd.GetNearestWaypoint( leadPos )
 		return wpAtLead and wpAtLead.Target or leadPos
 	end
 

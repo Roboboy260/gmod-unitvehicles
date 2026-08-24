@@ -39,7 +39,7 @@ dispbreakaway = "All Units, suspect was last seen ..."
 heat2 = "Condition 2"
 heat3 = "Condition 3"
 heat4 = "Condition 4"
-heat5 = "Condition 5/Special Units taking over the pursuit soon"
+heat5 = "Condition 5"
 heat5reassure = "Not much I can do"
 heat6 = "Condition 6"
 heat7 = "Condition 7"
@@ -99,7 +99,7 @@ headingwest = "Suspect is heading west"
 heat2 = "Condition 2"
 heat3 = "Condition 3"
 heat4 = "Condition 4"
-heat5 = "Condition 5/Special Units taking over the pursuit soon"
+heat5 = "Condition 5"
 heat6 = "Condition 6"
 heat7 = "Condition 7"
 heat8 = "Condition 8"
@@ -254,7 +254,7 @@ chirpgeneric = *beep*
 emergency = *beep boop*
 radiooff = After talking
 radioon = Before talking
-static = When Unit gets taken out
+static = When Unit gets taken out/radio jammed
 
 --- RADIO CODES ---
 

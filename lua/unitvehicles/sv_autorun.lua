@@ -1099,9 +1099,10 @@ function UVStraightToWaypoint(origin, waypoint)
 	return tobool(tr)
 end
 
-function UVDetectEnemy(unit, target, ishiding, ischopper)
+function UVDetectEnemy(unit, target, ischopper)
 	if not unit or not target then return end
 	local vScope = UVGetScope(target)
+	local ishiding = UVCheckIfHiding(target)
 
 	unit.DetectionMeter = unit.DetectionMeter or 0
 
@@ -1117,7 +1118,10 @@ function UVDetectEnemy(unit, target, ishiding, ischopper)
 	end
 
     if UVVisualOnTarget( unit, target ) then
-		if UVTargeting and not vScope.EnemyEscaping then return true end
+		if (vScope.InPursuit or vScope.IsBeingPulledOver) and not vScope.EnemyEscaping then 
+			unit.DetectionMeter = 100
+			return true 
+		end
 
 		unit.lastdetected = CurTime()
 

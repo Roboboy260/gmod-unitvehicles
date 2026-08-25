@@ -12,12 +12,14 @@ ENT.ChassisModel = "models/unitvehiclescars/uv_fordexplorer/uv_fordexplorer.mdl"
 ENT.CanSwitchSiren = true
 ENT.UVVehicleModel = "policecar"
 
-DEFINE_BASECLASS( "base_glide_car" )
+ENT.StartSound = "uvcars/shared/startup_suv.mp3"
 
 ENT.NitrousPower = 2.5
 ENT.NitrousDepletionRate = 0.55
-ENT.NitrousRegenRate = 0.1
+ENT.NitrousRegenRate = 0.2
 ENT.NitrousRegenDelay = 0.6
+
+DEFINE_BASECLASS( "base_glide_car" )
 
 ENT.SirenTable = {
     ")uvcars/federal sig ss/emv_wail.wav",
@@ -165,7 +167,7 @@ if CLIENT then
 }
      
     function ENT:OnCreateEngineStream( stream )
-        stream:LoadPreset( "uvfordexplorerengine" )
+        stream:LoadPreset( "uvsupport" )
     end
 
 
@@ -373,6 +375,9 @@ if SERVER then
             gib:SetAngles(self:GetAngles())
             gib:SetColor(self:GetColor())
             gib:SetCollisionGroup(COLLISION_GROUP_WORLD)
+            if gib:GetModel() == "models/unitvehiclescars/uv_fordexplorer/trunk.mdl" then
+                gib:SetSubMaterial(7, "models/unitvehiclescars/shared/windowdamage1")
+            end
             gib:Spawn()
             if IsValid(gib:GetPhysicsObject()) then
                 if ishood then

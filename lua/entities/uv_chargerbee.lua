@@ -13,6 +13,13 @@ ENT.ChassisModel = string.format( "models/unitvehiclescars/%s/%s.mdl", ENT.Vehic
 ENT.CanSwitchSiren = true
 ENT.UVVehicleModel = "policecar"
 
+ENT.StartSound = "uvcars/shared/startup_muscle.mp3"
+
+ENT.NitrousPower = 2.5
+ENT.NitrousDepletionRate = 0.55
+ENT.NitrousRegenRate = 0.2
+ENT.NitrousRegenDelay = 0.6
+
 DEFINE_BASECLASS( "base_glide_car" )
 
 ENT.SirenTable = {
@@ -162,7 +169,7 @@ if CLIENT then
     }
 
     function ENT:OnCreateEngineStream( stream )
-        stream:LoadPreset( "uvdodgechargerbee" )
+        stream:LoadPreset( "uvpursuit" )
     end
 
     function ENT:OnUpdateMisc()

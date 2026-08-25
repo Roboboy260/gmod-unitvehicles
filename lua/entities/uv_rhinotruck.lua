@@ -12,6 +12,11 @@ ENT.ChassisModel = "models/unitvehiclescars/uv_rhinotruck/uv_rhinotruck.mdl"
 ENT.CanSwitchSiren = true
 ENT.UVVehicleModel = "policecar"
 
+ENT.NitrousPower = 2.5
+ENT.NitrousDepletionRate = 0.55
+ENT.NitrousRegenRate = 0.2
+ENT.NitrousRegenDelay = 0.6
+
 DEFINE_BASECLASS( "base_glide_car" )
 
 ENT.SirenTable = {

@@ -1,0 +1,215 @@
+{
+    "kv": [],
+    "layers": {
+        "pops": {
+            "path": "uvcars/pops.mp3",
+            "controllers": [
+                [
+                    "throttle",
+                    0,
+                    1,
+                    "volume",
+                    2.5,
+                    0
+                ],
+                [
+                    "rpmFraction",
+                    0,
+                    1,
+                    "volume",
+                    0,
+                    1
+                ],
+                [
+                    "rpmFraction",
+                    0,
+                    1,
+                    "volume",
+                    0,
+                    1
+                ]
+            ],
+            "redline": false
+        },
+        "int_idle": {
+            "path": "uvcars/6.1lv8/idle.mp3",
+            "controllers": [
+                [
+                    "rpmFraction",
+                    0.202,
+                    0.395,
+                    "volume",
+                    1.023,
+                    0
+                ],
+                [
+                    "rpmFraction",
+                    0,
+                    1,
+                    "pitch",
+                    1.162,
+                    1
+                ]
+            ],
+            "redline": false
+        },
+        "limiter": {
+            "path": "uvcars/6.1lv8/limiter.mp3",
+            "controllers": [
+                [
+                    "redline",
+                    0,
+                    1,
+                    "volume",
+                    0,
+                    1.705
+                ],
+                [
+                    "rpmFraction",
+                    0,
+                    1,
+                    "pitch",
+                    0,
+                    1
+                ]
+            ],
+            "redline": false
+        },
+        "off_high_in": {
+            "path": "uvcars/6.1lv8/offlow.mp3",
+            "controllers": [
+                [
+                    "throttle",
+                    0,
+                    1,
+                    "volume",
+                    0.477,
+                    0
+                ],
+                [
+                    "rpmFraction",
+                    0,
+                    1,
+                    "pitch",
+                    0,
+                    1.477
+                ],
+                [
+                    "rpmFraction",
+                    0,
+                    0.136,
+                    "volume",
+                    0,
+                    2.5
+                ],
+                [
+                    "rpmFraction",
+                    0,
+                    1,
+                    "volume",
+                    0.886,
+                    0
+                ]
+            ],
+            "redline": false
+        },
+        "on_mid_in": {
+            "path": "uvcars/6.1lv8/onhigh.mp3",
+            "controllers": [
+                [
+                    "throttle",
+                    0,
+                    1,
+                    "volume",
+                    0,
+                    1.068
+                ],
+                [
+                    "rpmFraction",
+                    0,
+                    1,
+                    "pitch",
+                    0.068,
+                    1
+                ],
+                [
+                    "rpmFraction",
+                    0,
+                    1,
+                    "volume",
+                    0,
+                    0.987
+                ],
+                [
+                    "redline",
+                    1,
+                    0,
+                    "volume",
+                    0,
+                    1.25
+                ]
+            ],
+            "redline": false
+        },
+        "offveryhigh": {
+            "path": "uvcars/6.1lv8/offhigh.mp3",
+            "controllers": [
+                [
+                    "throttle",
+                    0,
+                    1,
+                    "volume",
+                    0.932,
+                    0
+                ],
+                [
+                    "rpmFraction",
+                    0,
+                    1,
+                    "pitch",
+                    0,
+                    1
+                ],
+                [
+                    "rpmFraction",
+                    0,
+                    1,
+                    "volume",
+                    0,
+                    0.977
+                ]
+            ],
+            "redline": false
+        },
+        "onlow": {
+            "path": "uvcars/6.1lv8/onlow.mp3",
+            "controllers": [
+                [
+                    "throttle",
+                    0,
+                    1,
+                    "volume",
+                    0,
+                    1
+                ],
+                [
+                    "rpmFraction",
+                    0,
+                    1,
+                    "pitch",
+                    0,
+                    1.068
+                ],
+                [
+                    "rpmFraction",
+                    0,
+                    1,
+                    "volume",
+                    0.795,
+                    0
+                ]
+            ],
+            "redline": false
+        }
+    }
+}

@@ -12,6 +12,13 @@ ENT.ChassisModel = "models/unitvehiclescars/uv_coloradozr2/uv_coloradozr2.mdl"
 ENT.CanSwitchSiren = true
 ENT.UVVehicleModel = "policecar"
 
+ENT.StartSound = "uvcars/shared/startup_offroad.mp3"
+
+ENT.NitrousPower = 2.5
+ENT.NitrousDepletionRate = 0.55
+ENT.NitrousRegenRate = 0.2
+ENT.NitrousRegenDelay = 0.6
+
 DEFINE_BASECLASS( "base_glide_car" )
 
 ENT.SirenTable = {
@@ -145,7 +152,7 @@ if CLIENT then
     }
 
     function ENT:OnCreateEngineStream( stream )
-        stream:LoadPreset( "uvcoloradozr2engine" )
+        stream:LoadPreset( "uvspecial" )
     end
 
     local path = string.format("models/unitvehiclescars/uv_coloradozr2/", ENT.VehicleName)

@@ -12,9 +12,11 @@ ENT.ChassisModel = "models/unitvehiclescars/uv_fordcrownvic/uv_fordcrownvic.mdl"
 ENT.CanSwitchSiren = true
 ENT.UVVehicleModel = "policecar"
 
+ENT.StartSound = "uvcars/shared/startup_saloon.mp3"
+
 ENT.NitrousPower = 2.5
 ENT.NitrousDepletionRate = 0.55
-ENT.NitrousRegenRate = 0.1
+ENT.NitrousRegenRate = 0.2
 ENT.NitrousRegenDelay = 0.6
 
 DEFINE_BASECLASS( "base_glide_car" )
@@ -145,9 +147,8 @@ if CLIENT then
 
     }
 
-
     function ENT:OnCreateEngineStream( stream )
-        stream:LoadPreset( "uvfordcrownvicengine" )
+        stream:LoadPreset( "uvpatrol" )
     end
 
     local path = string.format("models/unitvehiclescars/uv_fordcrownvic/", ENT.VehicleName)

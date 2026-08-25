@@ -2834,7 +2834,7 @@ if SERVER then
 				if (not (j.Downed and j.disengaging and j.crashing)) and j:GetTarget() == v then
 					local isInRange = j:DistIgnoreZ( v:GetPos() ) <= ( vScope.Hiding and 5000 or 10000 )
 					
-					if isInRange and ( v.inunitview or UVDetectEnemy(j, v, vScope.Hiding, true) ) then
+					if isInRange and ( v.inunitview or UVDetectEnemy(j, v, true) ) then
 						v.inunitview = true
 						vScope.UnitsChasing = vScope.UnitsChasing + 1
 						--check = true
@@ -2856,7 +2856,7 @@ if SERVER then
 				for unit, _ in pairs(UVUnitVehicles) do
 					local dist = unit:GetPos():DistToSqr(v:GetPos())
 					local withinRange = dist < visualrange
-					if withinRange and ( v.inunitview or UVDetectEnemy(unit, v, vScope.Hiding, nil) ) then
+					if withinRange and ( v.inunitview or UVDetectEnemy(unit, v, nil) ) then
 						vScope.UnitsChasing = vScope.UnitsChasing + 1
 						v.inunitview = true
 						

@@ -43,21 +43,21 @@ if CLIENT then
     
     ENT.ExhaustOffsets = {
         {
-				pos = Vector(-96.66,7.86,9.12),
-				ang = Angle(0,0,0),
-			},
+			pos = Vector(-96.66,7.86,9.12),
+			ang = Angle(0,0,0),
+		},
 			{
-				pos = Vector(-96.66,-7.86,9.12),
-				ang = Angle(0,0,0),
-			},
+			pos = Vector(-96.66,-7.86,9.12),
+			ang = Angle(0,0,0),
+		},
         {
-				pos = Vector(-96.66,2.61,9.12),
-				ang = Angle(0,0,0),
-			},
+			pos = Vector(-96.66,2.61,9.12),
+			ang = Angle(0,0,0),
+		},
         {
-				pos = Vector(-96.66,-2.61,9.12),
-				ang = Angle(0,0,0),
-			},
+			pos = Vector(-96.66,-2.61,9.12),
+			ang = Angle(0,0,0),
+		},
     }
     
     ENT.EngineSmokeStrips = {

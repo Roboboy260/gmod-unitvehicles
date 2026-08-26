@@ -1118,12 +1118,12 @@ function UVDetectEnemy(unit, target, ischopper)
 	end
 
     if UVVisualOnTarget( unit, target ) then
-		if (vScope.InPursuit or vScope.IsBeingPulledOver) and not vScope.EnemyEscaping then 
+		unit.lastdetected = CurTime()
+
+		if UVTargeting and (vScope.InPursuit or vScope.IsBeingPulledOver) and not vScope.EnemyEscaping then 
 			unit.DetectionMeter = 100
 			return true 
 		end
-
-		unit.lastdetected = CurTime()
 
 		local dist = unit:GetPos():DistToSqr(target:GetPos())
         

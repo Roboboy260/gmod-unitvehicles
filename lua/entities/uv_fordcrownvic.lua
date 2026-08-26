@@ -38,15 +38,17 @@ if CLIENT then
 
     ENT.CameraOffset = Vector( -250, 0, 65 )
 
+    ENT.ExhaustPopSound = ""
+
     ENT.ExhaustOffsets = {
         {
             pos = Vector(-118.2,30.09,4.96),
-		ang = Angle(210,-180,0),
-	},
+	    	ang = Angle(210,-180,0),
+	    },
         {
             pos = Vector(-118.2,-30.09,4.96),
-		ang = Angle(210,-180,0),
-	},
+	    	ang = Angle(210,-180,0),
+	    },
     }
 
     ENT.EngineSmokeStrips = {

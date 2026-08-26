@@ -36,6 +36,8 @@ if CLIENT then
     ENT.SirenLoopAltSound = ")uvcars/federal sig rumbler/emv_horn.wav"
     ENT.HornSound = ")uvcars/federal sig rumbler/emv_horn.wav"
 
+    ENT.ExhaustPopSound = ""
+
     ENT.ExhaustOffsets = {
         {
             pos = Vector(-39.7,55.14,5.15), angle = Angle(180,90,0),

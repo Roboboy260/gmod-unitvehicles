@@ -2,7 +2,7 @@
     "kv": [],
     "layers": {
         "pops": {
-            "path": "uvcars/pops.mp3",
+            "path": "uvcars/shared/pops.mp3",
             "controllers": [
                 [
                     "throttle",
@@ -11,14 +11,6 @@
                     "volume",
                     2.5,
                     0
-                ],
-                [
-                    "rpmFraction",
-                    0,
-                    1,
-                    "volume",
-                    0,
-                    1
                 ],
                 [
                     "rpmFraction",

@@ -2324,7 +2324,7 @@ function UVRamVehicle(vehicle)
 
 	vehicle.rammed = true
 
-	if math.random(0,10) == 1 then
+	if math.random(0,10) == 1 and vehicle:GetVelocity():LengthSqr() >= 10000 then
 		vehicle.honkwhenrammed = true
 	end
 

@@ -394,11 +394,12 @@ if SERVER then
 			--self:EmitSound(soundFile, 10000, 100, 1, CHAN_STREAM)
 			if not IsValid( self ) then return 0 end
 			if UVBullhornLastDuration and CurTime() < UVBullhornLastDuration then return 0 end
+			
+			ChatterLastPlay = initTime
+			
 			UVBullhornLastDuration = CurTime() + SoundDuration( soundFile )
 			self:EmitSound( soundFile, 120, 100, 1, CHAN_AUTO )
-				-- local bullhorn = CreateSound(self, soundFile, recpFilter)
-				-- bullhorn:SetSoundLevel(120)
-				-- bullhorn:Play()
+			UVRelayToClients(initTime, soundFile, parameters, true, nil, self and self.callsign)
 
 			return 4
 			

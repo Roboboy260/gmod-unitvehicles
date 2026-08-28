@@ -177,9 +177,9 @@ if CLIENT then
 		local eo, hl, br = self:IsEngineOn(), self:GetHeadlightState(), self:IsBraking()
 		BaseClass.OnUpdateMisc( self )
 
-		self:SetSubMaterial(23, "")
+		self:SetSubMaterial(24, "")
 		if eo and br then -- Rear Centre Lights
-			self:SetSubMaterial(23, path .. "brakelightlit")
+			self:SetSubMaterial(24, path .. "brakelightlit")
 		end
 	end
 end
@@ -398,7 +398,7 @@ if SERVER then
         local enginehealth = self:GetEngineHealth()
 
         if enginehealth < .5 then --BASE
-            self:SetSubMaterial(12, "models/unitvehiclescars/uv_chargerbee/skin_0dam")
+            self:SetSubMaterial(13, "models/unitvehiclescars/uv_chargerbee/skin_0dam")
         end
 
         if fronthit then --FRONT
@@ -491,8 +491,8 @@ if SERVER then
                 self:SetBodygroup( 6, 2 )
                 self:SetBodygroup( 8, 2 )
                 self:SetBodygroup( 10, 1 )
-                self:SetSubMaterial(18, "models/unitvehiclescars/shared/windowdamage")
-                self:SetSubMaterial(20, "models/unitvehiclescars/shared/windowdamage")
+                self:SetSubMaterial(19, "models/unitvehiclescars/shared/windowdamage")
+                self:SetSubMaterial(21, "models/unitvehiclescars/shared/windowdamage")
                 local gibmodels = {
                     "models/unitvehiclescars/uv_chargerbee/mirrorleft.mdl",
                 }
@@ -500,12 +500,12 @@ if SERVER then
                     self:DetachGibs(gibmodels)
                 end)
                 self.leftdamaged = 2
-                            elseif self.leftdamaged < 3 then
+            elseif self.leftdamaged < 3 then
                 self:SetBodygroup( 6, 2 )
                 self:SetBodygroup( 8, 2 )
                 self:SetBodygroup( 10, 1 )
-                self:SetSubMaterial(18, "models/unitvehiclescars/shared/windowdamage", "models/unitvehiclescars/shared/windowdamage1")
-                self:SetSubMaterial(20, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(19, "models/unitvehiclescars/shared/windowdamage", "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(21, "models/unitvehiclescars/shared/windowdamage1")
                 self.leftdamaged = 3
             end
         end
@@ -520,8 +520,8 @@ if SERVER then
                 self:SetBodygroup( 7, 2 )
                 self:SetBodygroup( 9, 2 )
                 self:SetBodygroup( 11, 1 )
-                self:SetSubMaterial(19, "models/unitvehiclescars/shared/windowdamage")
-                self:SetSubMaterial(21, "models/unitvehiclescars/shared/windowdamage")
+                self:SetSubMaterial(20, "models/unitvehiclescars/shared/windowdamage")
+                self:SetSubMaterial(22, "models/unitvehiclescars/shared/windowdamage")
                 local gibmodels = {
                     "models/unitvehiclescars/uv_chargerbee/mirrorright.mdl",
                 }
@@ -529,12 +529,12 @@ if SERVER then
                     self:DetachGibs(gibmodels)
                 end)
                 self.rightdamaged = 2
-                            elseif self.rightdamaged < 3 then
+            elseif self.rightdamaged < 3 then
                 self:SetBodygroup( 7, 2 )
                 self:SetBodygroup( 9, 2 )
                 self:SetBodygroup( 11, 1 )
-                self:SetSubMaterial(19, "models/unitvehiclescars/shared/windowdamage1")
-                self:SetSubMaterial(21, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(20, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(22, "models/unitvehiclescars/shared/windowdamage1")
                 self.rightdamaged = 3
             end
         end

@@ -5799,6 +5799,7 @@ else -- CLIENT Settings | HUD/Options
 		local init_time = net.ReadFloat()
 		local audio_file = "sound/"..net.ReadString()
 		local can_skip = net.ReadBool()
+		local param = net.ReadUInt(4)
 		local hasCallsign = net.ReadBool()
 		local callsign = nil 
 		if hasCallsign then
@@ -5827,8 +5828,8 @@ else -- CLIENT Settings | HUD/Options
 					uvchatterplaying:Stop()
 				end
 				uvchatterplaying = source
+				source:SetVolume(param ~= 2 and ChatterVolume:GetFloat() or 0)
 				source:Play()
-				source:SetVolume(ChatterVolume:GetFloat())
 				
 				local excludeSubstrings = {
 					".misc.radioon",

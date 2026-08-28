@@ -144,6 +144,7 @@ if SERVER then
 		net.WriteFloat(init_time)
 		net.WriteString(sound_name)
 		net.WriteBool(can_skip)
+		net.WriteUInt(param or 0, 4)
 		net.WriteBool(callsign ~= nil)
 
 		if callsign ~= nil then
@@ -1729,6 +1730,8 @@ if SERVER then
 			reportingUnit = self
 		end
 		if gotbackup then
+			UVChatterBackupOnScene(reportingUnit)
+		elseif UVGlobalPursuit and UVGlobalPursuit.ResourcePoints > 1 then
 			UVChatterBackupOnTheWay(reportingUnit)
 		else
 			UVChatterDenyBackup(reportingUnit)

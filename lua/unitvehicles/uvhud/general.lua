@@ -2,7 +2,6 @@ UV_UI.general = UV_UI.general or {}
 
 local function uv_general()
     local hudyes = GetConVar("cl_drawhud"):GetBool()
-    if not hudyes then return end
 
     local w = UV_GetW()
 	local h = UV_GetH()

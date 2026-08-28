@@ -724,10 +724,6 @@ if SERVER then
 		if self.enemies and IsValid(car) then
 			if not self.enemies[car:EntIndex()] then
 				self.enemies[car:EntIndex()] = car
-
-				local selfname = self.v.racer or tostring(self)
-				local carname = car.racer or (car.UnitVehicle and car.UnitVehicle:GetClass()) or (UVGetDriver(car) and UVGetDriver(car):IsPlayer() and UVGetDriver(car):Nick()) or tostring(car)
-				print(selfname .. " hates " .. carname )
 			end
 		end
 	end
@@ -967,6 +963,57 @@ if SERVER then
 		if (self.v.uvraceparticipant and UVRaceInEffect) and not self.NodePath then
 			self:StartNodeRace()
 		end
+
+		--Pursuit Tech
+		if self.v.PursuitTech and RacerPursuitTech:GetBool() then
+			for k, v in pairs(self.v.PursuitTech) do
+				if v.Tech == "Repair Kit" then
+					if self.v.IsGlideVehicle then
+						if self.v:GetChassisHealth() <= (self.v.MaxChassisHealth / 3) then
+							self:DeployWeapon(self.v, k)
+						else
+							for _, v in pairs(self.v.wheels) do
+								if IsValid(v) and v.bursted and not self.repairtimer then
+									local id = "tire_repair"..self.v:EntIndex()
+									self.repairtimer = true
+
+									timer.Create(id, 1, 1, function()
+										self:DeployWeapon(self.v, k)
+										timer.Simple(5, function() self.repairtimer = false; end)
+									end)
+									break
+								end
+							end
+						end
+					elseif self.v.IsSimfphyscar then
+						if self.v:GetCurHealth() <= (self.v:GetMaxHealth() / 3) then
+							self:DeployWeapon(self.v, k)
+						else
+							for _, wheel in pairs(self.v.Wheels) do
+								if IsValid(wheel) and wheel:GetDamaged() and not self.repairtimer then
+									local id = "tire_repair"..self.v:EntIndex()
+									self.repairtimer = true
+
+									timer.Create(id, 1, 1, function()
+										self:DeployWeapon(self.v, k)
+										timer.Simple(5, function() self.repairtimer = false; end)
+									end)
+									break
+								end
+							end
+						end
+					elseif vcmod_main and self.v:GetClass() == "prop_vehicle_jeep" then
+						if self.v:VC_getHealth() <= (self.v:VC_getHealthMax() / 3) then
+							self:DeployWeapon(self.v, k)
+						end
+					end
+				else
+					if self:IsEnemyCloseBy() then
+						self:DeployWeapon(self.v, k)
+					end
+				end
+			end
+		end	
 		
 		if self.PatrolWaypoint and self.NodePath and self.CurrentNode then
 			if not self.racing or UVRaceCatchup:GetBool() and (self.v.uvraceparticipant and UVRaceInEffect) then
@@ -1586,57 +1633,6 @@ if SERVER then
 		else
 			self:Stop()
 		end
-		
-		--Pursuit Tech
-		if self.v.PursuitTech and RacerPursuitTech:GetBool() then
-			for k, v in pairs(self.v.PursuitTech) do
-				if v.Tech == "Repair Kit" then
-					if self.v.IsGlideVehicle then
-						if self.v:GetChassisHealth() <= (self.v.MaxChassisHealth / 3) then
-							self:DeployWeapon(self.v, k)
-						else
-							for _, v in pairs(self.v.wheels) do
-								if IsValid(v) and v.bursted and not self.repairtimer then
-									local id = "tire_repair"..self.v:EntIndex()
-									self.repairtimer = true
-
-									timer.Create(id, 1, 1, function()
-										self:DeployWeapon(self.v, k)
-										timer.Simple(5, function() self.repairtimer = false; end)
-									end)
-									break
-								end
-							end
-						end
-					elseif self.v.IsSimfphyscar then
-						if self.v:GetCurHealth() <= (self.v:GetMaxHealth() / 3) then
-							self:DeployWeapon(self.v, k)
-						else
-							for _, wheel in pairs(self.v.Wheels) do
-								if IsValid(wheel) and wheel:GetDamaged() and not self.repairtimer then
-									local id = "tire_repair"..self.v:EntIndex()
-									self.repairtimer = true
-
-									timer.Create(id, 1, 1, function()
-										self:DeployWeapon(self.v, k)
-										timer.Simple(5, function() self.repairtimer = false; end)
-									end)
-									break
-								end
-							end
-						end
-					elseif vcmod_main and self.v:GetClass() == "prop_vehicle_jeep" then
-						if self.v:VC_getHealth() <= (self.v:VC_getHealthMax() / 3) then
-							self:DeployWeapon(self.v, k)
-						end
-					end
-				else
-					if self:IsEnemyCloseBy() then
-						self:DeployWeapon(self.v, k)
-					end
-				end
-			end
-		end	
 	end
 
 	function ENT:IsEnemyCloseBy()

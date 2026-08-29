@@ -265,9 +265,9 @@ if CLIENT then
 	end
 
 	ENT.LightSubMaterials = {
-		Headlights = {15},
-		Rearlights = {11},
-		Brakelights = {11}
+		Headlights = {16},
+		Rearlights = {12},
+		Brakelights = {12}
 	}
 	
 	ENT.LightMaterials = {
@@ -445,10 +445,10 @@ if SERVER then
                 self:SetBodygroup( 2, 1 )
                 self.frontdamaged = 1
             elseif self.frontdamaged < 2 then
-                self:SetSubMaterial(8, "models/unitvehiclescars/shared/windowdamage")
+                self:SetSubMaterial(9, "models/unitvehiclescars/shared/windowdamage")
                 self.frontdamaged = 2
             elseif self.frontdamaged < 3 then
-                self:SetSubMaterial(8, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(9, "models/unitvehiclescars/shared/windowdamage1")
                 self.frontdamaged = 3
 			end
         end
@@ -459,10 +459,10 @@ if SERVER then
                 self:SetBodygroup( 6, 1 )
                 self.reardamaged = 1
             elseif self.reardamaged < 2 then
-                self:SetSubMaterial(17, "models/unitvehiclescars/shared/windowdamage")
+                self:SetSubMaterial(18, "models/unitvehiclescars/shared/windowdamage")
                 self.reardamaged = 2
             elseif self.reardamaged < 3 then
-                self:SetSubMaterial(17, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(18, "models/unitvehiclescars/shared/windowdamage1")
                 self.reardamaged = 3
 			end
         end
@@ -472,13 +472,13 @@ if SERVER then
                 self:SetBodygroup( 0, 1 )
                 self:SetBodygroup( 3, 1 )
                 self:SetBodygroup( 7, 1 )
-                self:SetSubMaterial(7, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(7, "models/unitvehiclescars/shared/windowdamage")
                 self.leftdamaged = 1
             elseif self.leftdamaged < 2 then
                 self:SetBodygroup( 0, 1 )
                 self:SetBodygroup( 3, 1 )
                 self:SetBodygroup( 7, 1 )
-                self:SetSubMaterial(7)
+                self:SetSubMaterial(7, "models/unitvehiclescars/shared/windowdamage1")
                 self.leftdamaged = 2
 			end
         end
@@ -488,13 +488,13 @@ if SERVER then
                 self:SetBodygroup( 0, 1 )
                 self:SetBodygroup( 4, 1 )
                 self:SetBodygroup( 7, 1 )
-                self:SetSubMaterial(7, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(8, "models/unitvehiclescars/shared/windowdamage")
                 self.rightdamaged = 1
             elseif self.rightdamaged < 2 then
                 self:SetBodygroup( 0, 1 )
                 self:SetBodygroup( 4, 1 )
                 self:SetBodygroup( 7, 1 )
-                self:SetSubMaterial(7, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(8, "models/unitvehiclescars/shared/windowdamage1")
                 self.rightdamaged = 2
             end
         end

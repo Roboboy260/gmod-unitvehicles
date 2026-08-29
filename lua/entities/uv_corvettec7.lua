@@ -458,11 +458,12 @@ if SERVER then
                 self:SetBodygroup( 1, 2 )
                 self:SetBodygroup( 2, 1 )
                 self:SetBodygroup( 3, 2 )
+                self:SetSubMaterial(2, "models/unitvehiclescars/shared/windowdamage")
                 self.frontdamaged = 2
             elseif self.frontdamaged < 3 then
                 self:SetBodygroup( 1, 3 )
                 self:SetBodygroup( 12, 1 )
-                self:SetSubMaterial(2, "models/unitvehiclescars/shared/windowdamage")
+                self:SetSubMaterial(2, "models/unitvehiclescars/shared/windowdamage1")
                 local gibmodels = {
                     "models/unitvehiclescars/uv_corvettec7/frbumper.mdl",
                 }
@@ -470,9 +471,6 @@ if SERVER then
                     self:DetachGibs(gibmodels)
                 end)
                 self.frontdamaged = 3
-            elseif self.frontdamaged < 4 then
-                self:SetSubMaterial(2, "models/unitvehiclescars/shared/windowdamage1")
-                self.frontdamaged = 4
             end
         end
 
@@ -481,6 +479,7 @@ if SERVER then
                 self:SetBodygroup( 8, 1 )
                 self:SetBodygroup( 9, 1 )
                 self:SetBodygroup( 10, 1 )
+                self:SetSubMaterial(17, "models/unitvehiclescars/shared/windowdamage")
                 local gibmodels = {
                     "models/unitvehiclescars/uv_corvettec7/exhaust.mdl",
                 }
@@ -491,16 +490,14 @@ if SERVER then
             elseif self.reardamaged < 2 then
                 self:SetBodygroup( 8, 2 )
                 self:SetBodygroup( 9, 2 )
+                self:SetSubMaterial(17, "models/unitvehiclescars/shared/windowdamage1")
                 self.reardamaged = 2
             elseif self.reardamaged < 3 then
                 self:SetBodygroup( 8, 3 )
                 self:SetBodygroup( 9, 2 )
                 self:SetBodygroup( 11, 1 )
-                self:SetSubMaterial(17, "models/unitvehiclescars/shared/windowdamage")
-                self.reardamaged = 3
-            elseif self.reardamaged < 4 then
                 self:SetSubMaterial(17, "models/unitvehiclescars/shared/windowdamage1")
-                self.reardamaged = 4
+                self.reardamaged = 3
             end
         end
 
@@ -512,13 +509,13 @@ if SERVER then
             elseif self.leftdamaged < 2 then
                 self:SetBodygroup( 4, 2 )
                 self:SetBodygroup( 6, 1 )
+                self:SetSubMaterial(3, "models/unitvehiclescars/shared/windowdamage1")
                 local gibmodels = {
                     "models/unitvehiclescars/uv_corvettec7/mirrorleft.mdl",
                 }
                 timer.Simple(0, function()
                     self:DetachGibs(gibmodels)
                 end)
-                self:SetSubMaterial(3, "models/unitvehiclescars/shared/windowdamage1")
                 self.leftdamaged = 2
             end
         end
@@ -531,13 +528,13 @@ if SERVER then
             elseif self.rightdamaged < 2 then
                 self:SetBodygroup( 5, 2 )
                 self:SetBodygroup( 7, 1 )
+                self:SetSubMaterial(4, "models/unitvehiclescars/shared/windowdamage1")
                 local gibmodels = {
                     "models/unitvehiclescars/uv_corvettec7/mirrorright.mdl",
                 }
                 timer.Simple(0, function()
                     self:DetachGibs(gibmodels)
                 end)
-                self:SetSubMaterial(4, "models/unitvehiclescars/shared/windowdamage1")
                 self.rightdamaged = 2
             end
         end

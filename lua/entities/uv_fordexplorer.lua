@@ -178,24 +178,24 @@ if CLIENT then
     
     local Lights = {
         ['Off'] = {
-            [20] = "",
+            [22] = "",
         },
         ['On'] = {},
         ['Brake'] = {
-            [20] = lightsPath .. "beam",
+            [22] = lightsPath .. "beam",
         },
         ['Beams'] = {
             ['Off'] = {
                 [20] = "",
-                [19] = "",
+                [21] = "",
             },
             [1] = {
-                [20] = lightsPath .. "beam",
-                [19] = lightsPath .. "litfull",
+                [22] = lightsPath .. "beam",
+                [21] = lightsPath .. "litfull",
             },
             [2] = {
-                [20] = lightsPath .. "beam",
-                [19] = lightsPath .. "litfull",
+                [22] = lightsPath .. "beam",
+                [21] = lightsPath .. "litfull",
             }
         }
     }
@@ -431,11 +431,7 @@ if SERVER then
         local enginehealth = self:GetEngineHealth()
 
         if enginehealth < .5 then --BASE
-            self:SetSubMaterial(12, "models/unitvehiclescars/shared/windowdamage")
             self:SetSubMaterial(7, "models/unitvehiclescars/uv_fordexplorer/skin_0dam")
-            if enginehealth < .25 then
-                self:SetSubMaterial(12, "models/unitvehiclescars/shared/windowdamage1")
-            end
         end
 
         if fronthit then --FRONT
@@ -446,9 +442,11 @@ if SERVER then
             elseif self.frontdamaged < 2 then
                 self:SetBodygroup( 1, 2 )
                 self:SetBodygroup( 2, 2 )
+                self:SetSubMaterial(24, "models/unitvehiclescars/shared/windowdamage")
                 self.frontdamaged = 2
             elseif self.frontdamaged < 3 then
                 self:SetBodygroup( 1, 3 )
+                self:SetSubMaterial(24, "models/unitvehiclescars/shared/windowdamage1")
                 local gibmodels = {
                     "models/unitvehiclescars/uv_fordexplorer/frbumper.mdl",
                 }
@@ -456,9 +454,6 @@ if SERVER then
                     self:DetachGibs(gibmodels)
                 end)
                 self.frontdamaged = 3
-            elseif self.frontdamaged < 4 then
-                self:SetBodygroup( 1, 3 )
-                self.frontdamaged = 4
             end
         end
 
@@ -466,14 +461,17 @@ if SERVER then
             if self.reardamaged < 1 then
                 self:SetBodygroup( 7, 1 )
                 self:SetBodygroup( 8, 1 )
+                self:SetSubMaterial(14, "models/unitvehiclescars/shared/windowdamage")
                 self.reardamaged = 1
             elseif self.reardamaged < 2 then
                 self:SetBodygroup( 7, 2 )
                 self:SetBodygroup( 8, 2 )
+                self:SetSubMaterial(14, "models/unitvehiclescars/shared/windowdamage1")
                 self.reardamaged = 2
             elseif self.reardamaged < 3 then
                 self:SetBodygroup( 7, 2 )
                 self:SetBodygroup( 8, 3 )
+                self:SetSubMaterial(14, "models/unitvehiclescars/shared/windowdamage1")
                 local gibmodels = {
                     "models/unitvehiclescars/uv_fordexplorer/rebumper.mdl",
                 }
@@ -484,6 +482,7 @@ if SERVER then
             elseif self.reardamaged < 4 then
                 self:SetBodygroup( 7, 3 )
                 self:SetBodygroup( 8, 3 )
+                self:SetSubMaterial(14, "models/unitvehiclescars/shared/windowdamage1")
                 local gibmodels = {
                     "models/unitvehiclescars/uv_fordexplorer/trunk.mdl",
                 }
@@ -498,10 +497,12 @@ if SERVER then
             if self.leftdamaged < 1 then
                 self:SetBodygroup( 3, 1 )
                 self:SetBodygroup( 4, 1 )
+                self:SetSubMaterial(12, "models/unitvehiclescars/shared/windowdamage")
                 self.leftdamaged = 1
             elseif self.leftdamaged < 2 then
                 self:SetBodygroup( 3, 1 )
                 self:SetBodygroup( 4, 1 )
+                self:SetSubMaterial(12, "models/unitvehiclescars/shared/windowdamage1")
                 self.leftdamaged = 2
             end
         end
@@ -510,10 +511,12 @@ if SERVER then
             if self.rightdamaged < 1 then
                 self:SetBodygroup( 5, 1 )
                 self:SetBodygroup( 6, 1 )
+                self:SetSubMaterial(13, "models/unitvehiclescars/shared/windowdamage")
                 self.rightdamaged = 1
             elseif self.rightdamaged < 2 then
                 self:SetBodygroup( 5, 1 )
                 self:SetBodygroup( 6, 1 )
+                self:SetSubMaterial(13, "models/unitvehiclescars/shared/windowdamage1")
                 self.rightdamaged = 2
             end
         end

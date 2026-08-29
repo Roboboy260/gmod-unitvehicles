@@ -337,7 +337,7 @@ if SERVER then
         self.rightdamaged = self.rightdamaged or 0
 
         if fronthit then --FRONT
-            if speed < 3000 and self.frontdamaged < 1 then
+            if self.frontdamaged < 1 then
                 self:SetBodygroup( 1, 1 )
                 self.frontdamaged = 1
             elseif self.frontdamaged < 2 then

@@ -440,7 +440,7 @@ if SERVER then
         end
 
         if fronthit then --FRONT
-            if speed < 3000 and self.frontdamaged < 1 then
+            if self.frontdamaged < 1 then
                 self:SetBodygroup( 1, 1 )
                 self:SetBodygroup( 2, 1 )
                 self.frontdamaged = 1

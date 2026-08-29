@@ -330,16 +330,19 @@ if SERVER then
         self:SetBodygroup( 11, 0 )
         self:SetBodygroup( 12, 0 )
         self:SetBodygroup( 13, 0 )
-        self:SetBodygroup( 14, 0 ) 
+        self:SetBodygroup( 14, 0 )
+        self:SetBodygroup( 15, 0 )
 
         self.frontdamaged = 0
+        self.frontleftdamaged = 0
+        self.frontrightdamaged = 0
         self.reardamaged = 0
         self.leftdamaged = 0
         self.rightdamaged = 0
 
     end
 
-    function ENT:DetachGibs(gibtable, ishood)
+    function ENT:DetachGibs(gibtable, ishood, glasssubmaterial)
         for i = 1, #gibtable do
             local gib = ents.Create("prop_physics")
             gib:SetModel(gibtable[i])
@@ -347,6 +350,9 @@ if SERVER then
             gib:SetAngles(self:GetAngles())
             gib:SetColor(self:GetColor())
             gib:SetCollisionGroup(COLLISION_GROUP_WORLD)
+            if glasssubmaterial then
+                gib:SetSubMaterial(glasssubmaterial, "models/unitvehiclescars/shared/windowdamage1")
+            end
             gib:Spawn()
             if IsValid(gib:GetPhysicsObject()) then
                 if ishood then
@@ -386,11 +392,16 @@ if SERVER then
         local forwarddot = dist:Dot(forward)
 
         local fronthit = forwarddot > 0 and right > -0.5 and right < 0.5
+        local frontlefthit = forwarddot > 0 and right < -0.5
+        local frontrighthit = forwarddot > 0 and right > 0.5
+            
         local rearhit = forwarddot < 0 and right > -0.5 and right < 0.5
         local lefthit = right < -0.5
         local righthit = right > 0.5
         
         self.frontdamaged = self.frontdamaged or 0
+        self.frontleftdamaged = self.frontleftdamaged or 0
+        self.frontrightdamaged = self.frontrightdamaged or 0
         self.reardamaged = self.reardamaged or 0
         self.leftdamaged = self.leftdamaged or 0
         self.rightdamaged = self.rightdamaged or 0
@@ -402,23 +413,17 @@ if SERVER then
         end
 
         if fronthit then --FRONT
-            if speed < 3000 and self.frontdamaged < 1 then
+            if self.frontdamaged < 1 then
                 self:SetBodygroup( 1, 1 )
-                self:SetBodygroup( 3, 1 )
-                self:SetBodygroup( 4, 1 )
                 self:SetBodygroup( 5, 1 )
                 self.frontdamaged = 1
             elseif self.frontdamaged < 2 then
                 self:SetBodygroup( 1, 2 )
-                self:SetBodygroup( 3, 2 )
-                self:SetBodygroup( 4, 2 )
                 self:SetBodygroup( 5, 2 )
                 self:SetSubMaterial(7, "models/unitvehiclescars/shared/windowdamage")
                 self.frontdamaged = 2
             elseif self.frontdamaged < 3 then
                 self:SetBodygroup( 1, 3 )
-                self:SetBodygroup( 3, 2 )
-                self:SetBodygroup( 4, 2 )
                 self:SetSubMaterial(7, "models/unitvehiclescars/shared/windowdamage1")
                 local gibmodels = {
                     "models/unitvehiclescars/uv_chargerbee/frbumper.mdl",
@@ -427,9 +432,44 @@ if SERVER then
                     self:DetachGibs(gibmodels)
                 end)
                 self.frontdamaged = 3
-            elseif self.frontdamaged < 4 then
-                self:SetSubMaterial(7, "models/unitvehiclescars/shared/windowdamage1")
-                self.frontdamaged = 4
+            end
+        end
+
+        if frontlefthit then --FRONT LEFT
+            if self.frontleftdamaged < 1 then
+                self:SetBodygroup( 3, 1 )
+                self.frontleftdamaged = 1
+            elseif self.frontleftdamaged < 2 then
+                self:SetBodygroup( 3, 2 )
+                self.frontleftdamaged = 2
+            elseif self.frontleftdamaged < 3 then
+                self:SetBodygroup( 3, 3 )
+                local gibmodels = {
+                    "models/unitvehiclescars/uv_chargerbee/fenderleft.mdl",
+                }
+                timer.Simple(0, function()
+                    self:DetachGibs(gibmodels)
+                end)
+                self.frontleftdamaged = 3
+            end
+        end
+
+        if frontrighthit then --FRONT RIGHT
+            if self.frontrightdamaged < 1 then
+                self:SetBodygroup( 4, 1 )
+                self.frontrightdamaged = 1
+            elseif self.frontrightdamaged < 2 then
+                self:SetBodygroup( 4, 2 )
+                self.frontrightdamaged = 2
+            elseif self.frontrightdamaged < 3 then
+                self:SetBodygroup( 4, 3 )
+                local gibmodels = {
+                    "models/unitvehiclescars/uv_chargerbee/fenderright.mdl",
+                }
+                timer.Simple(0, function()
+                    self:DetachGibs(gibmodels)
+                end)
+                self.frontrightdamaged = 3
             end
         end
 
@@ -477,11 +517,17 @@ if SERVER then
                 self.reardamaged = 3
             elseif self.reardamaged < 4 then
                 self:SetBodygroup( 2, 3 )
-                self:SetBodygroup( 12, 2 )
+                self:SetBodygroup( 12, 3 )
                 self:SetBodygroup( 13, 1 )
                 self:SetBodygroup( 14, 1 )
                 self:SetSubMaterial(8, "models/unitvehiclescars/shared/windowdamage1")
                 self:SetSubMaterial(9, "models/unitvehiclescars/shared/windowdamage1")
+                local gibmodels = {
+                    "models/unitvehiclescars/uv_chargerbee/trunk.mdl",
+                }
+                timer.Simple(0, function()
+                    self:DetachGibs(gibmodels)
+                end)
                 self.reardamaged = 4
             end
         end
@@ -506,6 +552,32 @@ if SERVER then
                     self:DetachGibs(gibmodels)
                 end)
                 self.leftdamaged = 2
+            elseif self.leftdamaged < 3 then
+                self:SetBodygroup( 6, 2 )
+                self:SetBodygroup( 8, 3 )
+                self:SetBodygroup( 10, 1 )
+                self:SetSubMaterial(19, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(21, "models/unitvehiclescars/shared/windowdamage1")
+                local gibmodels = {
+                    "models/unitvehiclescars/uv_chargerbee/redoorleft.mdl",
+                }
+                timer.Simple(0, function()
+                    self:DetachGibs(gibmodels, nil, 5)
+                end)
+                self.leftdamaged = 3
+            elseif self.leftdamaged < 4 then
+                self:SetBodygroup( 6, 3 )
+                self:SetBodygroup( 8, 3 )
+                self:SetBodygroup( 10, 1 )
+                self:SetSubMaterial(19, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(21, "models/unitvehiclescars/shared/windowdamage1")
+                local gibmodels = {
+                    "models/unitvehiclescars/uv_chargerbee/doorleft.mdl",
+                }
+                timer.Simple(0, function()
+                    self:DetachGibs(gibmodels, nil, 5)
+                end)
+                self.leftdamaged = 4
             end
         end
 
@@ -529,6 +601,32 @@ if SERVER then
                     self:DetachGibs(gibmodels)
                 end)
                 self.rightdamaged = 2
+            elseif self.rightdamaged < 3 then
+                self:SetBodygroup( 7, 2 )
+                self:SetBodygroup( 9, 3 )
+                self:SetBodygroup( 10, 1 )
+                self:SetSubMaterial(19, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(21, "models/unitvehiclescars/shared/windowdamage1")
+                local gibmodels = {
+                    "models/unitvehiclescars/uv_chargerbee/redoorright.mdl",
+                }
+                timer.Simple(0, function()
+                    self:DetachGibs(gibmodels, nil, 5)
+                end)
+                self.rightdamaged = 3
+            elseif self.rightdamaged < 4 then
+                self:SetBodygroup( 7, 3 )
+                self:SetBodygroup( 9, 3 )
+                self:SetBodygroup( 10, 1 )
+                self:SetSubMaterial(19, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(21, "models/unitvehiclescars/shared/windowdamage1")
+                local gibmodels = {
+                    "models/unitvehiclescars/uv_chargerbee/doorright.mdl",
+                }
+                timer.Simple(0, function()
+                    self:DetachGibs(gibmodels, nil, 5)
+                end)
+                self.rightdamaged = 4
             end
         end
 

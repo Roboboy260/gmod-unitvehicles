@@ -472,6 +472,11 @@ if SERVER then
 			return UVDelayChatter(SoundDuration(soundFile or "") + SoundDuration(staticFile or "") + SoundDuration(radioOnFile or "") + (chirpGenericFile and 0.1 or 0) + SoundDuration(radioOffFile or "") + math.random(0.5, 2) + math.random())
 			
 		elseif parameters == 4 then
+			if is_dispatch or isDispatch then
+				voice = "dispatch"
+				unitVoiceProfile = GetConVar("unitvehicle_unit_dispatch_voiceprofile"):GetString()
+			end
+			
 			local soundFiles = CachedFileFind("sound/chatter2/"..unitVoiceProfile..'/'..voice.."/"..chattertype.."/*", "GAME")
 			if next(soundFiles) == nil then return 5 end
 			table.Shuffle(soundFiles)
@@ -852,6 +857,11 @@ if SERVER then
 			return UVDelayChatter((SoundDuration(emergencyFile or "") + SoundDuration(breakawayFile or "") + SoundDuration(locationFile or "") + SoundDuration(quadrantFile or "") + SoundDuration(radioOnFile or "") + SoundDuration(radioOffFile or "") + math.random(0.5, 2) + math.random()))
 			
 		elseif parameters == 8 then
+			if is_dispatch or isDispatch then
+				voice = "dispatch"
+				unitVoiceProfile = GetConVar("unitvehicle_unit_dispatch_voiceprofile"):GetString()
+			end
+
 			local soundFiles = CachedFileFind("sound/chatter2/"..unitVoiceProfile..'/'..voice.."/"..chattertype.."/*", "GAME")
 			if next(soundFiles) == nil then return 5 end
 			table.Shuffle(soundFiles)
@@ -1153,7 +1163,7 @@ if SERVER then
 				timeCheck = UVSoundChatter(self, self.voice, "heat" .. heat, 4)
 			end
 		elseif randomChance == 3 then
-			timeCheck = UVSoundChatter(self, self.voice, "heat" .. heat, nil, "DISPATCH")
+			timeCheck = UVSoundChatter(self, self.voice, "heat" .. heat, 4, "DISPATCH")
 		else
 			timeCheck = UVSoundChatter(self, self.voice, "heat" .. heat, 8)
 		end
@@ -1168,12 +1178,12 @@ if SERVER then
 					timeCheck = UVSoundChatter(self, self.voice, "heat" .. heat .. "acknowledge", 1)
 				elseif next(ents.FindByClass("npc_uvspecial")) ~= nil then
 					timeCheck = UVSoundChatter(self, self.voice, "heat" .. heat .. "argue", 1)
-						if next(ents.FindByClass("npc_uv*")) ~= nil and not UVEnemyBusted then
-							local units = ents.FindByClass("npc_uv*")
-							local random_entry = math.random(#units)	
-							local unit = units[random_entry]
-							UVSoundChatter(self, self.voice, "heat" .. heat .. "reassure", nil, "DISPATCH")
-						end
+					if next(ents.FindByClass("npc_uv*")) ~= nil and not UVEnemyBusted then
+						local units = ents.FindByClass("npc_uv*")
+						local random_entry = math.random(#units)	
+						local unit = units[random_entry]
+						UVSoundChatter(self, self.voice, "heat" .. heat .. "reassure", nil, "DISPATCH")
+					end
 				end
 			end
 		
@@ -1185,7 +1195,7 @@ if SERVER then
 		if randomno == 1 then
 			timecheck = UVSoundChatter(self, self.voice, "finearrest", 2)
 		else
-			timecheck = UVSoundChatter(self, self.voice, "pursuitstartranaway", 4)
+			timecheck = UVSoundChatter(self, self.voice, "pursuitstartranaway")
 		end
 		target = target or self.e
 		timer.Simple(timecheck, function()
@@ -1199,14 +1209,14 @@ if SERVER then
 	function UVChatterPursuitStartAcknowledge(self)
 		UVResetChatterQueue()
 		if #UVWantedTableVehicle > 1 then
-			return UVSoundChatter(Entity(1), "nil", "pursuitstartacknowledgemultipleenemies", nil, "DISPATCH")
+			return UVSoundChatter(Entity(1), "nil", "pursuitstartacknowledgemultipleenemies", 4, "DISPATCH")
 		else
 			if UVHeatLevel < 2 then
-				return UVSoundChatter(Entity(1), "nil", "pursuitstartacknowledge", nil, "DISPATCH")
+				return UVSoundChatter(Entity(1), "nil", "pursuitstartacknowledge", 4, "DISPATCH")
 			elseif UVHeatLevel < 5 then
-				return UVSoundChatter(Entity(1), "nil", "pursuitstartacknowledgemed", nil, "DISPATCH")
+				return UVSoundChatter(Entity(1), "nil", "pursuitstartacknowledgemed", 4, "DISPATCH")
 			else
-				return UVSoundChatter(Entity(1), "nil", "pursuitstartacknowledgehigh", nil, "DISPATCH")
+				return UVSoundChatter(Entity(1), "nil", "pursuitstartacknowledgehigh", 4, "DISPATCH")
 			end
 		end
 	end
@@ -1595,7 +1605,7 @@ if SERVER then
 	
 	function UVChatterDispatchAcknowledgeRequest(self)
 		if UVChatterDelayed then return end
-		return UVSoundChatter(self, self.voice, "dispatchacknowledgerequest", 1)
+		return UVSoundChatter(self, self.voice, "dispatchacknowledgerequest", 1, "DISPATCH")
 	end
 	
 	function UVChatterDispatchDenyRequest(self)
@@ -1614,7 +1624,7 @@ if SERVER then
 	
 	function UVChatterDispatchIdleTalk(self)
 		if UVChatterDelayed then return end
-		return UVSoundChatter(self, self.voice, "dispatchidletalk", 1)
+		return UVSoundChatter(self, self.voice, "dispatchidletalk", 1, "DISPATCH")
 	end
 	
 	function UVChatterAcknowledgeGeneral(self)
@@ -2042,7 +2052,7 @@ if SERVER then
 	
 	function UVChatterPursuitStartWanted(self, vehicle)
 		local timecheck = 5
-		timecheck = UVSoundChatter(self, self.voice, "pursuitstartwanted", 4)
+		timecheck = UVSoundChatter(self, self.voice, "pursuitstartwanted")
 		local e = UVGetVehicleMakeAndModel(self.e or vehicle)
 		UVChatterVehicleDescription(self, self.e or vehicle, e)
 		return

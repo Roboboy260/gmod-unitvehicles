@@ -436,7 +436,7 @@ if SERVER then
         local enginehealth = self:GetEngineHealth()
 
         if enginehealth < .5 then --BASE
-            self:SetSubMaterial(21, "models/unitvehiclescars/uv_viperelite/carskin_skin1_dmg")
+            self:SetSubMaterial(22, "models/unitvehiclescars/uv_viperelite/carskin_skin1_dmg")
         end
 
         if fronthit then --FRONT
@@ -457,13 +457,13 @@ if SERVER then
             if self.reardamaged < 1 then
                 self:SetBodygroup( 5, 1 )
                 self:SetBodygroup( 6, 1 )
+                self:SetSubMaterial(18, "models/unitvehiclescars/shared/windowdamage")
                 self.reardamaged = 1
             elseif self.reardamaged < 2 then
-                self:SetSubMaterial(18, "models/unitvehiclescars/shared/windowdamage")
-                self.reardamaged = 2
-            elseif self.reardamaged < 3 then
+                self:SetBodygroup( 5, 1 )
+                self:SetBodygroup( 6, 1 )
                 self:SetSubMaterial(18, "models/unitvehiclescars/shared/windowdamage1")
-                self.reardamaged = 3
+                self.reardamaged = 2
 			end
         end
 

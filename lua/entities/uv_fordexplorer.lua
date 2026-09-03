@@ -179,24 +179,24 @@ if CLIENT then
     
     local Lights = {
         ['Off'] = {
-            [22] = "",
+            [11] = "",
         },
         ['On'] = {},
         ['Brake'] = {
-            [22] = lightsPath .. "beam",
+            [11] = lightsPath .. "beam",
         },
         ['Beams'] = {
             ['Off'] = {
-                [20] = "",
-                [21] = "",
+                [11] = "",
+                [13] = "",
             },
             [1] = {
-                [22] = lightsPath .. "beam",
-                [21] = lightsPath .. "litfull",
+                [11] = lightsPath .. "beam",
+                [13] = lightsPath .. "litfull",
             },
             [2] = {
-                [22] = lightsPath .. "beam",
-                [21] = lightsPath .. "litfull",
+                [11] = lightsPath .. "beam",
+                [13] = lightsPath .. "litfull",
             }
         }
     }

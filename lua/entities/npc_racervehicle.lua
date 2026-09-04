@@ -965,7 +965,7 @@ if SERVER then
 		end
 
 		--Pursuit Tech
-		if self.v.PursuitTech and RacerPursuitTech:GetBool() then
+		if not self.temporary and self.v.PursuitTech and RacerPursuitTech:GetBool() then
 			for k, v in pairs(self.v.PursuitTech) do
 				if v.Tech == "Repair Kit" then
 					if self.v.IsGlideVehicle then

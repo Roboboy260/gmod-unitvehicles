@@ -355,63 +355,32 @@ timer.Simple(5, function()
 	end
 end)
 
--- --DEFAULT PRESETS
--- local datafiles, datafolders = file.Find("data_static/uvdefaultdata/*", "GAME")
+function UVStartHeatZone()
+	UVApplyHeatLevel()
+    UVUpdateHeatLevel()
+    uvHeatZoneStart = CurTime()
+    UVHeatZone = true
+    UVRestoreResourcePoints()
+end
 
--- for _, folder in ipairs(datafolders) do
---     local path = "unitvehicles/" .. folder
---     if not file.IsDir(path, "DATA") then
---         file.CreateDir(path)
---     end
-
---     local datafiles2, datafolders2 = file.Find("data_static/uvdefaultdata/"..folder.."/*", "GAME")
---     if datafiles2 then
---         for _, filename in ipairs(datafiles2) do
---             local source = "data_static/uvdefaultdata/" .. folder .. "/" .. filename
---             local destination = "unitvehicles/" .. folder .. "/" .. filename
---             if file.Exists(source, "GAME") then
---                 file.Write(destination, file.Read(source, "GAME"))
---             end
---         end
---     end
-
---     for _, folder2 in ipairs(datafolders2) do
---         local subpath = path .. "/" .. folder2
---         if not file.IsDir(subpath, "DATA") then
---             file.CreateDir(subpath)
---         end
---         local datafiles3, datafolders3 = file.Find("data_static/uvdefaultdata/"..folder.."/"..folder2.."/*", "GAME")
---         if datafiles3 then
---             for _, filename in ipairs(datafiles3) do
---                 local source = "data_static/uvdefaultdata/" .. folder .. "/" .. folder2 .. "/" .. filename
---                 local destination = "unitvehicles/" .. folder .. "/" .. folder2 .. "/" .. filename
---                 if file.Exists(source, "GAME") then
---                     file.Write(destination, file.Read(source, "GAME"))
---                 end
---             end
---         end
---     end
-
--- end
+function UVEndHeatZone()
+	UVHeatZone = false
+end
 
 concommand.Add("uv_spawnvehicles", function(ply)
 	if ply and not ply:IsSuperAdmin() then return end
 	
 	PrintMessage( HUD_PRINTTALK, "Spawning Unit Vehicle(s)...")
 	
-	UVApplyHeatLevel()
-	UVAutoSpawn(ply)
-	
-	uvIdleSpawning = CurTime()
-	UVPresenceMode = true
-	
-	UVRestoreResourcePoints()
+	UVStartHeatZone()
 end)
 
 concommand.Add( "uv_setheat", function( ply, cmd, args )
 	if ply and not ply:IsSuperAdmin() then return end
+	
+	local maxHeat = math.min(MAX_HEAT_LEVEL, MaxHeatLevel:GetInt())
 	for _, v in pairs( UVPursuitScopes ) do
-		v.Heat = math.Clamp( (tonumber(args[1]) or 1), 1, MAX_HEAT_LEVEL )
+		v.Heat = math.Clamp( (tonumber(args[1]) or 1), 1, maxHeat )
 		_highestHeatLevel = v.Heat
 	end
 
@@ -428,7 +397,7 @@ concommand.Add( "uv_setheat", function( ply, cmd, args )
 end)
 
 function UV_DespawnVehicles(ply)
-	UVPresenceMode = false
+	UVHeatZone = false
 	
 	-- PrintMessage( HUD_PRINTTALK, "Despawning Unit Vehicle(s)!")
 	
@@ -481,10 +450,7 @@ function UV_StartPursuit(ply, skipCountdown)
 	skipCountdown = skipCountdown or false
 
 	if SpawnMainUnits:GetBool() then
-		UVAutoSpawn(nil)
-		
-		uvIdleSpawning = CurTime()
-		UVPresenceMode = true
+		UVStartHeatZone()
 	end
 	
 	-- immediate pursuit
@@ -682,7 +648,7 @@ end)
 function TriggerHeatLevelEffects(level, veh)
 	if level < 2 then return end
 	
-	if level == MaxHeatLevel then
+	if level == MaxHeatLevel:GetInt() then
 	    PrintMessage(HUD_PRINTCENTER, "HEAT LEVEL " .. level .. "!")
 	end
 	
@@ -2955,7 +2921,7 @@ end
 ]]
 
 --[[
-	Fine Due = INFRACTION_FINE * UVHeatLevel
+	Fine Due = INFRACTION_FINE * (UVHeatLevel / MaxHeatLevel:GetInt())
 ]]
 UVINFRACTION_FINE = {
 	['speed'] = 150,
@@ -3045,7 +3011,7 @@ local function updateinfraction(vehicle, infraction)
 	if not scope then return end
 
 	for k, v in pairs(vehicle.Infractions) do
-		scope.FinesDue = scope.FinesDue + (UVINFRACTION_FINE[k] or 0) * (UVHeatLevel / 10)
+		scope.FinesDue = scope.FinesDue + (UVINFRACTION_FINE[k] or 0) * (UVHeatLevel / MaxHeatLevel:GetInt())
 	end
 end
 

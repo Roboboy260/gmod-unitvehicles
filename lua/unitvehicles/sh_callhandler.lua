@@ -233,12 +233,7 @@ if SERVER then
         timecheck = 5
         
         timer.Simple(0.5, function()
-            UVApplyHeatLevel()
-            UVUpdateHeatLevel()
-            UVAutoSpawn()
-            uvIdleSpawning = CurTime()
-            UVPresenceMode = true
-            UVRestoreResourcePoints()
+            UVStartHeatZone()
         end)
         
         timer.Simple(timecheck, function()

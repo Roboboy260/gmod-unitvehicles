@@ -1904,7 +1904,7 @@ if SERVER then
 	hook.Add("PostCleanupMap", "UVCleanup", function()
 		UVTargeting = nil
 		UVResetStats()
-		UVPresenceMode = false
+		UVHeatZone = false
 		UVCallLocation = nil
 		uvcallexists = nil
 		UVHiding = nil
@@ -2589,8 +2589,14 @@ if SERVER then
 			end
 		end
 
-		--Idle presence
-		if not UVTargeting and (UVPresenceMode) and uvIdleSpawning - CurTime() + 5 <= 0 then
+		--Heat Zone covers the entire map, duration is dependent on the Heat Level
+		if not UVTargeting and (UVHeatZone) and (uvIdleSpawning or 0) - CurTime() + 5 <= 0 then
+			local duration = 300 * (UVHeatLevel / MaxHeatLevel:GetInt())
+
+			if uvHeatZoneStart - CurTime() + duration <= 0 then
+				UVEndHeatZone()
+			end
+
 			HandleVehicleSpawning(true)
 			uvIdleSpawning = CurTime()
 		end

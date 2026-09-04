@@ -1610,16 +1610,7 @@ if SERVER then
 	
 	function UVChatterDispatchDenyRequest(self)
 		if UVChatterDelayed then return end
-		local airrandomno = math.random(1,2)
-		local airUnits = ents.FindByClass("uvair")
-		if next(airUnits) ~= nil then
-			local random_entry = math.random(#airUnits)	
-			local unit = airUnits[random_entry]
-			if not (unit.crashing or unit.disengaging) and airrandomno == 1 then
-				return UVSoundChatter(unit, unit.voice, "denyrequest")
-			end
-		end
-		return UVSoundChatter(self, self.voice, "denyrequest")
+		return UVSoundChatter(self, self.voice, "dispatchdenyrequest", 1, "DISPATCH")
 	end
 	
 	function UVChatterDispatchIdleTalk(self)
@@ -1648,6 +1639,15 @@ if SERVER then
 	
 	function UVChatterDenyRequest(self)
 		if UVChatterDelayed then return end
+		local airrandomno = math.random(1,2)
+		local airUnits = ents.FindByClass("uvair")
+		if next(airUnits) ~= nil then
+			local random_entry = math.random(#airUnits)	
+			local unit = airUnits[random_entry]
+			if not (unit.crashing or unit.disengaging) and airrandomno == 1 then
+				return UVSoundChatter(unit, unit.voice, "denyrequest")
+			end
+		end
 		return UVSoundChatter(self, self.voice, "denyrequest")
 	end
 	
@@ -1853,7 +1853,12 @@ if SERVER then
 		end
 		timer.Simple(timecheck, function()
 			if IsValid(self) then
-				return UVSoundChatter(self, self.voice, "dispatchmultipleunitsdownacknowledge", 1, "DISPATCH")
+				local response = math.random(1,2)
+				if response == 1 then
+					return UVSoundChatter(self, self.voice, "dispatchmultipleunitsdownacknowledge", 1, "DISPATCH")
+				elseif response == 2 then
+					return UVSoundChatter(self, self.voice, "dispatchacknowledgerequest", 1, "DISPATCH")
+				end
 			end
 		end)
 		return
@@ -1907,14 +1912,21 @@ if SERVER then
 	function UVChatterSitrep(self)
 		local airrandomno = math.random(1,2)
 		local airUnits = ents.FindByClass("uvair")
+		local timecheck = 5
 		if next(airUnits) ~= nil then
 			local random_entry = math.random(#airUnits)	
 			local unit = airUnits[random_entry]
 			if not (unit.crashing or unit.disengaging) and airrandomno == 1 then
-				return UVSoundChatter(unit, unit.voice, "sitrep")
+				timecheck = UVSoundChatter(unit, unit.voice, "sitrep")
 			end
+		else
+			timecheck = UVSoundChatter(self, self.voice, "sitrep")
 		end
-		return UVSoundChatter(self, self.voice, "sitrep")
+		timer.Simple(timecheck, function()
+			if IsValid(self) and not UVEnemyBusted then
+				UVChatterDispatchAcknowledgeRequest(self)
+			end
+		end)
 	end
 	
 	function UVChatterUpdateHeading(self)
@@ -1984,26 +1996,28 @@ if SERVER then
 			local random_entry = math.random(#airUnits)	
 			local unit = airUnits[random_entry]
 			if not (unit.crashing or unit.disengaging) and airrandomno == 1 then
-				timecheck = UVSoundChatter(unit, unit.voice, "requestdisengage")
-			else
-				timecheck = UVSoundChatter(self, self.voice, "requestdisengage")
+				self = unit
 			end
-		else
-			timecheck = UVSoundChatter(self, self.voice, "requestdisengage")
 		end
-		--timer.Simple(timecheck, function()
-			if next(ents.FindByClass("npc_uv*")) ~= nil and not UVEnemyBusted then
-				local units = ents.FindByClass("npc_uv*")
-				local random_entry = math.random(#units)
-				local unit = units[random_entry]
-				if unit == self then return end
-				UVChatterDoNotDisengage(unit, self)
+		UVSoundChatter(self, self.voice, "requestdisengage")
+		if next(ents.FindByClass("npc_uv*")) ~= nil and not UVEnemyBusted then
+			local units = ents.FindByClass("npc_uv*")
+			local random_entry = math.random(#units)
+			local unit = units[random_entry]
+			if unit == self then return UVChatterDispatchDenyRequest(unit) end
+			local response = math.random(1,3)
+			if response == 1 then
+				UVChatterDoNotDisengage(unit)
+			elseif response == 2 then
+				UVChatterDispatchDenyRequest(unit)
+			elseif response == 3 then
+				UVChatterDenyRequest(unit)
 			end
-		--end)
+		end
 		return
 	end
 	
-	function UVChatterDoNotDisengage(self, unit)
+	function UVChatterDoNotDisengage(self)
 		local mathrandomno = math.random(1,2)
 		if next(UVCommanders) ~= nil and mathrandomno == 1 then
 			local random_entry = math.random(#UVCommanders)

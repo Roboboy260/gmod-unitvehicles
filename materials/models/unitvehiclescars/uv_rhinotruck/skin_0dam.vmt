@@ -1,0 +1,39 @@
+VertexLitGeneric
+{
+	$basetexture			"models\unitvehiclescars\uv_rhinotruck\skin1.vtf"
+
+	$nocull 1
+	
+	$detail "models\unitvehiclescars\shared\car_scratch"
+    	//$detailscale 1
+   	$detailblendfactor 0.8
+    	$detailblendmode 2
+
+
+	$bumpmap			"models\unitvehiclescars\shared\damage_n.vtf"
+	"$nodecal" "1"
+	"$phong" 1
+	"$phongexponent" 8
+	"$phongboost"	1
+	"$phongfresnelranges" "[1 1 1]"
+	"$rimlight" 1
+	"$rimlightboost" 0.5
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[0.07 0.07 0.07]"
+	"$normalmapalphaenvmapmask" 1
+	"$phongfix" "{1 1 1}"
+	Proxies
+	{
+		Equals
+		{
+			srcVar1	$color
+			resultVar	$phongtint
+		}
+		Add
+		{
+			srcVar1 $phongfix
+			srcVar2 $phongtint
+			resultVar $phongtint
+		}
+	}
+}

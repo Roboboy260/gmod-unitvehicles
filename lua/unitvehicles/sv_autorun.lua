@@ -2924,18 +2924,18 @@ end
 	Fine Due = INFRACTION_FINE * (UVHeatLevel / MaxHeatLevel:GetInt())
 ]]
 UVINFRACTION_FINE = {
-	['speed'] = 150,
-	['veryspeed'] = 350,
-	['reckless'] = 1000,
-	['rampolice'] = 350,
-	['ram'] = 300,
-	['property'] = 100,
-	['resist'] = 300,
-	['offroad'] = 50,
-	['streetrace'] = 5000,
-	['resource'] = 100,
-	['endanger'] = 200,
-	['homicide'] = 10000,
+    ['speed'] = 150,
+    ['veryspeed'] = 300,
+    ['reckless'] = 600,
+    ['rampolice'] = 800,
+    ['ram'] = 350,
+    ['property'] = 150,
+    ['resist'] = 500,
+    ['offroad'] = 100,
+    ['streetrace'] = 1500,
+    ['resource'] = 250,
+    ['endanger'] = 400,
+    ['homicide'] = 2500,
 }
 
 local PRE_INFRACTION_COUNT = {

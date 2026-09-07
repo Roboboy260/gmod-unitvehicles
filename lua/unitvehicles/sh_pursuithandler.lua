@@ -2828,6 +2828,7 @@ if SERVER then
 			local vScope = UVGetScope(v)
 			if not vScope then continue end
 			local visualrange = (vScope.Hiding or (not vScope.InPursuit and UVCheckIfHiding(v))) and 6250000 or 25000000
+			local visualrangechopper = (vScope.Hiding or (not vScope.InPursuit and UVCheckIfHiding(v))) and 25000000 or 100000000
 			vScope.UnitsChasing = 0
 			
 			v.closestunit = nil
@@ -2837,8 +2838,9 @@ if SERVER then
 			
 			-- Visibility check for helicopter, should they have busting enabled.
 			for _, j in pairs(ents.FindByClass("uvair")) do
-				if (not (j.Downed and j.disengaging and j.crashing)) and j:GetTarget() == v then
-					local isInRange = j:DistIgnoreZ( v:GetPos() ) <= ( vScope.Hiding and 5000 or 10000 )
+				if (not (j.Downed and j.disengaging and j.crashing)) then
+					local dist = j:GetPos():DistToSqr(v:GetPos())
+					local isInRange = dist < visualrangechopper
 					
 					if isInRange and ( v.inunitview or UVDetectEnemy(j, v, true) ) then
 						v.inunitview = true

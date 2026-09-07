@@ -3011,7 +3011,7 @@ local function updateinfraction(vehicle, infraction)
 	if not scope then return end
 
 	for k, v in pairs(vehicle.Infractions) do
-		scope.FinesDue = scope.FinesDue + (UVINFRACTION_FINE[k] or 0) * (UVHeatLevel / MaxHeatLevel:GetInt())
+		scope.FinesDue = math.Round(scope.FinesDue + (UVINFRACTION_FINE[k] or 0) * (UVHeatLevel / MaxHeatLevel:GetInt()))
 	end
 end
 

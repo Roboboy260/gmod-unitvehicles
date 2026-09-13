@@ -9,7 +9,7 @@
 *no voice restriction, so it's not just dispatch themself who is talking ... could be roadblock/support units
 
 *during a call, these folders will play in order: 
-addressgroup > dispatchcalldamagetoproperty/dispatchcallhitandrun/dispatchcallspeeding/dispatchcallstreetracing > d_location > unitrequest
+addressgroup/addressgroup_map > dispatchcalldamagetoproperty/dispatchcallhitandrun/dispatchcallspeeding/dispatchcallstreetracing > d_location > unitrequest
 
 *when cooldown starts, these folders will play in order: 
 dispbreakaway > d_location > quadrant
@@ -30,17 +30,18 @@ dispatchcallhitandrun = "... we got reports of a hit and run driver, they were l
 dispatchcallspeeding = "... we got reports of a speeding driver, they were last seen ..."
 dispatchcallstreetracing = "... we got reports of a group of street racers, they were last seen ..."
 dispatchcallunknowndescription = "Caller did not get a good look at the vehicle, standby"
-dispatchcallvehicledescription = (TO BE IMPLEMENTED WITH UVGetVehicleMakeAndModel SCRIPT)
 dispatchdenyrequest = "Negative"
 dispatchidletalk = *random conversation between dispatch and unit*
 dispatchjammerend = "All radio communications restored, resume call on Channel *number*"
 dispatchmultipleunitsdownacknowledge = "Roger that, EMS are on their way"
 dispbreakaway = "All Units, suspect was last seen ..."
+- OPTIONAL, works for all heats, usually made for heat5
+heatXreassure = "Not much I can do"
+-
 heat2 = "Condition 2"
 heat3 = "Condition 3"
 heat4 = "Condition 4"
 heat5 = "Condition 5"
-heat5reassure = "Not much I can do"
 heat6 = "Condition 6"
 heat7 = "Condition 7"
 heat8 = "Condition 8"
@@ -48,7 +49,6 @@ heat9 = "Condition 9"
 heat10 = "CONDITION 10"
 idletalk = *random conversation between Units*
 losingupdate = "We got a possible match"
-lost = "Dispatch, we should clear this call"
 lostacknowledge = "All Units, clear this call and resume patrols"
 pursuitbreaker = "Units reporting suspect has hit a structure, watch for debris"
 pursuitbreakergas = "Units reporting suspect has hit the gas pumps"

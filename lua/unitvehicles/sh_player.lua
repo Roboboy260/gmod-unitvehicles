@@ -1006,13 +1006,37 @@ if SERVER then
                 end
             end
 
-            if not checkpoint then return end
+            if not checkpoint then
+                local spawns = ents.FindByClass("uvrace_spawn")
+	            local spawn
 
-            pos = checkpoint:GetPos() + checkpoint:OBBCenter()
+	            if next(spawns) == nil then
+	            	return
+	            else
+	            	local lowestGridSlot = math.huge
+	            	for k, v in pairs(spawns) do
+	            		if v:GetGridSlot() < lowestGridSlot and not v.claimed then
+	            			lowestGridSlot = v:GetGridSlot()
+	            			spawn = v
+	            		end
+	            	end
+	            end
             
-            if next_checkpoint then
-                local next_pos = next_checkpoint:GetPos() + next_checkpoint:OBBCenter()
-                ang = (next_pos - pos):GetNormalized():Angle()
+	            if not spawn then
+	            	PrintMessage( HUD_PRINTTALK, "No positions left for "..racer_name)
+	            	return nil
+	            end
+            
+	            pos = spawn:GetPos()
+	            ang = spawn:GetAngles()
+	            ang.yaw = ang.yaw + (UVCheckIfRedlineSimfphys(vehicle) and -90 or 180)
+            else
+                pos = checkpoint:GetPos() + checkpoint:OBBCenter()
+            
+                if next_checkpoint then
+                    local next_pos = next_checkpoint:GetPos() + next_checkpoint:OBBCenter()
+                    ang = (next_pos - pos):GetNormalized():Angle()
+                end
             end
         end
                 

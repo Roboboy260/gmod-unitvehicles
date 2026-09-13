@@ -1624,6 +1624,8 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 		btn.OnCursorEntered = function()
 			if descPanel then
 				descPanel.Desc = st.desc or ""
+				descPanel.Layout = st.layout
+				descPanel.Grid = st.grid
 				if st.convar then
 					descPanel.SelectedConVar = st.convar or "?"
 				end
@@ -1633,6 +1635,8 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 		btn.OnCursorExited = function()
 			if descPanel then
 				descPanel.Desc = ""
+				descPanel.Layout = nil
+				descPanel.Grid = nil
 				if st.convar then
 					descPanel.SelectedConVar = ""
 				end
@@ -4820,7 +4824,7 @@ function UVMenu:Open(menu)
 		local chromePadding = UV.ScaleH(140)
 
 		local maxH = ScrH() * 0.92
-		local desiredH = contentH + chromePadding
+		local desiredH = math.max(contentH + chromePadding, CurrentMenu.MinHeight or 0)
 
 		if desiredH >= maxH then
 			CurrentMenu.Height = maxH - SCROLL_SAFETY
@@ -4891,11 +4895,63 @@ function UVMenu:Open(menu)
     if ShowDesc then
         descPanel = vgui.Create("DPanel", frame)
         descPanel:Dock(RIGHT)
-        descPanel:SetWide(math.Clamp(fw * 0.25, UV.ScaleW(220), UV.ScaleW(380)))
+        descPanel:SetWide(math.Clamp(fw * 0.4, UV.ScaleW(320), UV.ScaleW(500)))
         descPanel.Paint = function(self, w, h)
             local a = self:GetAlpha()
             surface.SetDrawColor( GetConVar("uvmenu_col_desc_r"):GetInt(), GetConVar("uvmenu_col_desc_g"):GetInt(), GetConVar("uvmenu_col_desc_b"):GetInt(), math.floor(GetConVar("uvmenu_col_desc_a"):GetInt() * (a / 255)) )
             surface.DrawRect(0, 0, w, h)
+
+            local layout = self.Layout
+            local route = layout or {}
+            local grid = self.Grid or {}
+            if #route > 0 or #grid > 0 then
+                local firstPoint = route[1] or grid[1]
+                local minX, maxX = firstPoint.x, firstPoint.x
+                local minY, maxY = firstPoint.y, firstPoint.y
+                for _, point in ipairs(layout) do
+                    minX = math.min(minX, point.x)
+                    maxX = math.max(maxX, point.x)
+                    minY = math.min(minY, point.y)
+                    maxY = math.max(maxY, point.y)
+                end
+                for _, point in ipairs(grid) do
+                    minX = math.min(minX, point.x)
+                    maxX = math.max(maxX, point.x)
+                    minY = math.min(minY, point.y)
+                    maxY = math.max(maxY, point.y)
+                end
+
+                local padding = 28
+                local topOffset = 110
+                local mapWidth, mapHeight = w - padding * 2, h - topOffset - padding - 28
+                local scale = math.min(mapWidth / math.max(maxX - minX, 1), mapHeight / math.max(maxY - minY, 1))
+                local function toScreen(point)
+                    return padding + (point.x - minX) * scale, topOffset + (maxY - point.y) * scale
+                end
+
+                surface.SetDrawColor(0, 0, 0, math.floor(90 * (a / 255)))
+                surface.DrawRect(padding - 8, topOffset - 8, mapWidth + 16, mapHeight + 16)
+
+                for _, spawn in ipairs(grid) do
+                    local x, y = toScreen(spawn)
+                    draw.RoundedBox(2, x - 7, y - 4, 4, 4, Color(255, 100, 20, a))
+                end
+
+                for index = 1, #route - 1 do
+                    local x1, y1 = toScreen(route[index])
+                    local x2, y2 = toScreen(route[index + 1])
+                    surface.SetDrawColor(220, 220, 220, math.floor(180 * (a / 255)))
+                    surface.DrawLine(x1, y1, x2, y2)
+                end
+
+                for _, point in ipairs(route) do
+                    local x, y = toScreen(point)
+                    local isFinish = point.id == route[#route].id
+                    local color = isFinish and Color(255, 50, 50, a) or point.id == 1 and Color(50, 255, 50, a) or Color(255, 220, 0, a)
+                    draw.RoundedBox(6, x - 4, y - 4, 8, 8, color)
+                end
+
+            end
 
 			if self.SelectedConVar then
 				draw.SimpleText(self.SelectedConVar, "UVMostWantedLeaderboardFont2", w * 0.5, h * 0.98 - 40, Color(175, 175, 175, a), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
@@ -4922,6 +4978,8 @@ function UVMenu:Open(menu)
 
         descPanel.Text = ""
         descPanel.Desc = ""
+        descPanel.Layout = nil
+        descPanel.Grid = nil
         descPanel.SelectedConVar = ""
         descPanel.SelectedDefault = ""
         descPanel.SelectedCurrent = ""

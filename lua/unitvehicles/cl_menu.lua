@@ -1110,7 +1110,7 @@ UVMenu.RaceManagerTrackSelect = function()
 		local raceFile = race.file
 
 		for infoName, infoValue in pairs( raceData ) do
-			if type( infoValue ) ~= "number" or infoValue > 0 then
+			if LOCALIZATION_MAP[infoName] and (type( infoValue ) ~= "number" or infoValue > 0) then
 				table.insert( descLines, string.format( UVString(LOCALIZATION_MAP[infoName]), infoValue ) )
 			end
 		end
@@ -1128,7 +1128,9 @@ UVMenu.RaceManagerTrackSelect = function()
 					UVMenu.OpenMenu(UVMenu.RaceManager)
 					UVMenu.PlaySFX("menuopen")
 				end)
-			end
+			end,
+			layout = raceData.layout,
+			grid = raceData.grid,
 		})
 	end
 
@@ -1144,8 +1146,9 @@ UVMenu.RaceManagerTrackSelect = function()
 
 	UVMenu:Open({
 		Name = " ",
-		Width  = UV.ScaleW(690),
-		Height = UV.ScaleH(705),
+		Width  = UV.ScaleW(1000),
+		Height = UV.ScaleH(600),
+		MinHeight = UV.ScaleH(600),
 		DynamicHeight = true,
 		Description = true,
 		UnfocusClose = true,

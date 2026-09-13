@@ -313,6 +313,9 @@ if SERVER then
 		local nodeCount = 0
 		local checkpointCount = 0
 		local spawnCount = 0
+		local layout = {}
+		local layoutByID = {}
+		local grid = {}
 	
 		-- for _, line in ipairs(lines) do
 		-- 	if string.match(line, "^%d+%s") then
@@ -342,11 +345,38 @@ if SERVER then
 				local id = tonumber(t[1])
 				if id and #t >= 8 then
 					checkpointCount = checkpointCount + 1
+					local checkpoint = {
+						id = id,
+						x = (tonumber(t[2]) + tonumber(t[5])) / 2,
+						y = (tonumber(t[3]) + tonumber(t[6])) / 2,
+					}
+
+					-- npc_racervehicle overwrites its target for duplicate IDs, so
+					-- the last checkpoint in file order is the branch it follows.
+					layoutByID[id] = checkpoint
 				end
 			elseif string.match(line, "^spawn") then
 				spawnCount = spawnCount + 1
+				local t = string.Explode(" ", line)
+				local slot = tonumber(t[6])
+				local x, y = tonumber(t[2]), tonumber(t[3])
+				if slot and x and y then
+					table.insert(grid, {
+						slot = slot,
+						x = x,
+						y = y,
+					})
+				end
 			end
 		end
+
+		for _, checkpoint in pairs(layoutByID) do
+			table.insert(layout, checkpoint)
+		end
+
+		table.sort(layout, function(a, b)
+			return a.id < b.id
+		end)
 		
 		local jsonContent = UV_LoadFile( path, string.Replace( fileName, ".txt", ".json" ) )
 		if jsonContent then
@@ -379,6 +409,8 @@ if SERVER then
 			spawns = spawnCount,
 			props = propCount,
 			nodes = nodeCount,
+			layout = layout,
+			grid = grid,
 		}
 	end
 

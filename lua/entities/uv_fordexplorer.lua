@@ -386,6 +386,7 @@ if SERVER then
             gib:SetPos(self:GetPos())
             gib:SetAngles(self:GetAngles())
             gib:SetColor(self:GetColor())
+            gib:SetSkin(self:GetSkin())
             gib:SetCollisionGroup(COLLISION_GROUP_WORLD)
             if glasssubmaterial then
                 gib:SetSubMaterial(glasssubmaterial, "models/unitvehiclescars/shared/windowdamage1")

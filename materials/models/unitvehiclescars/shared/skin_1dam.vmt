@@ -4,6 +4,11 @@ VertexLitGeneric
 
 	$nocull 1
 
+	$detail "models\unitvehiclescars\shared\car_scratch"
+    	//$detailscale 1
+   	$detailblendfactor 0.8
+    	$detailblendmode 2
+		
 	$bumpmap			"models\unitvehiclescars\shared\damage_n.vtf"
 	"$nodecal" "1"
 	"$phong" 1

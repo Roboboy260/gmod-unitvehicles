@@ -3064,7 +3064,7 @@ function UVAddUnit(vehicle, ply)
 		net.Start("UVHUDAddUV")
 		net.WriteInt(vehicle:EntIndex(), 32)
 		net.WriteInt(vehicle:GetCreationID(), 32)
-		net.WriteString("unit")
+		net.WriteString(vehicle.undercover and "undercover" or "unit")
 		net.Broadcast()
 	end)
 

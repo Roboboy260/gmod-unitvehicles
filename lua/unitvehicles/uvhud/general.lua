@@ -463,7 +463,7 @@ local function ScannerCode(cfg)
 	end
 
 	for _, v in pairs(UnitTable) do
-		if IsValid(v) then
+		if IsValid(v) and not v.undercover then
 			local pos = v:GetPos()
 			local dist = pos:DistToSqr(enemypos)
 

@@ -1719,7 +1719,7 @@ local function ScannerCode(cfg)
 	end
 
 	for _, v in pairs(UnitTable) do
-		if IsValid(v) then
+		if IsValid(v) and not v.undercover then
 			anyUnits = true
 
 			local pos = v:GetPos()

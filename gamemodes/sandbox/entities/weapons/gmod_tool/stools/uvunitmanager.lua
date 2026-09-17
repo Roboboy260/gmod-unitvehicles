@@ -86,11 +86,21 @@ if SERVER then
 	end)
 
 
-	local function SaveVehicle(ply, filename)
+	local function SaveVehicle(ply, filename, canSaveColor, undercover)
 		if next(ply.UVTOOLMemory) == nil then return end
 		
 		local Name = filename
+		local Color = canSaveColor
+
 		if Name == "" then return end
+		
+		if Color then
+			ply.UVTOOLMemory.SaveColor = true
+		end
+
+		if undercover then
+        	ply.UVTOOLMemory.Undercover = true
+		end
 		
 		local vehicleBase = ply.UVTOOLMemory.VehicleBase
 		
@@ -179,7 +189,9 @@ if SERVER then
 		if next(ply.UVTOOLMemory) == nil then return end
 
 		local filename = net.ReadString()
-		SaveVehicle(ply, filename)
+		local canSaveColor = net.ReadBool()
+		local undercover = net.ReadBool()
+		SaveVehicle(ply, filename, canSaveColor, undercover)
 	end)
 
 	net.Receive("UVUnitManagerDeleteFile", function( length, ply )
@@ -238,7 +250,7 @@ if CLIENT then
 		local lang = language.GetPhrase
 		
 		UnitAdjust:Add(OK)
-		UnitAdjust:SetSize(600, 200)
+		UnitAdjust:SetSize(600, 300)
 		UnitAdjust:SetBackgroundBlur(true)
 		UnitAdjust:Center()
 		UnitAdjust:SetTitle("#tool.uvunitmanager.create")
@@ -264,6 +276,17 @@ if CLIENT then
 		UnitNameEntry:SetPos( 20, 120 )
 		UnitNameEntry:SetPlaceholderText( "#tool.uvunitmanager.create.name" )
 		UnitNameEntry:SetSize(UnitAdjust:GetWide() / 2, 22)
+
+		local SaveColour = vgui.Create("DCheckBoxLabel", UnitAdjust )
+		SaveColour:SetPos( 20, 160 )
+		SaveColour:SetText("#uv.tool.savecol")
+		SaveColour:SetSize(UnitAdjust:GetWide(), 22)
+
+		local UnitUndercoverEntry = vgui.Create( "DCheckBoxLabel", UnitAdjust )
+        UnitUndercoverEntry:SetPos( 20, 200 )
+        UnitUndercoverEntry:SetText( "#tool.uvunitmanager.undercover" )
+        UnitUndercoverEntry:SetTooltip( "#tool.uvunitmanager.undercover.desc" )
+        UnitUndercoverEntry:SetValue( false )
 		
 		OK:SetText("#uv.tool.create")
 		OK:SetSize(UnitAdjust:GetWide() * 5 / 16, 22)
@@ -272,6 +295,8 @@ if CLIENT then
 		function OK:DoClick()
 			net.Start("UVUnitManagerSaveUnit")
 			net.WriteString(UnitNameEntry:GetValue())
+			net.WriteBool(SaveColour:GetChecked())
+			net.WriteBool(UnitUndercoverEntry:GetChecked())
 			net.SendToServer()
 
 			UnitAdjust:Close()
@@ -1112,8 +1137,16 @@ function TOOL:LeftClick( trace )
 
 			local dot = Color.r * Color.g * Color.b * Color.a
 			Ent.OldColor = dot
-			Ent:SetColor( Color )
 
+			if ply.UVTOOLMemory.SaveColor then
+				Ent:SetColor( Color )
+			else
+				if isfunction(Ent.GetSpawnColor) then
+					Color = Ent:GetSpawnColor()
+					Ent:SetColor( Color )
+				end
+			end
+			
 			local data = {
 				Color = Color,
 				RenderMode = 0,
@@ -1186,6 +1219,8 @@ function TOOL:LeftClick( trace )
 				end
 			end
 		end
+
+		Ent.undercover = ply.UVTOOLMemory.Undercover
 		
 		UVAddUnit(Ent, ply)
 		
@@ -1261,6 +1296,8 @@ function TOOL:LeftClick( trace )
 		undo.SetCustomUndoText( "Undone LVS Unit" )
 		
 		undo.Finish( "Undo (" .. tostring( table.Count( Ents ) ) ..  ")" )
+
+		Ent.undercover = ply.UVTOOLMemory.Undercover
 		
 		UVAddUnit(Ent, ply)
 
@@ -1329,6 +1366,8 @@ function TOOL:LeftClick( trace )
 		undo.AddEntity( Ent )
 		undo.SetCustomUndoText( "Undone " .. class )
 		undo.Finish( "Vehicle (" .. tostring( class ) .. ")" )
+
+		Ent.undercover = ply.UVTOOLMemory.Undercover
 		
 		UVAddUnit(Ent, ply)
 		
@@ -1598,6 +1637,8 @@ function TOOL:LeftClick( trace )
 				end)
 			end
 		end
+
+		Ent.undercover = ply.UVTOOLMemory.Undercover
 		
 		UVAddUnit(Ent, ply)
 		

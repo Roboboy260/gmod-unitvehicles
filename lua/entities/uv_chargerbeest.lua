@@ -4,7 +4,7 @@ ENT.Type = "anim"
 ENT.Base = "base_glide_car"
 ENT.Author = "Unit Vehicles Police Department"
 
-ENT.PrintName = "#uv.veh.chrbee"
+ENT.PrintName = "#uv.veh.chrbee.st"
 
 ENT.VehicleName = "uv_chargerbee" -- Change this to the class name of your vehicle
 ENT.EntityModelName = "uv_chargerbee" -- Change this to the model name of your vehicle
@@ -142,8 +142,8 @@ if CLIENT then
 
     ENT.SirenLights = {
 
-        { ifBodygroupId = 14, ifSubModelId = 0, bodygroup = 11, time = 0, duration = 0.5 },
-        { ifBodygroupId = 14, ifSubModelId = 0, bodygroup = 12, time = 0.5, duration = 0.5 },
+        { ifBodygroupId = 17, ifSubModelId = 0, bodygroup = 15, time = 0.5, duration = 0.5 },
+        { ifBodygroupId = 17, ifSubModelId = 0, bodygroup = 16, time = 0, duration = 0.5 },
 
     -- WIG-WAG
 
@@ -160,18 +160,18 @@ if CLIENT then
         { offset = Vector(-114.9,14.11,17.93), ifBodygroupId = 5, ifSubModelId = 1, time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
         { offset = Vector(-117.12,12.68,15.63), ifBodygroupId = 5, ifSubModelId = 2, time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
 
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-16.2,22.25,62.36), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-16.2,15.92,62.36), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-16.2,-22.25,62.36), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-16.2,-15.92,62.36), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-8.54,22.25,62.36), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-8.54,15.92,62.36), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-8.54,-22.25,62.36), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-8.54,-15.92,62.36), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-16.2,22.25,62.36), dir = Vector( -1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0, duration = 0.5, size = 180, color = Color(255,30,0) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-16.2,-22.25,62.36), dir = Vector( -1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0, duration = 0.5, size = 180, color = Color(255,30,0) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-8.54,22.25,62.36), dir = Vector( 1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0, duration = 0.5, size = 180, color = Color(255,30,0) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-8.54,-22.25,62.36), dir = Vector( 1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0, duration = 0.5, size = 180, color = Color(255,30,0) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(23.75,23.8,51.16), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(24.78,19.39,51.16), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(23.75,-23.8,51.16), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(24.78,-19.39,51.16), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(-45.7,19.78,53.22), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(-46.65,15.4,53.22), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(-45.7,-19.78,53.22), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(-46.65,-15.4,53.22), time = 0, duration = 0.5, size = 50, color = Color(255,30,0) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(23.75,23.8,51.16), dir = Vector( 1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0, duration = 0.5, size = 180, color = Color(255,30,0) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(23.75,-23.8,51.16), dir = Vector( 1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0, duration = 0.5, size = 180, color = Color(255,30,0) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(-45.7,19.78,53.22), dir = Vector( -1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0, duration = 0.5, size = 180, color = Color(255,30,0) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(-45.7,-19.78,53.22), dir = Vector( -1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0, duration = 0.5, size = 180, color = Color(255,30,0) },
 
 	-- BLUE
 
@@ -183,16 +183,18 @@ if CLIENT then
         { offset = Vector(-113.81,-14.67,18.83), ifBodygroupId = 5, ifSubModelId = 1, time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
         { offset = Vector(-115.15,-16.06,17.8), ifBodygroupId = 5, ifSubModelId = 2, time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
         
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-16.2,9.53,62.36), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-16.2,3.24,62.36), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-8.54,9.53,62.36), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-8.54,3.24,62.36), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-16.2,-9.53,62.36), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-16.2,-3.24,62.36), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-8.54,-9.53,62.36), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-8.54,-3.24,62.36), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-16.2,0,62.36), dir = Vector( -1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0.5, duration = 0.5, size = 180, color = Color(0,115,255) },
-        { ifBodygroupId = 14, ifSubModelId = 0, offset = Vector(-8.54,0,62.36), dir = Vector( 1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0.5, duration = 0.5, size = 180, color = Color(0,115,255) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(25.57,14.92,51.16), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(26.23,10.49,51.16), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(25.57,-14.92,51.16), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(26.23,-10.49,51.16), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(-47.46,10.91,53.22), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(-48.08,6.48,53.22), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(-47.46,-10.91,53.22), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(-48.08,-6.48,53.22), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(26.23,10.49,51.16), dir = Vector( 1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0.5, duration = 0.5, size = 180, color = Color(0,115,255) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(26.23,-10.49,51.16), dir = Vector( 1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0.5, duration = 0.5, size = 180, color = Color(0,115,255) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(-48.08,6.48,53.22), dir = Vector( -1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0.5, duration = 0.5, size = 180, color = Color(0,115,255) },
+        { ifBodygroupId = 17, ifSubModelId = 0, offset = Vector(-48.08,-6.48,53.22), dir = Vector( -1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0.5, duration = 0.5, size = 180, color = Color(0,115,255) },
 
     }
 
@@ -236,7 +238,7 @@ if SERVER then
     end
 
     ENT.SpawnPositionOffset = Vector( 0, 0, 20 )
-    ENT.ChassisMass = 800
+    ENT.ChassisMass = 795
     ENT.IsHeavyVehicle = false
 
     ENT.BurnoutForce = 40
@@ -367,8 +369,9 @@ if SERVER then
         self:SetBodygroup( 5, 0 )
         self:SetBodygroup( 6, 0 )
         self:SetBodygroup( 7, 0 )
-        self:SetBodygroup( 14, 0 )
-        self:SetBodygroup( 17, 1 )
+        self:SetBodygroup( 14, 1 )
+        self:SetBodygroup( 17, 0 )
+        self:SetSkin(0)
 
         self.frontdamaged = 0
         self.frontleftdamaged = 0

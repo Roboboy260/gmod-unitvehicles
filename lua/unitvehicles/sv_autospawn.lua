@@ -833,6 +833,7 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
 		Ent.unitscript = availableunit
+		Ent.undercover = MEMORY.Undercover
 		
 		if rhinoattack then
 			Ent.uvclasstospawnon = "npc_uvspecial"
@@ -1094,7 +1095,15 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 			
 			local dot = Color.r * Color.g * Color.b * Color.a
 			Ent.OldColor = dot
-			Ent:SetColor( Color )
+
+			if MEMORY.SaveColor then
+				Ent:SetColor( Color )
+			else
+				if isfunction(Ent.GetSpawnColor) then
+					Color = Ent:GetSpawnColor()
+					Ent:SetColor( Color )
+				end
+			end
 			
 			local data = {
 				Color = Color,
@@ -1112,6 +1121,7 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
 		Ent.unitscript = availableunit
+		Ent.undercover = MEMORY.Undercover
 		
 		if rhinoattack then
 			Ent.uvclasstospawnon = "npc_uvspecial"
@@ -1467,6 +1477,7 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
 		Ent.unitscript = availableunit
+		Ent.undercover = MEMORY.Undercover
 		
 		if rhinoattack then
 			Ent.uvclasstospawnon = "npc_uvspecial"
@@ -1699,6 +1710,7 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
 		Ent.unitscript = availableunit
+		Ent.undercover = MEMORY.Undercover
 		
 		if rhinoattack then
 			Ent.uvclasstospawnon = "npc_uvspecial"

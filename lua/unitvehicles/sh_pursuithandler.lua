@@ -2765,7 +2765,7 @@ if SERVER then
 						net.Start("UVHUDAddUV")
 						net.WriteInt(car:EntIndex(), 32)
 						net.WriteInt(car:GetCreationID(), 32)
-						net.WriteString("unit")
+						net.WriteString(car.undercover and "undercover" or "unit")
 						net.Broadcast()
 
 						UVUnitVehicles[car] = car
@@ -3626,7 +3626,7 @@ if SERVER then
 			net.Start( "UVHUDAddUV" )
 			net.WriteInt( v:EntIndex(), 32 )
 			net.WriteInt( v:GetCreationID(), 32 )
-			net.WriteString( "unit" )
+			net.WriteString( car.undercover and "undercover" or "unit" )
 			net.Send( ply )
 		end
 
@@ -3752,6 +3752,14 @@ else -- CLIENT Settings | HUD/Options
 	        else
 	            blip.color = currentFlashColor
 	        end
+
+			if blip.undercover then
+				if not UVHUDCopMode and (not UVHUDDisplayPursuit or UVHUDDisplayCooldown) then
+					blip.alpha = 0
+				else
+					blip.alpha = 255
+				end
+			end
 	    end
 	end)
 
@@ -3958,6 +3966,11 @@ else -- CLIENT Settings | HUD/Options
 			return 
 		end
 
+		if entType == "undercover" then
+			entType = "unit"
+			entity.undercover = true
+		end
+
 		if entType == "unit" or entType == "air" then
 
 			table.insert( UnitTable, entity )
@@ -3976,8 +3989,10 @@ else -- CLIENT Settings | HUD/Options
 					icon = unitIcon,
 					scale = (entType == "air" and 2) or 1.4,
 					color = Color( 150, 0, 0 ),
-					alpha = 255
+					alpha = (entity.undercover and 0) or 255,
 				})
+
+				blip.undercover = entity.undercover
 
 				RegisterUnitBlip(id)
 			end

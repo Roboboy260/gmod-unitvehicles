@@ -379,7 +379,7 @@ if SERVER then
 
     end
 
-    function ENT:DetachGibs(gibtable, ishood, glasssubmaterial)
+    function ENT:DetachGibs(gibtable, ishood)
         for i = 1, #gibtable do
             local gib = ents.Create("prop_physics")
             gib:SetModel(gibtable[i])
@@ -388,9 +388,6 @@ if SERVER then
             gib:SetColor(self:GetColor())
             gib:SetSkin(self:GetSkin())
             gib:SetCollisionGroup(COLLISION_GROUP_WORLD)
-            if glasssubmaterial then
-                gib:SetSubMaterial(glasssubmaterial, "models/unitvehiclescars/shared/windowdamage1")
-            end
             gib:Spawn()
             if IsValid(gib:GetPhysicsObject()) then
                 if ishood then
@@ -597,7 +594,7 @@ if SERVER then
                     "models/unitvehiclescars/uv_chargerbee/redoorleft.mdl",
                 }
                 timer.Simple(0, function()
-                    self:DetachGibs(gibmodels, nil, 5)
+                    self:DetachGibs(gibmodels)
                 end)
                 self.leftdamaged = 3
             elseif self.leftdamaged < 4 then
@@ -608,7 +605,7 @@ if SERVER then
                     "models/unitvehiclescars/uv_chargerbee/doorleft.mdl",
                 }
                 timer.Simple(0, function()
-                    self:DetachGibs(gibmodels, nil, 5)
+                    self:DetachGibs(gibmodels)
                 end)
                 self.leftdamaged = 4
             elseif self.leftdamaged < 5 then
@@ -619,7 +616,7 @@ if SERVER then
                     "models/unitvehiclescars/uv_chargerbee/skirtleft.mdl",
                 }
                 timer.Simple(0, function()
-                    self:DetachGibs(gibmodels, nil, 5)
+                    self:DetachGibs(gibmodels)
                 end)
                 self.leftdamaged = 5
             end
@@ -650,7 +647,7 @@ if SERVER then
                     "models/unitvehiclescars/uv_chargerbee/redoorright.mdl",
                 }
                 timer.Simple(0, function()
-                    self:DetachGibs(gibmodels, nil, 5)
+                    self:DetachGibs(gibmodels)
                 end)
                 self.rightdamaged = 3
             elseif self.rightdamaged < 4 then
@@ -661,7 +658,7 @@ if SERVER then
                     "models/unitvehiclescars/uv_chargerbee/doorright.mdl",
                 }
                 timer.Simple(0, function()
-                    self:DetachGibs(gibmodels, nil, 5)
+                    self:DetachGibs(gibmodels)
                 end)
                 self.rightdamaged = 4
             elseif self.rightdamaged < 5 then
@@ -672,7 +669,7 @@ if SERVER then
                     "models/unitvehiclescars/uv_chargerbee/skirtright.mdl",
                 }
                 timer.Simple(0, function()
-                    self:DetachGibs(gibmodels, nil, 5)
+                    self:DetachGibs(gibmodels)
                 end)
                 self.rightdamaged = 5
             end

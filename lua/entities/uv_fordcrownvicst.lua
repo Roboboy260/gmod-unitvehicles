@@ -242,6 +242,81 @@ end
 
 if SERVER then
 
+    ENT.ExplosionBodygroupGibs = {
+        {
+            bodygroup = 3,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_fordcrownvic/hood.mdl",
+        },
+        {
+            bodygroup = 2,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_fordcrownvic/frbumper.mdl",
+        },
+        {
+            bodygroup = 4,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_fordcrownvic/rebumper.mdl",
+        },
+        {
+            bodygroup = 4,
+            detachedAt = 4,
+            model = "models/unitvehiclescars/uv_fordcrownvic/trunk.mdl",
+        },
+        {
+            bodygroup = 5,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_fordcrownvic/redoorleft.mdl",
+        },
+        {
+            bodygroup = 5,
+            detachedAt = 4,
+            model = "models/unitvehiclescars/uv_fordcrownvic/doorleft.mdl",
+        },
+        {
+            bodygroup = 6,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_fordcrownvic/redoorright.mdl",
+        },
+        {
+            bodygroup = 6,
+            detachedAt = 4,
+            model = "models/unitvehiclescars/uv_fordcrownvic/doorright.mdl",
+        },
+        {
+            bodygroup = 6,
+            detachedAt = 4,
+            model = "models/unitvehiclescars/uv_fordcrownvic/doorright.mdl",
+        },
+        {
+            bodygroup = 9,
+            detachedAt = 1,
+            model = "models/unitvehiclescars/uv_fordcrownvic/lightbar.mdl",
+        },
+    }
+
+    ENT.ExplosionDamageBodygroups = {
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+    }
+
+    ENT.ExplosionDamagedSubMaterials = {
+        [8] = "models/unitvehiclescars/uv_fordcrownvic/skin_0dam",
+        [12] = "models/unitvehiclescars/shared/windowdamage1",
+        [11] = "models/unitvehiclescars/shared/windowdamage1",
+        [22] = "models/unitvehiclescars/shared/windowdamage1",
+        [23] = "models/unitvehiclescars/shared/windowdamage1",
+    }
+
     function ENT:InitializePhysics()
         self:SetSolid( SOLID_VPHYSICS )
         self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -384,7 +459,7 @@ if SERVER then
 
     end
 
-    function ENT:DetachGibs(gibtable, ishood, glasssubmaterial)
+    function ENT:DetachGibs(gibtable, ishood)
         for i = 1, #gibtable do
             local gib = ents.Create("prop_physics")
             gib:SetModel(gibtable[i])
@@ -393,9 +468,6 @@ if SERVER then
             gib:SetColor(self:GetColor())
             gib:SetSkin(self:GetSkin())
             gib:SetCollisionGroup(COLLISION_GROUP_WORLD)
-            if glasssubmaterial then
-                gib:SetSubMaterial(glasssubmaterial, "models/unitvehiclescars/shared/windowdamage1")
-            end
             gib:Spawn()
             if IsValid(gib:GetPhysicsObject()) then
                 if ishood then
@@ -538,7 +610,7 @@ if SERVER then
                     "models/unitvehiclescars/uv_fordcrownvic/redoorleft.mdl",
                 }
                 timer.Simple(0, function()
-                    self:DetachGibs(gibmodels, nil, 4)
+                    self:DetachGibs(gibmodels)
                 end)
                 self.leftdamaged = 3
             elseif self.leftdamaged < 4 then
@@ -548,7 +620,7 @@ if SERVER then
                     "models/unitvehiclescars/uv_fordcrownvic/doorleft.mdl",
                 }
                 timer.Simple(0, function()
-                    self:DetachGibs(gibmodels, nil, 5)
+                    self:DetachGibs(gibmodels)
                 end)
                 self.leftdamaged = 4
             end
@@ -570,7 +642,7 @@ if SERVER then
                     "models/unitvehiclescars/uv_fordcrownvic/redoorright.mdl",
                 }
                 timer.Simple(0, function()
-                    self:DetachGibs(gibmodels, nil, 4)
+                    self:DetachGibs(gibmodels)
                 end)
                 self.rightdamaged = 3
             elseif self.rightdamaged < 4 then
@@ -580,7 +652,7 @@ if SERVER then
                     "models/unitvehiclescars/uv_fordcrownvic/doorright.mdl",
                 }
                 timer.Simple(0, function()
-                    self:DetachGibs(gibmodels, nil, 5)
+                    self:DetachGibs(gibmodels)
                 end)
                 self.rightdamaged = 4
             end

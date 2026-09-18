@@ -827,6 +827,16 @@ function UVSoundEscaped(heatlevel)
 end
  
 if CLIENT then
+	net.Receive("UVVehicleSpawnChance", function()
+		local key = net.ReadString()
+
+		if key == "__all" then
+			UVVehicleSpawnChances = net.ReadTable() or {}
+		else
+			local chance = net.ReadUInt(7)
+			UVVehicleSpawnChances[key] = math.Clamp(chance, 0, 100)
+		end
+	end)
 	cvars.RemoveChangeCallback("unitvehicle_pursuitthemevolume", "UV_PursuitVolumeChanged")
 	cvars.AddChangeCallback("unitvehicle_pursuitthemevolume", function(convar, old, new)
 		local vol = tonumber(new)
@@ -1621,6 +1631,16 @@ UnitVehicles = true
 
 ]]
 UVPresets = {}
+UVVehicleSpawnChances = UVVehicleSpawnChances or {}
+
+function UVVehicleSpawnChanceKey(heat, unit, vehicleBase, filename)
+	return string.format("%s|%s|%s|%s", heat, string.lower(unit), vehicleBase, filename)
+end
+
+function UVGetVehicleSpawnChance(heat, unit, vehicleBase, filename)
+	local chance = UVVehicleSpawnChances[UVVehicleSpawnChanceKey(heat, unit, vehicleBase, filename)]
+	return math.Clamp(tonumber(chance) or 100, 0, 100)
+end
 
 if SERVER then
 	local PRESET_TYPES = {
@@ -1684,6 +1704,11 @@ if SERVER then
 				if convar then
 					data[newKey] = convar:GetString()
 				end
+
+			end
+
+			if type == "uvunitmanager" then
+				data.__vehicle_spawn_chances = table.Copy(UVVehicleSpawnChances)
 			end
 		end
 
@@ -1724,6 +1749,11 @@ if SERVER then
 		net.WriteString("__ALL")
 		net.WriteUInt(#compressedData, 16)
 		net.WriteData(compressedData, #compressedData)
+		net.Send(ply)
+
+		net.Start("UVVehicleSpawnChance")
+			net.WriteString("__all")
+			net.WriteTable(UVVehicleSpawnChances)
 		net.Send(ply)
 	end
 
@@ -1790,6 +1820,20 @@ if SERVER then
 		UV_AddPreset(type, string.lower(name) .. '.json', data)
 	end)
 
+	net.Receive("UVVehicleSpawnChance", function(_, ply)
+		if ply and not ply:IsSuperAdmin() then return end
+
+		local key = net.ReadString()
+		local chance = math.Clamp(net.ReadUInt(7), 0, 100)
+		if not string.match(key, "^%d+|[%w_]+|%d+|.+$") then return end
+
+		UVVehicleSpawnChances[key] = chance
+		net.Start("UVVehicleSpawnChance")
+			net.WriteString(key)
+			net.WriteUInt(chance, 7)
+		net.Broadcast()
+	end)
+
 	local function _setConVar( cvar, value )
 		UV_UpdateSettings({ ["unitvehicle_unit_" .. cvar] = value })
 		-- net.Start("UVUpdateSettings")
@@ -1801,6 +1845,21 @@ if SERVER then
 		- data is a table of convar names and values
 	]]
 	function UVUnitLoadPreset( data )
+		UVVehicleSpawnChances = {}
+		if type(data.__vehicle_spawn_chances) == "table" then
+			for key, chance in pairs(data.__vehicle_spawn_chances) do
+				if isstring(key) then
+					UVVehicleSpawnChances[key] = math.Clamp(tonumber(chance) or 100, 0, 100)
+				end
+			end
+
+		end
+
+		net.Start("UVVehicleSpawnChance")
+			net.WriteString("__all")
+			net.WriteTable(UVVehicleSpawnChances)
+		net.Broadcast()
+
 		local warned = false
 		local count = 0
 		local count1 = 0
@@ -1836,7 +1895,9 @@ if SERVER then
 		end
 
 		for incomingCV, incomingValue in pairs(data) do
-			-- local isOldFormat = string.match( incomingCV, "uvunitmanager_" )
+			if incomingCV == "__vehicle_spawn_chances" then continue end
+
+			-- local isOldFormat = string.match(incomingCV, "uvunitmanager_" )
 			-- incomingCV = isOldFormat and string.Split( incomingCV, "uvunitmanager_" )[2] or incomingCV
 			local variable = string.Split( incomingCV, "unitvehicle_unit_" )[2] or string.Split( incomingCV, "uvunitmanager_" )[2]
 
@@ -3626,7 +3687,7 @@ if SERVER then
 			net.Start( "UVHUDAddUV" )
 			net.WriteInt( v:EntIndex(), 32 )
 			net.WriteInt( v:GetCreationID(), 32 )
-			net.WriteString( car.undercover and "undercover" or "unit" )
+			net.WriteString( v.undercover and "undercover" or "unit" )
 			net.Send( ply )
 		end
 
@@ -4615,8 +4676,8 @@ else -- CLIENT Settings | HUD/Options
 				if not IsValid(entity) then return true end
 				if entity:GetCreationID() ~= creationId then return end
 
-				if ent then
-					table.RemoveByValue( UnitTable, ent )
+				if entity then
+					table.RemoveByValue( UnitTable, entity )
 				end
 
 				if GMinimap then

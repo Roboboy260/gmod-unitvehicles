@@ -313,6 +313,7 @@ NETWORK_STRINGS = {
 	"UVPresets_Set",
 	"UVPresets_Save",
 	"UVPresets_Load",
+	"UVVehicleSpawnChance",
 }
 
 for _, v in pairs( NETWORK_STRINGS ) do

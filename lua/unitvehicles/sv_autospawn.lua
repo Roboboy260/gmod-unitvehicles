@@ -206,6 +206,32 @@ function UVCountActiveRhinos() -- Rhino Unit is npc_uvspecial with self.v.rhino 
 	return count
 end
 
+function UVSelectVehicleForSpawn(availableUnits, unit, vehicleBase, heat)
+	local weightedUnits = {}
+	local totalWeight = 0
+
+	for _, filename in ipairs(availableUnits) do
+		local weight = UVGetVehicleSpawnChance(heat, unit, vehicleBase, filename)
+		if weight > 0 then
+			totalWeight = totalWeight + weight
+			table.insert(weightedUnits, { filename = filename, weight = weight })
+		end
+	end
+
+	if totalWeight <= 0 then return nil end
+
+	local roll = math.random() * totalWeight
+	local accumulated = 0
+	for _, entry in ipairs(weightedUnits) do
+		accumulated = accumulated + entry.weight
+		if roll <= accumulated then
+			return entry.filename
+		end
+	end
+
+	return weightedUnits[#weightedUnits].filename
+end
+
 function UVGetRandomUnit( heat, modifiers )
 	heat = heat or UVHeatLevel
 
@@ -705,12 +731,14 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 			return
 		end
 		
-		availableunit = availableunits[math.random(1, #availableunits)]
+		availableunit = UVSelectVehicleForSpawn(availableunits, returnedUnitList.name, vehiclebase, UVHeatLevel)
 		
 		if commanderrespawn then
 			availableunit = commanderrespawn
 			uvnextclasstospawn = "npc_uvcommander"
 		end
+
+		if not availableunit then return end
 		
 		local JSONData = UV_LoadFile( "lvs>>units", availableunit )
 		
@@ -960,12 +988,14 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 			return
 		end
 		
-		availableunit = availableunits[math.random(1, #availableunits)]
+		availableunit = UVSelectVehicleForSpawn(availableunits, returnedUnitList.name, vehiclebase, UVHeatLevel)
 		
 		if commanderrespawn then
 			availableunit = commanderrespawn
 			uvnextclasstospawn = "npc_uvcommander"
 		end
+
+		if not availableunit then return end
 		
 		local JSONData = UV_LoadFile( "glide>>units", availableunit )
 		
@@ -1246,12 +1276,14 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 			return
 		end
 		
-		availableunit = availableunits[math.random(1, #availableunits)]
+		availableunit = UVSelectVehicleForSpawn(availableunits, returnedUnitList.name, vehiclebase, UVHeatLevel)
 		
 		if commanderrespawn then
 			availableunit = commanderrespawn
 			uvnextclasstospawn = "npc_uvcommander"
 		end
+
+		if not availableunit then return end
 		
 		local DataString = UV_LoadFile( "simfphys>>units", availableunit )
 		
@@ -1611,12 +1643,14 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 			return
 		end
 		
-		availableunit = availableunits[math.random(1, #availableunits)]
+		availableunit = UVSelectVehicleForSpawn(availableunits, returnedUnitList.name, vehiclebase, UVHeatLevel)
 		
 		if commanderrespawn then
 			availableunit = commanderrespawn
 			uvnextclasstospawn = "npc_uvcommander"
 		end
+
+		if not availableunit then return end
 		
 		local DataString = UV_LoadFile( "prop_vehicle_jeep>>units", availableunit )
 		

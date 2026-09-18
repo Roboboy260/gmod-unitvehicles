@@ -3064,6 +3064,18 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 		--
 
 		local panelBottom
+		local actionRow
+		local saveBtn
+		local deleteBtn
+
+		local function layoutActionButtons()
+			if not IsValid(actionRow) then return end
+
+			local width = math.max(0, math.floor((actionRow:GetWide() - 6) * 0.5))
+			if IsValid(saveBtn) then saveBtn:SetWide(width) end
+			if IsValid(deleteBtn) then deleteBtn:SetWide(width) end
+		end
+
 		if not st.importonly then
 			panelBottom = vgui.Create("DPanel", panel)
 			panelBottom:Dock(BOTTOM)
@@ -3091,6 +3103,14 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 				end
 			end
 
+			actionRow = vgui.Create("DPanel", panelBottom)
+			actionRow:Dock(BOTTOM)
+			actionRow:DockMargin(6, 0, 6, 6)
+			actionRow:SetTall(UV.ScaleH(42))
+			actionRow.Paint = nil
+
+			actionRow.OnSizeChanged = layoutActionButtons
+
 			textbox.OnTextChanged = function(self)
 				presetName = self:GetValue()
 			end
@@ -3114,14 +3134,12 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 
 		--
 
-		local saveBtn
-		
 		if not st.importonly then
-			saveBtn = vgui.Create("DButton", panelBottom)
+			saveBtn = vgui.Create("DButton", actionRow)
 			saveBtn:Dock(RIGHT)
-			saveBtn:DockMargin(6, 6, 6, 6)
-			saveBtn:SetWide(UV.ScaleW(400))
-			saveBtn:SetTall(UV.ScaleH(35))
+			saveBtn:DockMargin(6, 6, 0, 0)
+			saveBtn:SetWide(0)
+			saveBtn:SetTall(UV.ScaleH(36))
 			saveBtn:SetText(" ")
 
 			saveBtn.DoClick = function(self)
@@ -3196,14 +3214,12 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 
 		--
 
-		local deleteBtn
-		
 		if not st.importonly then
-			deleteBtn = vgui.Create("DButton", panelBottom)
+			deleteBtn = vgui.Create("DButton", actionRow)
 			deleteBtn:Dock(LEFT)
-			deleteBtn:DockMargin(6, 6, 6, 6)
-			deleteBtn:SetWide(UV.ScaleW(400))
-			deleteBtn:SetTall(UV.ScaleH(35))
+			deleteBtn:DockMargin(0, 6, 6, 0)
+			deleteBtn:SetWide(0)
+			deleteBtn:SetTall(UV.ScaleH(36))
 			deleteBtn:SetText(" ")
 
 			deleteBtn.DoClick = function(self)
@@ -3261,6 +3277,8 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 				if descPanel then descPanel.Desc = "" end
 				if promptBar then promptBar.Prompts = nil end
 			end
+
+			timer.Simple(0, layoutActionButtons)
 		end
 
 		return panel
@@ -3429,6 +3447,28 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 
 		local selected = getUnitTable()
 
+		local function getEntryHeight(text, width)
+			width = width > 0 and width or UV.ScaleW(400)
+			return math.max(UV.ScaleH(24), GetDynamicTall(text, width * 0.9))
+		end
+
+		local function getVehicleChance(entry)
+			local heat = string.match(st.convar, "(%d+)$")
+			local unit = string.match(st.convar, "units([%a]+)%d+$")
+			return UVGetVehicleSpawnChance(tonumber(heat) or 1, unit or "", entry.baseId, entry.filename)
+		end
+
+		local function setVehicleChance(entry, value)
+			local heat = string.match(st.convar, "(%d+)$")
+			local unit = string.match(st.convar, "units([%a]+)%d+$")
+			local key = UVVehicleSpawnChanceKey(tonumber(heat) or 1, unit or "", entry.baseId, entry.filename)
+
+			net.Start("UVVehicleSpawnChance")
+				net.WriteString(key)
+				net.WriteUInt(math.Clamp(math.Round(value), 0, 100), 7)
+			net.SendToServer()
+		end
+
 		local function refreshLists()
 			left:Clear()
 			right:Clear()
@@ -3483,10 +3523,16 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 					continue
 				end
 
-				local btn = right:Add("DButton")
+				local row = right:Add("DPanel")
+				row:Dock(TOP)
+				row:DockMargin(0, 0, 0, 2)
+				local entryHeight = getEntryHeight(entry.display, right:GetWide())
+				row:SetTall(entryHeight + (st.type == "unitselect" and UV.ScaleH(28) or 0))
+				row.Paint = nil
+
+				local btn = row:Add("DButton")
 				btn:Dock(TOP)
-				btn:DockMargin(0, 0, 0, 4)
-				btn:SetTall(UV.ScaleH(24))
+				btn:SetTall(entryHeight)
 				btn:SetText("")
 				btn.Selected = true
 				btn.Missing = not entry.exists
@@ -3550,6 +3596,84 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 				btn.OnCursorExited = function()
 					if promptBar then promptBar.Prompts = nil end
 				end
+
+				if st.type == "unitselect" then
+					local chancePanel = row:Add("DPanel")
+					chancePanel:Dock(TOP)
+					chancePanel:SetTall(UV.ScaleH(28))
+					chancePanel:DockMargin(UV.ScaleW(6), 0, UV.ScaleW(6), 0)
+					chancePanel.Paint = nil
+
+					local chanceValue = math.Round(getVehicleChance(entry))
+
+					local chanceBox = chancePanel:Add("DTextEntry")
+					chanceBox:Dock(RIGHT)
+					chanceBox:SetWide(UV.ScaleW(58))
+					chanceBox:DockMargin(UV.ScaleW(6), UV.ScaleH(2), 0, UV.ScaleH(2))
+					chanceBox:SetFont("UVSettingsFontSmall")
+					chanceBox:SetTextColor(color_white)
+					chanceBox:SetHighlightColor(Color(58, 193, 0))
+					chanceBox:SetCursorColor(Color(58, 193, 0))
+					chanceBox:SetText(chanceValue .. "%")
+					chanceBox:SetContentAlignment(5)
+					chanceBox:SetZPos(2)
+					chanceBox.Paint = function(self, w, h)
+						draw.RoundedBox(4, 0, 0, w, h, Color(30, 30, 30, 220))
+						self:DrawTextEntryText(color_white, Color(58, 193, 0), color_white)
+					end
+
+					local chance = chancePanel:Add("DNumSlider")
+					chance:Dock(FILL)
+					chance:SetMin(0)
+					chance:SetMax(100)
+					chance:SetDecimals(0)
+					chance:SetValue(chanceValue)
+					chance.Label:SetVisible(false)
+					chance.TextArea:SetVisible(false)
+
+					local editing = false
+					local function applyChance(value)
+						local clamped = math.Clamp(math.Round(tonumber(value) or chanceValue), 0, 100)
+						chanceValue = clamped
+						chance:SetValue(clamped)
+						chanceBox:SetText(clamped .. "%")
+						setVehicleChance(entry, clamped)
+					end
+
+					chance.OnValueChanged = function(_, value)
+						local clamped = math.Clamp(math.Round(value), 0, 100)
+						chanceValue = clamped
+						if not editing then
+							chanceBox:SetText(clamped .. "%")
+							setVehicleChance(entry, clamped)
+						end
+					end
+
+					chanceBox.OnGetFocus = function()
+						editing = true
+						if IsValid(UV.SettingsFrame) then
+							UV.SettingsFrame:SetKeyboardInputEnabled(true)
+						end
+						chanceBox:SetText(tostring(chanceValue))
+						chanceBox:SelectAllText()
+					end
+
+					chanceBox.OnEnter = function(self)
+						editing = false
+						applyChance(string.Trim(self:GetValue()):gsub("%%", ""))
+						self:KillFocus()
+					end
+
+					chanceBox.OnLoseFocus = function(self)
+						if editing then
+							applyChance(string.Trim(self:GetValue()):gsub("%%", ""))
+							editing = false
+						end
+						if IsValid(UV.SettingsFrame) then
+							UV.SettingsFrame:SetKeyboardInputEnabled(false)
+						end
+					end
+				end
 			end
 
 			for _, entry in ipairs(unselEntries) do
@@ -3559,8 +3683,8 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 
 				local btn = left:Add("DButton")
 				btn:Dock(TOP)
-				btn:DockMargin(0, 0, 0, 4)
-				btn:SetTall(UV.ScaleH(24))
+				btn:DockMargin(0, 0, 0, 2)
+				btn:SetTall(getEntryHeight(entry.display, left:GetWide()))
 				btn:SetText("")
 				btn.Selected = false
 

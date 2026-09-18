@@ -2367,7 +2367,7 @@ if SERVER then
 		net.Start("UVHUDAddUV")
 		net.WriteInt(self.v:EntIndex(), 32)
 		net.WriteInt(self.v:GetCreationID(), 32)
-		net.WriteString("unit")
+		net.WriteString(self.v.undercover and "undercover" or "unit")
 		net.Broadcast()
 		
 	end

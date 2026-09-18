@@ -3447,11 +3447,6 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 
 		local selected = getUnitTable()
 
-		local function getEntryHeight(text, width)
-			width = width > 0 and width or UV.ScaleW(400)
-			return math.max(UV.ScaleH(24), GetDynamicTall(text, width * 0.9))
-		end
-
 		local function getVehicleChance(entry)
 			local heat = string.match(st.convar, "(%d+)$")
 			local unit = string.match(st.convar, "units([%a]+)%d+$")
@@ -3526,7 +3521,7 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 				local row = right:Add("DPanel")
 				row:Dock(TOP)
 				row:DockMargin(0, 0, 0, 2)
-				local entryHeight = getEntryHeight(entry.display, right:GetWide())
+				local entryHeight = UV.ScaleH(24)
 				row:SetTall(entryHeight + (st.type == "unitselect" and UV.ScaleH(28) or 0))
 				row.Paint = nil
 
@@ -3574,7 +3569,7 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 					end
 
 					local textCol = self.Missing and Color(255,60,60) or nil
-					DrawWrappedText(self, entry.display, w * 0.95, w * 0.05, 0, nil, "UVSettingsFontSmall", nil, textCol)
+					UVDrawCursorText(self, entry.display, "UVSettingsFontSmall", w * 0.05, h * 0.5, textCol or color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, 1.5, color_black, w * 0.05, w * 0.95)
 				end
 
 				btn.DoClick = function()
@@ -3684,7 +3679,7 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 				local btn = left:Add("DButton")
 				btn:Dock(TOP)
 				btn:DockMargin(0, 0, 0, 2)
-				btn:SetTall(getEntryHeight(entry.display, left:GetWide()))
+				btn:SetTall(UV.ScaleH(24))
 				btn:SetText("")
 				btn.Selected = false
 
@@ -3712,7 +3707,7 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 						draw.RoundedBox(12, w * 0.0125, 0, w * 0.9875, h, hover)
 					end
 
-					DrawWrappedText(self, entry.display, w * 0.95, w * 0.05, 0, nil, "UVSettingsFontSmall")
+					UVDrawCursorText(self, entry.display, "UVSettingsFontSmall", w * 0.05, h * 0.5, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, 1.5, color_black, w * 0.05, w * 0.95)
 				end
 
 				btn.DoClick = function()

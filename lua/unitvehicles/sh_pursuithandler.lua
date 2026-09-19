@@ -929,14 +929,17 @@ end
 
 function UVDisplayTime(time)
 	time = time or 0
-	local formattedtime
-	local hours = math.floor( time / 3600 )
+	local totalSeconds = math.floor(time)
+	local hours = math.floor(totalSeconds / 3600)
+	local minutes = math.floor(totalSeconds / 60) % 60
+	local seconds = totalSeconds % 60
+	local centiseconds = math.floor(time * 100) % 100
+
 	if hours < 1 then
-		formattedtime = string.FormattedTime( time, "%02i:%02i.%02i" )
+		return string.format("%02d:%02d.%02d", minutes, seconds, centiseconds)
 	else --1 hour pursuit challenge completed
-		formattedtime = hours..":"..string.FormattedTime( time, "%02i:%02i.%02i" )
+		return string.format("%d:%02d:%02d.%02d", hours, minutes, seconds, centiseconds)
 	end
-	return formattedtime
 end
 
 HEAT_SETTINGS = {
@@ -1643,10 +1646,36 @@ function UVGetVehicleSpawnChance(heat, unit, vehicleBase, filename)
 end
 
 if SERVER then
+	local VEHICLE_SPAWN_CHANCES_FILE = "unitvehicles/last_session/vehicle_spawn_chances.json"
 	local PRESET_TYPES = {
 		["uvunitmanager"] = true,
 		["uvpursuittech"] = true,
 	}
+
+	local function SaveVehicleSpawnChances()
+		if not file.IsDir("unitvehicles/last_session", "DATA") then
+			file.CreateDir("unitvehicles/last_session")
+		end
+		file.Write(VEHICLE_SPAWN_CHANCES_FILE, util.TableToJSON(UVVehicleSpawnChances))
+	end
+
+	local function LoadVehicleSpawnChances()
+		local data = file.Read(VEHICLE_SPAWN_CHANCES_FILE, "DATA")
+		if not data then return end
+
+		local chances = util.JSONToTable(data)
+		if type(chances) ~= "table" then
+			ErrorNoHalt("[Unit Vehicles] Could not load vehicle spawn chances: invalid data\n")
+			return
+		end
+
+		UVVehicleSpawnChances = {}
+		for key, chance in pairs(chances) do
+			if isstring(key) then
+				UVVehicleSpawnChances[key] = math.Clamp(tonumber(chance) or 100, 0, 100)
+			end
+		end
+	end
 
 	function UV_AddPreset( type, fileName, data )
 		if not UVPresets[type] then UVPresets[type] = {} end
@@ -1758,6 +1787,8 @@ if SERVER then
 	end
 
 	function UV_PopulatePresets()
+		LoadVehicleSpawnChances()
+
 		for type, _ in pairs( PRESET_TYPES ) do
 			UVPresets[type] = {}
 			local networkData = {}
@@ -1828,6 +1859,7 @@ if SERVER then
 		if not string.match(key, "^%d+|[%w_]+|%d+|.+$") then return end
 
 		UVVehicleSpawnChances[key] = chance
+		SaveVehicleSpawnChances()
 		net.Start("UVVehicleSpawnChance")
 			net.WriteString(key)
 			net.WriteUInt(chance, 7)
@@ -1854,6 +1886,7 @@ if SERVER then
 			end
 
 		end
+		SaveVehicleSpawnChances()
 
 		net.Start("UVVehicleSpawnChance")
 			net.WriteString("__all")

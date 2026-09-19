@@ -229,6 +229,126 @@ end
 
 if SERVER then
 
+    ENT.ExplosionBodygroupGibs = {
+        {
+            bodygroup = 2,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_chargerbee/hood.mdl",
+        },
+        {
+            bodygroup = 14,
+            detachedAt = 1,
+            model = "models/unitvehiclescars/uv_chargerbee/lightbar.mdl",
+        },
+        {
+            bodygroup = 1,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_chargerbee/frbumper.mdl",
+        },
+        {
+            bodygroup = 3,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_chargerbee/fenderleft.mdl",
+        },
+        {
+            bodygroup = 4,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_chargerbee/fenderright.mdl",
+        },
+        {
+            bodygroup = 5,
+            detachedAt = 1,
+            model = "models/unitvehiclescars/uv_chargerbee/exhaust.mdl",
+        },
+        {
+            bodygroup = 5,
+            detachedAt = 2,
+            model = "models/unitvehiclescars/uv_chargerbee/spoiler.mdl",
+        },
+        {
+            bodygroup = 5,
+            detachedAt = 2,
+            model = "models/unitvehiclescars/uv_chargerbee/exhaust_1.mdl",
+        },
+        {
+            bodygroup = 5,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_chargerbee/rebumper.mdl",
+        },
+        {
+            bodygroup = 5,
+            detachedAt = 4,
+            model = "models/unitvehiclescars/uv_chargerbee/trunk.mdl",
+        },
+        {
+            bodygroup = 6,
+            detachedAt = 2,
+            model = "models/unitvehiclescars/uv_chargerbee/mirrorleft.mdl",
+        },
+        {
+            bodygroup = 6,
+            detachedAt = 3,
+            model =  "models/unitvehiclescars/uv_chargerbee/redoorleft.mdl",
+        },
+        {
+            bodygroup = 6,
+            detachedAt = 4,
+            model = "models/unitvehiclescars/uv_chargerbee/doorleft.mdl",
+        },
+        {
+            bodygroup = 6,
+            detachedAt = 5,
+            model = "models/unitvehiclescars/uv_chargerbee/skirtleft.mdl",
+        },
+        {
+            bodygroup = 7,
+            detachedAt = 2,
+            model = "models/unitvehiclescars/uv_chargerbee/mirrorright.mdl",
+        },
+        {
+            bodygroup = 7,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_chargerbee/redoorright.mdl",
+        },
+        {
+            bodygroup = 7,
+            detachedAt = 4,
+            model = "models/unitvehiclescars/uv_chargerbee/doorright.mdl",
+        },
+        {
+            bodygroup = 7,
+            detachedAt = 5,
+            model = "models/unitvehiclescars/uv_chargerbee/skirtright.mdl",
+        },
+    }
+
+    ENT.ExplosionDamageBodygroups = {
+        [1] = 3,
+        [2] = 3,
+        [3] = 3,
+        [4] = 3,
+        [5] = 4,
+        [6] = 5,
+        [7] = 5,
+        [11] = 2,
+        [12] = 2,
+        [14] = 1,
+        [15] = 2,
+        [16] = 2,
+        [17] = 1,
+    }
+
+    ENT.ExplosionDamagedSubMaterials = {
+        [12] = "models/unitvehiclescars/uv_chargerbee/skin_0dam",
+        [7] = "models/unitvehiclescars/shared/windowdamage1",
+        [8] = "models/unitvehiclescars/shared/windowdamage1",
+        [9] = "models/unitvehiclescars/shared/windowdamage1",
+        [22] = "models/unitvehiclescars/shared/windowdamage1",
+        [24] = "models/unitvehiclescars/shared/windowdamage1",
+        [25] = "models/unitvehiclescars/shared/windowdamage1",
+        [26] = "models/unitvehiclescars/shared/windowdamage1",
+    }
+
     function ENT:InitializePhysics()
         self:SetSolid( SOLID_VPHYSICS )
         self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -389,12 +509,15 @@ if SERVER then
             gib:SetSkin(self:GetSkin())
             gib:SetCollisionGroup(COLLISION_GROUP_WORLD)
             gib:Spawn()
-            if IsValid(gib:GetPhysicsObject()) then
+            local gibPhys = gib:GetPhysicsObject()
+            if IsValid(gibPhys) then
+                gibPhys:SetDragCoefficient(0)
                 if ishood then
-                    gib:GetPhysicsObject():SetVelocity((self:GetVelocity()*0.75) + self:GetUp() * 500)
-                    gib:GetPhysicsObject():SetAngleVelocity(VectorRand() * 500)
+                    gibPhys:SetVelocity((self:GetVelocity()*0.75) + self:GetUp() * 500)
+                    gibPhys:SetAngleVelocity(VectorRand() * 500)
                 else
-                    gib:GetPhysicsObject():SetVelocity(self:GetVelocity())
+                    gibPhys:SetVelocity(self:GetVelocity())
+                    gibPhys:AddAngleVelocity(VectorRand() * 100)
                 end
             end
             local giblifetime = GetConVar("glide_bodygroupdamage_giblifetime"):GetInt() or 15

@@ -285,6 +285,26 @@ end
 
 
 if SERVER then
+
+    ENT.ExplosionDamageBodygroups = {
+        [0] = 1,
+        [1] = 1,
+        [2] = 1,
+        [3] = 1,
+        [4] = 1,
+        [5] = 1,
+        [6] = 1,
+        [7] = 1,
+    }
+
+    ENT.ExplosionDamagedSubMaterials = {
+        [22] = "models/unitvehiclescars/uv_viperelite/carskin_skin1_dmg",
+        [9] = "models/unitvehiclescars/shared/windowdamage1",
+        [18] = "models/unitvehiclescars/shared/windowdamage1",
+        [7] = "models/unitvehiclescars/shared/windowdamage1",
+        [8] = "models/unitvehiclescars/shared/windowdamage1",
+    }
+
     function ENT:InitializePhysics()
         self:SetSolid( SOLID_VPHYSICS )
         self:SetMoveType( MOVETYPE_VPHYSICS )

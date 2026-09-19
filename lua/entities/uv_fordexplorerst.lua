@@ -254,6 +254,88 @@ end
 
 if SERVER then
 
+    ENT.ExplosionBodygroupGibs = {
+        {
+            bodygroup = 2,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_fordexplorer/hood.mdl",
+        },
+        {
+            bodygroup = 11,
+            detachedAt = 1,
+            model = "models/unitvehiclescars/uv_fordexplorer/lightbar.mdl",
+        },
+        {
+            bodygroup = 1,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_fordexplorer/frbumper.mdl",
+        },
+        {
+            bodygroup = 3,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_fordexplorer/fenderleft.mdl",
+        },
+        {
+            bodygroup = 4,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_fordexplorer/fenderright.mdl",
+        },
+        {
+            bodygroup = 5,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_fordexplorer/rebumper.mdl",
+        },
+        {
+            bodygroup = 5,
+            detachedAt = 4,
+            model = "models/unitvehiclescars/uv_fordexplorer/trunk.mdl",
+        },
+        {
+            bodygroup = 6,
+            detachedAt = 2,
+            model = "models/unitvehiclescars/uv_fordexplorer/redoorleft.mdl",
+        },
+        {
+            bodygroup = 6,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_fordexplorer/doorleft.mdl",
+        },
+        {
+            bodygroup = 7,
+            detachedAt = 2,
+            model = "models/unitvehiclescars/uv_fordexplorer/redoorright.mdl",
+        },
+        {
+            bodygroup = 7,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_fordexplorer/doorright.mdl",
+        },
+    }
+
+    ENT.ExplosionDamageBodygroups = {
+        [1] = 3,
+        [2] = 3,
+        [3] = 3,
+        [4] = 3,
+        [5] = 4,
+        [6] = 3,
+        [7] = 3,
+        [8] = 2,
+        [9] = 2,
+        [11] = 1,
+        [12] = 0,
+        [13] = 0,
+        [14] = 0,
+    }
+
+    ENT.ExplosionDamagedSubMaterials = {
+        [7] = "models/unitvehiclescars/uv_fordexplorer/skin_0dam",
+        [15] = "models/unitvehiclescars/shared/windowdamage1",
+        [19] = "models/unitvehiclescars/shared/windowdamage1",
+        [14] = "models/unitvehiclescars/shared/windowdamage1",
+        [16] = "models/unitvehiclescars/shared/windowdamage1",
+    }
+
     ENT.SpawnPositionOffset = Vector( 0, 0, 20 )
     ENT.ChassisMass = 995
 
@@ -402,12 +484,15 @@ if SERVER then
             gib:SetSkin(self:GetSkin())
             gib:SetCollisionGroup(COLLISION_GROUP_WORLD)
             gib:Spawn()
-            if IsValid(gib:GetPhysicsObject()) then
+            local gibPhys = gib:GetPhysicsObject()
+            if IsValid(gibPhys) then
+                gibPhys:SetDragCoefficient(0)
                 if ishood then
-                    gib:GetPhysicsObject():SetVelocity((self:GetVelocity()*0.75) + self:GetUp() * 500)
-                    gib:GetPhysicsObject():SetAngleVelocity(VectorRand() * 500)
+                    gibPhys:SetVelocity((self:GetVelocity()*0.75) + self:GetUp() * 500)
+                    gibPhys:SetAngleVelocity(VectorRand() * 500)
                 else
-                    gib:GetPhysicsObject():SetVelocity(self:GetVelocity())
+                    gibPhys:SetVelocity(self:GetVelocity())
+                    gibPhys:AddAngleVelocity(VectorRand() * 100)
                 end
             end
             local giblifetime = GetConVar("glide_bodygroupdamage_giblifetime"):GetInt() or 15

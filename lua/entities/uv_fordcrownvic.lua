@@ -466,12 +466,15 @@ if SERVER then
             gib:SetSkin(self:GetSkin())
             gib:SetCollisionGroup(COLLISION_GROUP_WORLD)
             gib:Spawn()
-            if IsValid(gib:GetPhysicsObject()) then
+            local gibPhys = gib:GetPhysicsObject()
+            if IsValid(gibPhys) then
+                gibPhys:SetDragCoefficient(0)
                 if ishood then
-                    gib:GetPhysicsObject():SetVelocity((self:GetVelocity()*0.75) + self:GetUp() * 500)
-                    gib:GetPhysicsObject():SetAngleVelocity(VectorRand() * 500)
+                    gibPhys:SetVelocity((self:GetVelocity()*0.75) + self:GetUp() * 500)
+                    gibPhys:SetAngleVelocity(VectorRand() * 500)
                 else
-                    gib:GetPhysicsObject():SetVelocity(self:GetVelocity())
+                    gibPhys:SetVelocity(self:GetVelocity())
+                    gibPhys:AddAngleVelocity(VectorRand() * 100)
                 end
             end
             local giblifetime = GetConVar("glide_bodygroupdamage_giblifetime"):GetInt() or 15

@@ -159,6 +159,57 @@ end
 
 if SERVER then
 
+    ENT.ExplosionBodygroupGibs = {
+        {
+            bodygroup = 8,
+            detachedAt = 1,
+            model = "models/unitvehiclescars/uv_rhinotruck/lightbar.mdl",
+        },
+        {
+            bodygroup = 1,
+            detachedAt = 2,
+            model = "models/unitvehiclescars/uv_rhinotruck/frbumper.mdl",
+        },
+        {
+            bodygroup = 1,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_rhinotruck/hood.mdl",
+        },
+        {
+            bodygroup = 2,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_rhinotruck/rebumper.mdl",
+        },
+        {
+            bodygroup = 3,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_rhinotruck/leftdoor.mdl",
+        },
+        {
+            bodygroup = 4,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_rhinotruck/rightdoor.mdl",
+        },
+    }
+
+    ENT.ExplosionDamageBodygroups = {
+        [1] = 3,
+        [2] = 3,
+        [3] = 3,
+        [4] = 3,
+        [5] = 2,
+        [6] = 2,
+        [8] = 1,
+    }
+
+    ENT.ExplosionDamagedSubMaterials = {
+        [4] = "models/unitvehiclescars/uv_rhinotruck/skin_0dam",
+        [13] = "models/unitvehiclescars/shared/windowdamage1",
+        [10] = "models/unitvehiclescars/shared/windowdamage1",
+        [11] = "models/unitvehiclescars/shared/windowdamage1",
+        [12] = "models/unitvehiclescars/shared/windowdamage1",
+    }
+
     ENT.SpawnPositionOffset = Vector( 0, 0, 30 )
     ENT.ChassisMass = 1600
 
@@ -295,12 +346,15 @@ if SERVER then
             gib:SetSkin(self:GetSkin())
             gib:SetCollisionGroup(COLLISION_GROUP_WORLD)
             gib:Spawn()
-            if IsValid(gib:GetPhysicsObject()) then
+            local gibPhys = gib:GetPhysicsObject()
+            if IsValid(gibPhys) then
+                gibPhys:SetDragCoefficient(0)
                 if ishood then
-                    gib:GetPhysicsObject():SetVelocity((self:GetVelocity()*0.75) + self:GetUp() * 500)
-                    gib:GetPhysicsObject():SetAngleVelocity(VectorRand() * 500)
+                    gibPhys:SetVelocity((self:GetVelocity()*0.75) + self:GetUp() * 500)
+                    gibPhys:SetAngleVelocity(VectorRand() * 500)
                 else
-                    gib:GetPhysicsObject():SetVelocity(self:GetVelocity())
+                    gibPhys:SetVelocity(self:GetVelocity())
+                    gibPhys:AddAngleVelocity(VectorRand() * 100)
                 end
             end
             local giblifetime = GetConVar("glide_bodygroupdamage_giblifetime"):GetInt() or 15

@@ -259,6 +259,91 @@ end
 
 if SERVER then
 
+    ENT.ExplosionBodygroupGibs = {
+        {
+            bodygroup = 2,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_coloradozr2/hood.mdl",
+        },
+        {
+            bodygroup = 9,
+            detachedAt = 1,
+            model = "models/unitvehiclescars/uv_coloradozr2/lightbar.mdl",
+        },
+        {
+            bodygroup = 1,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_coloradozr2/frbumper.mdl",
+        },
+        {
+            bodygroup = 3,
+            detachedAt = 1,
+            model = "models/unitvehiclescars/uv_coloradozr2/exhaust.mdl",
+        },
+        {
+            bodygroup = 3,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_coloradozr2/rebumper.mdl",
+        },
+        {
+            bodygroup = 3,
+            detachedAt = 4,
+            model = "models/unitvehiclescars/uv_coloradozr2/trunk.mdl",
+        },
+        {
+            bodygroup = 4,
+            detachedAt = 2,
+            model = "models/unitvehiclescars/uv_coloradozr2/mirrorleft.mdl",
+        },
+        {
+            bodygroup = 4,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_coloradozr2/doorleft.mdl",
+        },
+        {
+            bodygroup = 4,
+            detachedAt = 4,
+            model = "models/unitvehiclescars/uv_coloradozr2/skirtleft.mdl",
+        },
+        {
+            bodygroup = 5,
+            detachedAt = 2,
+            model = "models/unitvehiclescars/uv_coloradozr2/mirrorright.mdl",
+        },
+        {
+            bodygroup = 5,
+            detachedAt = 3,
+            model = "models/unitvehiclescars/uv_coloradozr2/doorright.mdl",
+        },
+        {
+            bodygroup = 5,
+            detachedAt = 4,
+            model = "models/unitvehiclescars/uv_coloradozr2/skirtright.mdl",
+        },
+    }
+
+    ENT.ExplosionDamageBodygroups = {
+        [1] = 3,
+        [2] = 3,
+        [3] = 4,
+        [4] = 4,
+        [5] = 4,
+        [6] = 2,
+        [7] = 2,
+        [9] = 1,
+        [10] = 2,
+        [11] = 2,
+        [12] = 1,
+    }
+
+    ENT.ExplosionDamagedSubMaterials = {
+        [5] = "models/unitvehiclescars/uv_coloradozr2/skin_0dam",
+        [14] = "models/unitvehiclescars/shared/windowdamage1",
+        [15] = "models/unitvehiclescars/shared/windowdamage1",
+        [11] = "models/unitvehiclescars/shared/windowdamage1",
+        [12] = "models/unitvehiclescars/shared/windowdamage1",
+    }
+
     function ENT:InitializePhysics()
         self:SetSolid( SOLID_VPHYSICS )
         self:SetMoveType( MOVETYPE_VPHYSICS )
@@ -410,12 +495,15 @@ if SERVER then
             gib:SetSkin(self:GetSkin())
             gib:SetCollisionGroup(COLLISION_GROUP_WORLD)
             gib:Spawn()
-            if IsValid(gib:GetPhysicsObject()) then
+            local gibPhys = gib:GetPhysicsObject()
+            if IsValid(gibPhys) then
+                gibPhys:SetDragCoefficient(0)
                 if ishood then
-                    gib:GetPhysicsObject():SetVelocity((self:GetVelocity()*0.75) + self:GetUp() * 500)
-                    gib:GetPhysicsObject():SetAngleVelocity(VectorRand() * 500)
+                    gibPhys:SetVelocity((self:GetVelocity()*0.75) + self:GetUp() * 500)
+                    gibPhys:SetAngleVelocity(VectorRand() * 500)
                 else
-                    gib:GetPhysicsObject():SetVelocity(self:GetVelocity())
+                    gibPhys:SetVelocity(self:GetVelocity())
+                    gibPhys:AddAngleVelocity(VectorRand() * 100)
                 end
             end
             local giblifetime = GetConVar("glide_bodygroupdamage_giblifetime"):GetInt() or 15

@@ -86,7 +86,7 @@ if CLIENT then
 
         { type = "headlight", offset = Vector( 100.45,33.79,29.08 ),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),size = 40 },
         { type = "headlight", offset = Vector( 100.45,-33.79,29.08 ),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),size = 40 },
-        { type = "headlight", offset = Vector(53.65,35.92,53.8),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),beamType = "high",size = 50 },
+        { type = "headlight", ifBodygroupId = 0, ifSubModelId = 0, offset = Vector(53.65,35.92,53.8),color = Color(255,255,255), dir = Vector( 1, 0, 0 ),beamType = "high",size = 50 },
 
         { type = "taillight", offset = Vector(-118.22,34.98,29.74),color = Color(255,0,0,55),dir = Vector( -1, 0, 0 ),size = 30 },
         { type = "taillight", offset = Vector(-118.22,-34.98,29.74),color = Color(255,0,0,55),dir = Vector( -1, 0, 0 ),size = 30 },

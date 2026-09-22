@@ -1635,7 +1635,7 @@ if SERVER then
         spikes.PhysgunDisabled = false
         local phspikes = spikes:GetPhysicsObject()
         phspikes:EnableMotion(true)
-        phspikes:SetVelocity(ph:GetVelocity()/2)
+        phspikes:SetVelocity(ph:GetVelocity()/3)
         timer.Simple(timecheck, function() 
             if IsValid(spikes) then 
                 if UVTargeting and not racer then

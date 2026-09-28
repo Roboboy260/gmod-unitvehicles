@@ -224,6 +224,10 @@ TOOL.ClientConVar["racer_slot1"] = ""
 TOOL.ClientConVar["racer_slot2"] = ""
 TOOL.ClientConVar["unit_slot1"]  = ""
 TOOL.ClientConVar["unit_slot2"]  = ""
+TOOL.ClientConVar["racer_slot1_upgraded"] = 0
+TOOL.ClientConVar["racer_slot2_upgraded"] = 0
+TOOL.ClientConVar["unit_slot1_upgraded"] = 0
+TOOL.ClientConVar["unit_slot2_upgraded"] = 0
 
 -- generate per-PT convars
 for displayName, info in pairs(PursuitTechDefs) do
@@ -512,13 +516,29 @@ if CLIENT then
 		end
 
 		local racerSlot1Combo = CreateSlotCombo("racer_slot1", pttable_racer)
+		CPanel:AddControl("CheckBox", {
+			Label = "#tool.uvpursuittech.upgraded",
+			Command = "uvpursuittech_racer_slot1_upgraded"
+		})
 		local racerSlot2Combo = CreateSlotCombo("racer_slot2", pttable_racer)
+		CPanel:AddControl("CheckBox", {
+			Label = "#tool.uvpursuittech.upgraded",
+			Command = "uvpursuittech_racer_slot2_upgraded"
+		})
 
 		-- ===== Unit slots =====
 		CPanel:AddControl("Label", {Text=" "})
 		CPanel:AddControl("Label",{Text="#tool.uvpursuittech.slot.unit"})
 		local unitSlot1Combo = CreateSlotCombo("unit_slot1", pttable_unit)
+		CPanel:AddControl("CheckBox", {
+			Label = "#tool.uvpursuittech.upgraded",
+			Command = "uvpursuittech_unit_slot1_upgraded"
+		})
 		local unitSlot2Combo = CreateSlotCombo("unit_slot2", pttable_unit)
+		CPanel:AddControl("CheckBox", {
+			Label = "#tool.uvpursuittech.upgraded",
+			Command = "uvpursuittech_unit_slot2_upgraded"
+		})
 
 		-- ===== Settings PT picker =====
 		CPanel:AddControl("Label",{Text=" "})
@@ -762,17 +782,18 @@ function TOOL:LeftClick(trace)
 
     if CLIENT then return false end
 
-    local isUnit = car.UnitVehicle == true
-    local slotNum = self:GetClientNumber("slot") or 1
-
     -- Choose correct slot convar based on vehicle type
-    local ptSlot1, ptSlot2
+    local ptSlot1, ptSlot2, upgradedSlot1, upgradedSlot2
     if car.UnitVehicle then
         ptSlot1 = self:GetClientInfo("unit_slot1") or ""
         ptSlot2 = self:GetClientInfo("unit_slot2") or ""
+		upgradedSlot1 = self:GetClientNumber("unit_slot1_upgraded") == 1
+		upgradedSlot2 = self:GetClientNumber("unit_slot2_upgraded") == 1
     else
         ptSlot1 = self:GetClientInfo("racer_slot1") or ""
         ptSlot2 = self:GetClientInfo("racer_slot2") or ""
+		upgradedSlot1 = self:GetClientNumber("racer_slot1_upgraded") == 1
+		upgradedSlot2 = self:GetClientNumber("racer_slot2_upgraded") == 1
     end
 
     if not car.PursuitTech then car.PursuitTech = {} end
@@ -816,7 +837,11 @@ function TOOL:LeftClick(trace)
 
 			-- UVReplicatePT(car, slot)
 
-            UVAddPursuitTech( car, ptselected, slot, nil, nil )
+			local upgraded = upgradedSlot2
+			if slot == 1 then
+				upgraded = upgradedSlot1
+			end
+            UVAddPursuitTech(car, ptselected, slot, nil, nil, upgraded)
 		end
 	end
 

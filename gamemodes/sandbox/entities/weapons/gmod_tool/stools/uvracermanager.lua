@@ -20,6 +20,35 @@ local vehicleBases = {
 	{ id = 4, name = "LVS",      path = "lvs>>racers",               type = "json" },
 }
 
+local racerPursuitTechChoices = {
+	["EMP"] = true,
+	["ESF"] = true,
+	["Power Play"] = true,
+	["Repair Kit"] = true,
+	["Spikestrip"] = true,
+	["Juggernaut"] = true,
+	["Ghost"] = true,
+	["Jammer"] = true,
+	["Shockwave"] = true,
+	["Stunmine"] = true,
+}
+
+local function SanitizePursuitTechChoice(choice)
+	if choice == "none" or choice == "allowed" or racerPursuitTechChoices[choice] then
+		return choice
+	end
+
+	return "none"
+end
+
+local function ApplyConfiguredPursuitTech(vehicle, memory)
+	vehicle.UVForcedPursuitTechSlot1 = memory.PursuitTechSlot1
+	vehicle.UVForcedPursuitTechSlot2 = memory.PursuitTechSlot2
+	vehicle.UVForcedPursuitTechSlot1Upgraded = tobool(memory.PursuitTechSlot1Upgraded)
+	vehicle.UVForcedPursuitTechSlot2Upgraded = tobool(memory.PursuitTechSlot2Upgraded)
+	UVGiveRacerPursuitTech(vehicle)
+end
+
 if SERVER then
 	
 	net.Receive("UVRacerManagerGetRacerInfo", function( length, ply )
@@ -160,7 +189,12 @@ if SERVER then
 
 		local filename = net.ReadString()
 		local canSaveColor = net.ReadBool()
-
+		local pursuitTechSlot1 = SanitizePursuitTechChoice(net.ReadString())
+		local pursuitTechSlot2 = SanitizePursuitTechChoice(net.ReadString())
+		ply.UVRacerTOOLMemory.PursuitTechSlot1 = pursuitTechSlot1
+		ply.UVRacerTOOLMemory.PursuitTechSlot2 = pursuitTechSlot2
+		ply.UVRacerTOOLMemory.PursuitTechSlot1Upgraded = net.ReadBool()
+		ply.UVRacerTOOLMemory.PursuitTechSlot2Upgraded = net.ReadBool()
 		SaveVehicle(ply, filename, canSaveColor)
 	end)
 
@@ -223,7 +257,7 @@ if CLIENT then
 		local lang = language.GetPhrase
 		
 		RacerAdjust:Add(OK)
-		RacerAdjust:SetSize(600, 300)
+		RacerAdjust:SetSize(600, 460)
 		RacerAdjust:SetBackgroundBlur(true)
 		RacerAdjust:Center()
 		RacerAdjust:SetTitle("#tool.uvracermanager.create")
@@ -254,6 +288,70 @@ if CLIENT then
 		SaveColour:SetPos( 20, 160 )
 		SaveColour:SetText("#uv.tool.savecol")
 		SaveColour:SetSize(RacerAdjust:GetWide(), 22)
+
+		local pursuitTechChoices = {
+			{ "EMP", "#uv.ptech.emp" },
+			{ "ESF", "#uv.ptech.esf" },
+			{ "Power Play", "#uv.ptech.powerplay" },
+			{ "Repair Kit", "#uv.ptech.repairkit" },
+			{ "Spikestrip", "#uv.ptech.spikes" },
+			{ "Juggernaut", "#uv.ptech.juggernaut" },
+			{ "Ghost", "#uv.ptech.ghost" },
+			{ "Jammer", "#uv.ptech.jammer" },
+			{ "Shockwave", "#uv.ptech.shockwave" },
+			{ "Stunmine", "#uv.ptech.stunmine" },
+		}
+
+		local function CreatePursuitTechCombo(slot, y)
+			local label = vgui.Create("DLabel", RacerAdjust)
+			label:SetPos(20, y)
+			label:SetText(slot == 1 and "#tool.uvracermanager.create.pursuittech.slot1" or "#tool.uvracermanager.create.pursuittech.slot2")
+			label:SizeToContents()
+
+			local combo = vgui.Create("DComboBox", RacerAdjust)
+			combo:SetPos(20, y + 20)
+			combo:SetSize(RacerAdjust:GetWide() / 2, 22)
+			combo:SetTextColor(Color(0, 0, 0))
+			combo:AddChoice("#tool.uvracermanager.create.pursuittech.none", "none")
+			combo:AddChoice("#tool.uvracermanager.create.pursuittech.allowed", "allowed")
+			for _, choice in ipairs(pursuitTechChoices) do
+				combo:AddChoice(choice[2], choice[1])
+			end
+
+			local currentChoice = slot == 1 and UVRacerTOOLMemory.PursuitTechSlot1 or UVRacerTOOLMemory.PursuitTechSlot2
+			combo.selectedTech = SanitizePursuitTechChoice(currentChoice)
+			combo.OnSelect = function(_, _, _, data)
+				combo.selectedTech = SanitizePursuitTechChoice(data)
+			end
+			local selectedText = "#tool.uvracermanager.create.pursuittech.none"
+			if currentChoice == "allowed" then
+				selectedText = "#tool.uvracermanager.create.pursuittech.allowed"
+			else
+				for _, choice in ipairs(pursuitTechChoices) do
+					if choice[1] == currentChoice then
+						selectedText = choice[2]
+						break
+					end
+				end
+			end
+			combo:SetValue(selectedText)
+			return combo
+		end
+
+		local PursuitTechSlot1 = CreatePursuitTechCombo(1, 200)
+		local PursuitTechSlot2 = CreatePursuitTechCombo(2, 300)
+
+		local PursuitTechSlot1Upgraded = vgui.Create("DCheckBoxLabel", RacerAdjust)
+		PursuitTechSlot1Upgraded:SetPos(20, 250)
+		PursuitTechSlot1Upgraded:SetText("#tool.uvpursuittech.upgraded")
+		PursuitTechSlot1Upgraded:SetValue(tobool(UVRacerTOOLMemory.PursuitTechSlot1Upgraded))
+		PursuitTechSlot1Upgraded:SizeToContents()
+
+		local PursuitTechSlot2Upgraded = vgui.Create("DCheckBoxLabel", RacerAdjust)
+		PursuitTechSlot2Upgraded:SetPos(20, 350)
+		PursuitTechSlot2Upgraded:SetText("#tool.uvpursuittech.upgraded")
+		PursuitTechSlot2Upgraded:SetValue(tobool(UVRacerTOOLMemory.PursuitTechSlot2Upgraded))
+		PursuitTechSlot2Upgraded:SizeToContents()
 		
 		OK:SetText("#uv.tool.create")
 		OK:SetSize(RacerAdjust:GetWide() * 5 / 16, 22)
@@ -263,6 +361,10 @@ if CLIENT then
 			net.Start("UVRacerManagerSaveRacer")
 			net.WriteString(RacerNameEntry:GetValue())
 			net.WriteBool(SaveColour:GetChecked())
+			net.WriteString(PursuitTechSlot1.selectedTech)
+			net.WriteString(PursuitTechSlot2.selectedTech)
+			net.WriteBool(PursuitTechSlot1Upgraded:GetChecked())
+			net.WriteBool(PursuitTechSlot2Upgraded:GetChecked())
 			net.SendToServer()
 
 			RacerAdjust:Close()
@@ -305,6 +407,12 @@ if CLIENT then
 		end
 
 		CPanel:AddItem(FilterBar)
+
+		local SearchEntry = vgui.Create("DTextEntry")
+		SearchEntry:SetTall(24)
+		SearchEntry:SetPlaceholderText(language.GetPhrase("uv.search"))
+		SearchEntry:SetUpdateOnType(true)
+		CPanel:AddItem(SearchEntry)
 
 		local function AddFilterButton(text, baseId)
 			local btn = FilterBar:Add("DButton")
@@ -403,10 +511,19 @@ if CLIENT then
 				return
 			end
 
+			local searchQuery = string.Trim(SearchEntry:GetValue()):lower()
+			local matchingEntries = 0
+
 			for _, entry in ipairs(entries) do
 				if activeFilterBaseId ~= 0 and entry.baseId ~= activeFilterBaseId then
 					continue
 				end
+
+				if searchQuery ~= "" and not string.find(entry.display:lower(), searchQuery, 1, true) then
+					continue
+				end
+
+				matchingEntries = matchingEntries + 1
 
 				if not selecteditem then
 					selecteditem = entry.filename
@@ -463,6 +580,19 @@ if CLIENT then
 					net.SendToServer()
 				end
 			end
+
+			if matchingEntries == 0 then
+				local empty = vgui.Create("DLabel", ScrollPanel)
+				empty:SetText("#uv.search.noresults")
+				empty:SetTextColor(Color(200,200,200))
+				empty:SetContentAlignment(5)
+				empty:Dock(TOP)
+				empty:SetTall(24)
+			end
+		end
+
+		SearchEntry.OnTextChanged = function()
+			UVRacerManagerTool.RefreshList()
 		end
 
 		timer.Simple(0, function()
@@ -854,6 +984,7 @@ function TOOL:LeftClick( trace )
 		end
 		
 		Ent.RacerVehicle = ply
+		ApplyConfiguredPursuitTech(Ent, ply.UVRacerTOOLMemory)
 		
 		return true
 		
@@ -931,6 +1062,7 @@ function TOOL:LeftClick( trace )
 		undo.Finish( "Vehicle (" .. tostring( class ) .. ")" )
 		
 		Ent.RacerVehicle = ply
+		ApplyConfiguredPursuitTech(Ent, ply.UVRacerTOOLMemory)
 		
 		return true
 		
@@ -1206,6 +1338,7 @@ function TOOL:LeftClick( trace )
 		end
 		
 		Ent.RacerVehicle = ply
+		ApplyConfiguredPursuitTech(Ent, ply.UVRacerTOOLMemory)
 		
 	end)
 	

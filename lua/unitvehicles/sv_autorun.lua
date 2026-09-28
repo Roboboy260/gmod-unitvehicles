@@ -1215,13 +1215,17 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 				if car.UnitVehicle then
 					power = UVUnitPTESFPower:GetInt()
 					damage = UVUnitPTESFDamage:GetFloat()
-					if UVIsPTUpgraded(car) then
+					if UVIsPTUpgraded(car, car.esfPursuitTech) then
 						power = power * 2
 						damage = damage * 2
 					end
 				else
 					power = UVPTESFPower:GetInt()
 					damage = UVPTESFDamage:GetFloat()
+					if UVIsPTUpgraded(car, car.esfPursuitTech) then
+						power = power * 2
+						damage = damage * 2
+					end
 				end
 
 				local carPos = car:WorldSpaceCenter()
@@ -1483,13 +1487,17 @@ hook.Add("simfphysPhysicsCollide", "UVCollisionSimfphys", function(car, coldata,
 		if car.UnitVehicle then
 			power = UVUnitPTESFPower:GetInt()
 			damage = UVUnitPTESFDamage:GetFloat()
-			if UVIsPTUpgraded(car) then
+			if UVIsPTUpgraded(car, car.esfPursuitTech) then
 				power = power * 2
 				damage = damage * 2
 			end
 		else
 			power = UVPTESFPower:GetInt()
 			damage = UVPTESFDamage:GetFloat()
+			if UVIsPTUpgraded(car, car.esfPursuitTech) then
+				power = power * 2
+				damage = damage * 2
+			end
 		end
 
 		local carPos = car:WorldSpaceCenter()
@@ -1772,13 +1780,17 @@ hook.Add("OnEntityCreated", "UVCollisionJeep", function(vehicle)
 			if car.UnitVehicle then
 				power = UVUnitPTESFPower:GetInt()
 				damage = UVUnitPTESFDamage:GetFloat()
-				if UVIsPTUpgraded(car) then
+				if UVIsPTUpgraded(car, car.esfPursuitTech) then
 					power = power * 2
 					damage = damage * 2
 				end
 			else
 				power = UVPTESFPower:GetInt()
 				damage = UVPTESFDamage:GetFloat()
+				if UVIsPTUpgraded(car, car.esfPursuitTech) then
+					power = power * 2
+					damage = damage * 2
+				end
 			end
 			local carPos = car:WorldSpaceCenter()
 			local enemyVehiclePhys = enemyVehicle:GetPhysicsObject()
@@ -2057,13 +2069,17 @@ hook.Add("OnEntityCreated", "UVCollisionLVS", function(lvsvehicle)
 				if car.UnitVehicle then
 					power = UVUnitPTESFPower:GetInt()
 					damage = UVUnitPTESFDamage:GetFloat()
-					if UVIsPTUpgraded(car) then
+					if UVIsPTUpgraded(car, car.esfPursuitTech) then
 						power = power * 2
 						damage = damage * 2
 					end
 				else
 					power = UVPTESFPower:GetInt()
 					damage = UVPTESFDamage:GetFloat()
+					if UVIsPTUpgraded(car, car.esfPursuitTech) then
+						power = power * 2
+						damage = damage * 2
+					end
 				end
 
 				local carPos = car:WorldSpaceCenter()
@@ -2399,35 +2415,52 @@ function UVGiveRacerPursuitTech(vehicle)
 		"Stunmine",
 	}
 
+	local configuredSlots = {
+		vehicle.UVForcedPursuitTechSlot1,
+		vehicle.UVForcedPursuitTechSlot2,
+	}
+	local hasConfiguredSlots = configuredSlots[1] ~= nil or configuredSlots[2] ~= nil
+
+	if hasConfiguredSlots and vehicle.PursuitTech then
+		vehicle.PursuitTech = nil
+		UVReplicatePT(vehicle, 0)
+	end
+
 	if not vehicle.PursuitTech then
 		vehicle.PursuitTech = {}
-		
-		for i=1, 2, 1 do
-			local selected_pt = pttable[math.random(#pttable)]
-			table.remove(pttable, table.KeyFromValue(pttable, selected_pt))
 
-			UVAddPursuitTech( vehicle, selected_pt, i, nil, nil )
-			
-			-- local sanitized_pt = string.lower(string.gsub(selected_pt, " ", ""))
-			-- local sel_k, sel_v
-			
-			-- for k,v in pairs(vehicle.PursuitTech) do
-			-- 	if v.Tech == selected_pt then
-			-- 		sel_k, sel_v = k, v
-			-- 		vehicle.PursuitTech[k] = nil
-			-- 		break
-			-- 	end
-			-- end
-			
-			-- local ammo_count = GetConVar("uvpursuittech_" .. sanitized_pt .. "_maxammo"):GetInt()
-			-- ammo_count = ammo_count > 0 and ammo_count or math.huge
-			
-			-- vehicle.PursuitTech[i] = {
-			-- 	Tech = selected_pt,
-			-- 	Ammo = ammo_count,
-			-- 	Cooldown = GetConVar("uvpursuittech_" .. sanitized_pt .. "_cooldown"):GetInt(),
-			-- 	LastUsed = -math.huge,
-			-- }
+		if hasConfiguredSlots then
+			for slot = 1, 2 do
+				local choice = configuredSlots[slot]
+				local selectedTech
+
+				if choice == "allowed" then
+					if #pttable > 0 then
+						selectedTech = pttable[math.random(#pttable)]
+					end
+				elseif choice ~= "none" and table.HasValue(pttable, choice) then
+					selectedTech = choice
+				end
+
+				if selectedTech then
+					local selectedIndex = table.KeyFromValue(pttable, selectedTech)
+					if selectedIndex then
+						table.remove(pttable, selectedIndex)
+					end
+
+					local upgraded = vehicle.UVForcedPursuitTechSlot2Upgraded
+					if slot == 1 then
+						upgraded = vehicle.UVForcedPursuitTechSlot1Upgraded
+					end
+					UVAddPursuitTech(vehicle, selectedTech, slot, nil, nil, upgraded)
+				end
+			end
+		else
+			for slot = 1, 2 do
+				local selectedTech = pttable[math.random(#pttable)]
+				table.remove(pttable, table.KeyFromValue(pttable, selectedTech))
+				UVAddPursuitTech(vehicle, selectedTech, slot, nil, nil, nil)
+			end
 		end
 		
 		table.insert(UVRVWithPursuitTech, vehicle)

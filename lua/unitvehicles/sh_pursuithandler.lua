@@ -1637,6 +1637,7 @@ UVPresets = {}
 UVVehicleSpawnChances = UVVehicleSpawnChances or {}
 
 function UVVehicleSpawnChanceKey(heat, unit, vehicleBase, filename)
+	if not heat or not unit or not vehicleBase or not filename then return nil end
 	return string.format("%s|%s|%s|%s", heat, string.lower(unit), vehicleBase, filename)
 end
 
@@ -4262,6 +4263,7 @@ else -- CLIENT Settings | HUD/Options
 			car.PursuitTech[slot].Ammo = net.ReadUInt(8)
 			car.PursuitTech[slot].Cooldown = net.ReadUInt(16)
 			car.PursuitTech[slot].LastUsed = net.ReadFloat()
+			car.PursuitTech[slot].Upgraded = net.ReadBool()
 		elseif car.PursuitTech then
 			car.PursuitTech[slot] = nil
 			-- If both slots are now nil, clear the table completely for cleanliness
@@ -5355,6 +5357,10 @@ else -- CLIENT Settings | HUD/Options
 
 			local isUnit = table.HasValue( UnitTable, UVEMPLockingTarget )
 			local maxDistance = math.pow( ( isUnit and UVUnitPTEMPMaxDistance:GetInt() ) or UVPTEMPMaxDistance:GetInt(), 2 )
+
+			if UVEMPLockingUpgraded then
+				maxDistance = maxDistance * 2
+			end
 
 			if diff > 5 then 
 				UVEMPLockingStart = nil

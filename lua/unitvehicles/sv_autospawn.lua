@@ -4,6 +4,85 @@ local POLICE_SPAWN_DIST_FAR_SQ   = 25000000
 local POLICE_SPAWN_DIST_MAX_SQ   = 100000000
 local POLICE_SPAWN_MAX_CANDIDATES = 64
 
+local unitPursuitTechSettings = {
+	{ name = "ESF", convar = "unitvehicle_unit_pursuittech_esf", short = "esf" },
+	{ name = "EMP", convar = "unitvehicle_unit_pursuittech_emp", short = "emp" },
+	{ name = "Spikestrip", convar = "unitvehicle_unit_pursuittech_spikestrip", short = "spikestrip" },
+	{ name = "Killswitch", convar = "unitvehicle_unit_pursuittech_killswitch", short = "killswitch" },
+	{ name = "Repair Kit", convar = "unitvehicle_unit_pursuittech_repairkit", short = "repairkit" },
+	{ name = "Shock Ram", convar = "unitvehicle_unit_pursuittech_shockram", short = "shockram" },
+	{ name = "GPS Dart", convar = "unitvehicle_unit_pursuittech_gpsdart", short = "gpsdart" },
+	{ name = "Grappler", convar = "unitvehicle_unit_pursuittech_grappler", short = "grappler" },
+}
+
+local unitPursuitTechByName = {}
+for _, setting in ipairs(unitPursuitTechSettings) do
+	unitPursuitTechByName[setting.name] = setting
+end
+
+function UVApplyConfiguredUnitPursuitTech(vehicle, memory)
+	if not UVUPursuitTech:GetBool() then return end
+
+	local pool = {}
+	for _, setting in ipairs(unitPursuitTechSettings) do
+		local allowedConVar = GetConVar(setting.convar)
+		if allowedConVar and allowedConVar:GetBool() then
+			table.insert(pool, setting.name)
+		end
+	end
+
+	local used = {}
+	vehicle.PursuitTech = {}
+
+	for slot = 1, 2 do
+		local choice = memory["PursuitTechSlot" .. slot]
+		local selectedTech
+
+		if choice == "allowed" then
+			local available = {}
+			for _, tech in ipairs(pool) do
+				if not used[tech] then
+					table.insert(available, tech)
+				end
+			end
+			if #available > 0 then
+				selectedTech = available[math.random(#available)]
+			end
+		elseif choice ~= "none" and unitPursuitTechByName[choice] and not used[choice] then
+			selectedTech = choice
+		end
+
+		local setting = selectedTech and unitPursuitTechByName[selectedTech]
+		if setting then
+			used[selectedTech] = true
+			local ammo = GetConVar("uvpursuittech_" .. setting.short .. "_maxammo_unit"):GetInt()
+			local upgraded
+			local upgradedSetting = memory["PursuitTechSlot" .. slot .. "Upgraded"]
+			if upgradedSetting ~= nil then
+				upgraded = tobool(upgradedSetting)
+			end
+			vehicle.PursuitTech[slot] = {
+				Tech = selectedTech,
+				Ammo = ammo > 0 and ammo or math.huge,
+				Cooldown = GetConVar("uvpursuittech_" .. setting.short .. "_cooldown_unit"):GetInt(),
+				LastUsed = -math.huge,
+				Upgraded = upgraded,
+			}
+		end
+	end
+
+	if not vehicle.PursuitTech[1] and not vehicle.PursuitTech[2] then
+		vehicle.PursuitTech = nil
+	end
+end
+
+local function CopyRacerPursuitTechSettings(vehicle, memory)
+	vehicle.UVForcedPursuitTechSlot1 = memory.PursuitTechSlot1
+	vehicle.UVForcedPursuitTechSlot2 = memory.PursuitTechSlot2
+	vehicle.UVForcedPursuitTechSlot1Upgraded = tobool(memory.PursuitTechSlot1Upgraded)
+	vehicle.UVForcedPursuitTechSlot2Upgraded = tobool(memory.PursuitTechSlot2Upgraded)
+end
+
 --SIMFPHYS ONLY--
 
 local function ValidateModel( model )
@@ -863,10 +942,14 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 		Ent.unitscript = availableunit
 		Ent.undercover = MEMORY.Undercover
 		
+		local hasConfiguredPursuitTech = MEMORY.PursuitTechSlot1 ~= nil or MEMORY.PursuitTechSlot2 ~= nil
 		if rhinoattack then
 			Ent.uvclasstospawnon = "npc_uvspecial"
 			Ent.rhino = true
-		elseif Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
+		end
+		if hasConfiguredPursuitTech then
+			UVApplyConfiguredUnitPursuitTech(Ent, MEMORY)
+		elseif not rhinoattack and Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
 			
 			if UVUPursuitTech:GetBool() then
 				Ent.PursuitTech = {}
@@ -1153,10 +1236,14 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 		Ent.unitscript = availableunit
 		Ent.undercover = MEMORY.Undercover
 		
+		local hasConfiguredPursuitTech = MEMORY.PursuitTechSlot1 ~= nil or MEMORY.PursuitTechSlot2 ~= nil
 		if rhinoattack then
 			Ent.uvclasstospawnon = "npc_uvspecial"
 			Ent.rhino = true
-		elseif Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
+		end
+		if hasConfiguredPursuitTech then
+			UVApplyConfiguredUnitPursuitTech(Ent, MEMORY)
+		elseif not rhinoattack and Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
 			
 			if UVUPursuitTech:GetBool() then
 				Ent.PursuitTech = {}
@@ -1511,10 +1598,14 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 		Ent.unitscript = availableunit
 		Ent.undercover = MEMORY.Undercover
 		
+		local hasConfiguredPursuitTech = MEMORY.PursuitTechSlot1 ~= nil or MEMORY.PursuitTechSlot2 ~= nil
 		if rhinoattack then
 			Ent.uvclasstospawnon = "npc_uvspecial"
 			Ent.rhino = true
-		elseif Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
+		end
+		if hasConfiguredPursuitTech then
+			UVApplyConfiguredUnitPursuitTech(Ent, MEMORY)
+		elseif not rhinoattack and Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
 			
 			if UVUPursuitTech:GetBool() then
 				Ent.PursuitTech = {}
@@ -1746,10 +1837,14 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 		Ent.unitscript = availableunit
 		Ent.undercover = MEMORY.Undercover
 		
+		local hasConfiguredPursuitTech = MEMORY.PursuitTechSlot1 ~= nil or MEMORY.PursuitTechSlot2 ~= nil
 		if rhinoattack then
 			Ent.uvclasstospawnon = "npc_uvspecial"
 			Ent.rhino = true
-		elseif Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
+		end
+		if hasConfiguredPursuitTech then
+			UVApplyConfiguredUnitPursuitTech(Ent, MEMORY)
+		elseif not rhinoattack and Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
 			
 			if UVUPursuitTech:GetBool() then
 				Ent.PursuitTech = {}
@@ -2537,6 +2632,7 @@ function UVAutoSpawnTraffic()
 		
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
+		CopyRacerPursuitTechSettings(Ent, MEMORY)
 
 		table.insert(UVVehicleInitializing, Ent)
 		
@@ -2655,6 +2751,7 @@ function UVAutoSpawnTraffic()
 		end)
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
+		CopyRacerPursuitTechSettings(Ent, MEMORY)
 
 		table.insert(UVVehicleInitializing, Ent)
 		
@@ -2934,6 +3031,7 @@ function UVAutoSpawnRacer()
 			end
 
 			createdEntities[id].uvclasstospawnon = uvnextclasstospawn
+			CopyRacerPursuitTechSettings(createdEntities[id], MEMORY)
 
 			table.insert(UVVehicleInitializing, createdEntities[id])
 		end
@@ -3069,6 +3167,7 @@ function UVAutoSpawnRacer()
 			end
 
 			createdEntities[id].uvclasstospawnon = uvnextclasstospawn
+			CopyRacerPursuitTechSettings(createdEntities[id], MEMORY)
 
 			table.insert(UVVehicleInitializing, createdEntities[id])
 		end
@@ -3340,6 +3439,7 @@ function UVAutoSpawnRacer()
 		
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
+		CopyRacerPursuitTechSettings(Ent, MEMORY)
 
 		table.insert(UVVehicleInitializing, Ent)
 		
@@ -3473,6 +3573,7 @@ function UVAutoSpawnRacer()
 		end)
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
+		CopyRacerPursuitTechSettings(Ent, MEMORY)
 
 		table.insert(UVVehicleInitializing, Ent)
 		

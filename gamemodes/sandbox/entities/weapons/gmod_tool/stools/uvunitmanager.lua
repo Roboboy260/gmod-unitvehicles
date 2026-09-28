@@ -35,6 +35,31 @@ local vehicleBases = {
 	{ id = 4, name = "LVS",      path = "lvs>>units",               type = "json" },
 }
 
+local unitPursuitTechChoices = {
+	["EMP"] = true,
+	["ESF"] = true,
+	["Killswitch"] = true,
+	["Repair Kit"] = true,
+	["Shock Ram"] = true,
+	["Spikestrip"] = true,
+	["GPS Dart"] = true,
+	["Grappler"] = true,
+}
+
+local function SanitizePursuitTechChoice(choice)
+	if choice == "none" or choice == "allowed" or unitPursuitTechChoices[choice] then
+		return choice
+	end
+
+	return "none"
+end
+
+local function ApplyConfiguredPursuitTech(vehicle, memory)
+	if memory.PursuitTechSlot1 ~= nil or memory.PursuitTechSlot2 ~= nil then
+		UVApplyConfiguredUnitPursuitTech(vehicle, memory)
+	end
+end
+
 if SERVER then
 	
 	net.Receive("UVUnitManagerGetUnitInfo", function( length, ply )
@@ -191,6 +216,12 @@ if SERVER then
 		local filename = net.ReadString()
 		local canSaveColor = net.ReadBool()
 		local undercover = net.ReadBool()
+		local pursuitTechSlot1 = SanitizePursuitTechChoice(net.ReadString())
+		local pursuitTechSlot2 = SanitizePursuitTechChoice(net.ReadString())
+		ply.UVTOOLMemory.PursuitTechSlot1 = pursuitTechSlot1
+		ply.UVTOOLMemory.PursuitTechSlot2 = pursuitTechSlot2
+		ply.UVTOOLMemory.PursuitTechSlot1Upgraded = net.ReadBool()
+		ply.UVTOOLMemory.PursuitTechSlot2Upgraded = net.ReadBool()
 		SaveVehicle(ply, filename, canSaveColor, undercover)
 	end)
 
@@ -250,7 +281,7 @@ if CLIENT then
 		local lang = language.GetPhrase
 		
 		UnitAdjust:Add(OK)
-		UnitAdjust:SetSize(600, 300)
+		UnitAdjust:SetSize(600, 460)
 		UnitAdjust:SetBackgroundBlur(true)
 		UnitAdjust:Center()
 		UnitAdjust:SetTitle("#tool.uvunitmanager.create")
@@ -283,10 +314,72 @@ if CLIENT then
 		SaveColour:SetSize(UnitAdjust:GetWide(), 22)
 
 		local UnitUndercoverEntry = vgui.Create( "DCheckBoxLabel", UnitAdjust )
-        UnitUndercoverEntry:SetPos( 20, 200 )
-        UnitUndercoverEntry:SetText( "#tool.uvunitmanager.undercover" )
-        UnitUndercoverEntry:SetTooltip( "#tool.uvunitmanager.undercover.desc" )
-        UnitUndercoverEntry:SetValue( false )
+		UnitUndercoverEntry:SetPos( 20, 200 )
+		UnitUndercoverEntry:SetText( "#tool.uvunitmanager.undercover" )
+		UnitUndercoverEntry:SetTooltip( "#tool.uvunitmanager.undercover.desc" )
+		UnitUndercoverEntry:SetValue( false )
+
+		local function CreatePursuitTechCombo(slot, y)
+			local label = vgui.Create("DLabel", UnitAdjust)
+			label:SetPos(20, y)
+			label:SetText(slot == 1 and "#tool.uvunitmanager.create.pursuittech.slot1" or "#tool.uvunitmanager.create.pursuittech.slot2")
+			label:SizeToContents()
+
+			local combo = vgui.Create("DComboBox", UnitAdjust)
+			combo:SetPos(20, y + 20)
+			combo:SetSize(UnitAdjust:GetWide() / 2, 22)
+			combo:SetTextColor(Color(0, 0, 0))
+			combo:AddChoice("#tool.uvunitmanager.create.pursuittech.none", "none")
+			combo:AddChoice("#tool.uvunitmanager.create.pursuittech.allowed", "allowed")
+
+			local choices = {
+				{ "EMP", "#uv.ptech.emp" },
+				{ "ESF", "#uv.ptech.esf" },
+				{ "Killswitch", "#uv.ptech.killswitch" },
+				{ "Repair Kit", "#uv.ptech.repairkit" },
+				{ "Shock Ram", "#uv.ptech.shockram" },
+				{ "Spikestrip", "#uv.ptech.spikes" },
+				{ "GPS Dart", "#uv.ptech.gpsdart" },
+				{ "Grappler", "#uv.ptech.grappler" },
+			}
+			for _, choice in ipairs(choices) do
+				combo:AddChoice(choice[2], choice[1])
+			end
+
+			local currentChoice = slot == 1 and UVTOOLMemory.PursuitTechSlot1 or UVTOOLMemory.PursuitTechSlot2
+			combo.selectedTech = SanitizePursuitTechChoice(currentChoice)
+			combo.OnSelect = function(_, _, _, data)
+				combo.selectedTech = SanitizePursuitTechChoice(data)
+			end
+			local selectedText = "#tool.uvunitmanager.create.pursuittech.none"
+			if currentChoice == "allowed" then
+				selectedText = "#tool.uvunitmanager.create.pursuittech.allowed"
+			else
+				for _, choice in ipairs(choices) do
+					if choice[1] == currentChoice then
+						selectedText = choice[2]
+						break
+					end
+				end
+			end
+			combo:SetValue(selectedText)
+			return combo
+		end
+
+		local PursuitTechSlot1 = CreatePursuitTechCombo(1, 250)
+		local PursuitTechSlot2 = CreatePursuitTechCombo(2, 350)
+
+		local PursuitTechSlot1Upgraded = vgui.Create("DCheckBoxLabel", UnitAdjust)
+		PursuitTechSlot1Upgraded:SetPos(20, 300)
+		PursuitTechSlot1Upgraded:SetText("#tool.uvpursuittech.upgraded")
+		PursuitTechSlot1Upgraded:SetValue(tobool(UVTOOLMemory.PursuitTechSlot1Upgraded))
+		PursuitTechSlot1Upgraded:SizeToContents()
+
+		local PursuitTechSlot2Upgraded = vgui.Create("DCheckBoxLabel", UnitAdjust)
+		PursuitTechSlot2Upgraded:SetPos(20, 400)
+		PursuitTechSlot2Upgraded:SetText("#tool.uvpursuittech.upgraded")
+		PursuitTechSlot2Upgraded:SetValue(tobool(UVTOOLMemory.PursuitTechSlot2Upgraded))
+		PursuitTechSlot2Upgraded:SizeToContents()
 		
 		OK:SetText("#uv.tool.create")
 		OK:SetSize(UnitAdjust:GetWide() * 5 / 16, 22)
@@ -297,6 +390,10 @@ if CLIENT then
 			net.WriteString(UnitNameEntry:GetValue())
 			net.WriteBool(SaveColour:GetChecked())
 			net.WriteBool(UnitUndercoverEntry:GetChecked())
+			net.WriteString(PursuitTechSlot1.selectedTech)
+			net.WriteString(PursuitTechSlot2.selectedTech)
+			net.WriteBool(PursuitTechSlot1Upgraded:GetChecked())
+			net.WriteBool(PursuitTechSlot2Upgraded:GetChecked())
 			net.SendToServer()
 
 			UnitAdjust:Close()
@@ -669,6 +766,12 @@ if CLIENT then
 
 		CPanel:AddItem(FilterBar)
 
+		local SearchEntry = vgui.Create("DTextEntry")
+		SearchEntry:SetTall(24)
+		SearchEntry:SetPlaceholderText(language.GetPhrase("uv.search"))
+		SearchEntry:SetUpdateOnType(true)
+		CPanel:AddItem(SearchEntry)
+
 		local function AddFilterButton(text, baseId)
 			local btn = vgui.Create("DButton", FilterBar)
 			btn:SetTall(24)
@@ -766,10 +869,19 @@ if CLIENT then
 				return
 			end
 
+			local searchQuery = string.Trim(SearchEntry:GetValue()):lower()
+			local matchingEntries = 0
+
 			for _, entry in ipairs(entries) do
 				if activeFilterBaseId ~= 0 and entry.baseId ~= activeFilterBaseId then
 					continue
 				end
+
+				if searchQuery ~= "" and not string.find(entry.display:lower(), searchQuery, 1, true) then
+					continue
+				end
+
+				matchingEntries = matchingEntries + 1
 
 				if not selecteditem then
 					selecteditem = entry.filename
@@ -825,6 +937,19 @@ if CLIENT then
 					net.SendToServer()
 				end
 			end
+
+			if matchingEntries == 0 then
+				local empty = vgui.Create("DLabel", ScrollPanel)
+				empty:SetText("#uv.search.noresults")
+				empty:SetTextColor(Color(200,200,200))
+				empty:SetContentAlignment(5)
+				empty:Dock(TOP)
+				empty:SetTall(24)
+			end
+		end
+
+		SearchEntry.OnTextChanged = function()
+			UVUnitManagerTool.RefreshList()
 		end
 
 		timer.Simple(0, function()
@@ -1221,9 +1346,10 @@ function TOOL:LeftClick( trace )
 		end
 
 		Ent.undercover = ply.UVTOOLMemory.Undercover
-		
+
 		UVAddUnit(Ent, ply)
-		
+		ApplyConfiguredPursuitTech(Ent, ply.UVTOOLMemory)
+
 		return true
 	
 	elseif ply.UVTOOLMemory.VehicleBase == "LVS" then
@@ -1298,8 +1424,9 @@ function TOOL:LeftClick( trace )
 		undo.Finish( "Undo (" .. tostring( table.Count( Ents ) ) ..  ")" )
 
 		Ent.undercover = ply.UVTOOLMemory.Undercover
-		
+
 		UVAddUnit(Ent, ply)
+		ApplyConfiguredPursuitTech(Ent, ply.UVTOOLMemory)
 
 		return true
 	elseif ply.UVTOOLMemory.VehicleBase == "prop_vehicle_jeep" then
@@ -1370,6 +1497,7 @@ function TOOL:LeftClick( trace )
 		Ent.undercover = ply.UVTOOLMemory.Undercover
 		
 		UVAddUnit(Ent, ply)
+		ApplyConfiguredPursuitTech(Ent, ply.UVTOOLMemory)
 		
 		return true
 		
@@ -1641,6 +1769,7 @@ function TOOL:LeftClick( trace )
 		Ent.undercover = ply.UVTOOLMemory.Undercover
 		
 		UVAddUnit(Ent, ply)
+		ApplyConfiguredPursuitTech(Ent, ply.UVTOOLMemory)
 		
 	end)
 	

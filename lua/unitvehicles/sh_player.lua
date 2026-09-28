@@ -1169,11 +1169,19 @@ if SERVER then
         if IsValid(veh) then UVDeployWeapon( veh, slot ) end
     end)
 
-    function UVIsPTUpgraded(car)
+    function UVIsPTUpgraded(car, pursuitTech)
+        if pursuitTech and pursuitTech.Upgraded ~= nil then
+            return pursuitTech.Upgraded
+        end
+
+        if car.PursuitTechUpgradeOverride ~= nil then
+            return car.PursuitTechUpgradeOverride
+        end
+
         return car.uvclasstospawnon == "npc_uvspecial" or car.uvclasstospawnon == "npc_uvcommander"
     end
 
-    function UVAddPursuitTech( car, tech, slot, ammo, cooldown )
+    function UVAddPursuitTech(car, tech, slot, ammo, cooldown, upgraded)
         if not car.PursuitTech then car.PursuitTech = {} end
         if not car.PursuitTech[slot] then car.PursuitTech[slot] = {} end
 
@@ -1186,6 +1194,7 @@ if SERVER then
         car.PursuitTech[slot].Ammo = maxAmmo
         car.PursuitTech[slot].Cooldown = cooldown
         car.PursuitTech[slot].LastUsed = -math.huge
+		car.PursuitTech[slot].Upgraded = upgraded
 
         UVReplicatePT(car, slot)
     end
@@ -1223,6 +1232,7 @@ if SERVER then
 				net.WriteUInt(ptSlot.Ammo or 0, 8)
 				net.WriteUInt(ptSlot.Cooldown or 0, 16)
 				net.WriteFloat(ptSlot.LastUsed or 0)
+				net.WriteBool(UVIsPTUpgraded(car, ptSlot))
 			net.Broadcast()
 		else
 			-- Clear this slot on clients
@@ -1355,7 +1365,7 @@ if SERVER then
                 UVPTEvent({driver}, 'Shockwave', 'Use', {['Test'] = 'Hello world!'})
             end
             
-            UVDeployShockwave(car)
+            UVDeployShockwave(car, pursuit_tech)
             
             used = true
             pursuit_tech.LastUsed = CurTime()
@@ -1365,7 +1375,7 @@ if SERVER then
             if CurTime() - pursuit_tech.LastUsed < Cooldown then return end
             car:RemoveCallOnRemove("uvesf"..car:EntIndex())
             
-            UVDeployESF(car)
+            UVDeployESF(car, pursuit_tech)
             
             pursuit_tech.LastUsed = CurTime()
             pursuit_tech.Ammo = pursuit_tech.Ammo - 1
@@ -1392,7 +1402,7 @@ if SERVER then
             local Cooldown = pursuit_tech.Cooldown
             if CurTime() - pursuit_tech.LastUsed < Cooldown then return end
             
-            UVDeployStunmine(car)
+            UVDeployStunmine(car, pursuit_tech)
             
             if IsValid(driver) then
                 UVPTEvent({driver}, 'StunMine', 'Use')
@@ -1406,7 +1416,7 @@ if SERVER then
             local Cooldown = pursuit_tech.Cooldown
             if CurTime() - pursuit_tech.LastUsed < Cooldown then return end
             
-            UVDeployJammer(car)
+            UVDeployJammer(car, pursuit_tech)
             
             if IsValid(driver) then
                 UVPTEvent('all', 'Jammer', 'Use', {['User'] = UVGetDriverName(car)})
@@ -1428,7 +1438,7 @@ if SERVER then
 
             timer.Simple( .5, function()
                 if IsValid(car) and (not UVJammerDeployed or car.exemptfromjammer) then
-                    if (car.UnitVehicle and UVIsPTUpgraded(car)) or (car.RacerVehicle) then
+                    if UVIsPTUpgraded(car, pursuit_tech) then
                         UVDeploySpikeStrip(car, not car.UnitVehicle)
                     end
                 end
@@ -1449,7 +1459,7 @@ if SERVER then
                 UVChatterRepairKitDeployed(car.UnitVehicle)
             end
             
-            local repaired = UVDeployRepairKit(car)
+            local repaired = UVDeployRepairKit(car, pursuit_tech)
 
             if repaired then
                 pursuit_tech.LastUsed = CurTime()
@@ -1464,7 +1474,7 @@ if SERVER then
             local Cooldown = pursuit_tech.Cooldown
             if CurTime() - pursuit_tech.LastUsed < Cooldown then return end
             
-            local result = UVDeployKillSwitch(car)
+            local result = UVDeployKillSwitch(car, false, pursuit_tech)
             
             if result then
                 used = true
@@ -1475,7 +1485,7 @@ if SERVER then
             local Cooldown = pursuit_tech.Cooldown
             if CurTime() - pursuit_tech.LastUsed < Cooldown then return end
             
-            local result = UVPowerPlay(car)
+            local result = UVPowerPlay(car, pursuit_tech)
             
             if result then
                 used = true
@@ -1490,7 +1500,7 @@ if SERVER then
             local Cooldown = pursuit_tech.Cooldown
             if CurTime() - pursuit_tech.LastUsed < Cooldown then return end
             
-            local result = UVDeployEMP(car)
+            local result = UVDeployEMP(car, pursuit_tech)
             
             if result then
                 used = true
@@ -1505,7 +1515,7 @@ if SERVER then
                 UVPTEvent({driver}, 'ShockRam', 'Use', {['Test'] = 'Hello world!'})
             end
             
-            UVDeployShockRam(car)
+            UVDeployShockRam(car, pursuit_tech)
             
             used = true
             pursuit_tech.LastUsed = CurTime()
@@ -1521,7 +1531,7 @@ if SERVER then
             UVDeployGPSDart(car)
 
             timer.Simple( .5, function()
-                if IsValid(car) and UVIsPTUpgraded(car) and (not UVJammerDeployed or car.exemptfromjammer) then
+                if IsValid(car) and UVIsPTUpgraded(car, pursuit_tech) and (not UVJammerDeployed or car.exemptfromjammer) then
                     UVDeployGPSDart(car)
                 end
             end)
@@ -1540,6 +1550,12 @@ if SERVER then
             pursuit_tech.Ammo = pursuit_tech.Ammo - 1
             used = true
 
+            local time = UVPTJuggernautDuration:GetInt()
+
+            if UVIsPTUpgraded(car, pursuit_tech) then
+                time = UVPTJuggernautDuration:GetInt() * 2
+            end
+
             if IsValid(driver) then
                 UVPTEvent({driver}, 'Juggernaut', 'Use')
             end
@@ -1547,7 +1563,7 @@ if SERVER then
             car:EmitSound("gadgets/juggernaut/juggernauton.wav")
             car:EmitSound("gadgets/juggernaut/idle.wav")
             
-            timer.Simple(UVPTJuggernautDuration:GetInt(), function()
+            timer.Simple(time, function()
                 UVDeactivateJuggernaut(car)
             end)
             
@@ -1565,11 +1581,17 @@ if SERVER then
             pursuit_tech.Ammo = pursuit_tech.Ammo - 1
             used = true
 
+            local time = UVPTGhostDuration:GetInt()
+
+            if UVIsPTUpgraded(car, pursuit_tech) then
+                time = UVPTGhostDuration:GetInt() * 2
+            end
+
             if IsValid(driver) then
                 UVPTEvent({driver}, 'Ghost', 'Use')
             end
             
-            timer.Simple(UVPTGhostDuration:GetInt(), function()
+            timer.Simple(time, function()
                 UVDeactivateGhost(car)
             end)
             
@@ -1581,7 +1603,7 @@ if SERVER then
             if CurTime() - pursuit_tech.LastUsed < Cooldown then return end
             car:RemoveCallOnRemove("uvgrappler"..car:EntIndex())
             
-            UVDeployGrappler(car)
+            UVDeployGrappler(car, pursuit_tech)
             
             pursuit_tech.LastUsed = CurTime()
             pursuit_tech.Ammo = pursuit_tech.Ammo - 1
@@ -1647,8 +1669,9 @@ if SERVER then
     end
 
     -- EMP
-    function UVDeployEMP(car)
+    function UVDeployEMP(car, pursuitTech)
         if car.empTarget then return false end
+		local upgraded = UVIsPTUpgraded(car, pursuitTech)
         
         local vehiclePool = {}
         local isUnit = car.UnitVehicle
@@ -1671,6 +1694,10 @@ if SERVER then
 
         local shortestTargetDistance = math.huge
         local maxDistance = math.pow( ( isUnit and UVUnitPTEMPMaxDistance:GetInt() ) or UVPTEMPMaxDistance:GetInt(), 2 )
+
+        if upgraded then
+            maxDistance = maxDistance * 2
+        end
 
         for _, v in pairs( vehiclePool ) do
             if IsValid(v) then
@@ -1785,7 +1812,7 @@ if SERVER then
                 local force = ( isUnit and UVUnitPTEMPForce:GetInt() ) or UVPTEMPForce:GetInt()
                 local lastHeadlightState = UVGetHeadlight( target )
 
-				if UVIsPTUpgraded(car) then
+				if upgraded then
 					damage = damage * 2
 					force = force * 2
 				end
@@ -1823,6 +1850,8 @@ if SERVER then
                         target, 
                         damage
                     )
+
+                    UVRamVehicle(target)
                 
                     hook.Add( "Think", hookIdentifier .. "headlight", function() 
                         UVSetHeadlight( 
@@ -1887,7 +1916,7 @@ if SERVER then
             'EMP', 
             'Locking',
             {
-                {carEntityIndex, carCreationID, UVGetDriverName( car )},
+                {carEntityIndex, carCreationID, UVGetDriverName(car), upgraded},
                 {targetEntityIndex, targetCreationID, UVGetDriverName( target )}
             }
         )
@@ -1900,8 +1929,14 @@ if SERVER then
     end
     
     --REPAIR KIT
-    function UVDeployRepairKit(car)
+    function UVDeployRepairKit(car, pursuitTech)
         local is_repaired = false
+
+        if UVIsPTUpgraded(car, pursuitTech) then
+            if cffunctions then
+				CFRefillNitrous(car)
+			end
+        end
         
         if car:GetClass() == "prop_vehicle_jeep" then
             if vcmod_main then
@@ -2005,11 +2040,12 @@ if SERVER then
     end
     
     --STUNMINE
-    function UVDeployStunmine(unit)
+    function UVDeployStunmine(unit, pursuitTech)
         local mine = ents.Create("entity_uvstunmine")
         mine.uvdeployed = true
         mine.racerdeployed = unit
         mine.deployedby = UVGetDriverName(unit)
+        mine.upgraded = UVIsPTUpgraded(unit, pursuitTech)
         local ph = unit:GetPhysicsObject()
         mine:SetPos(unit:WorldSpaceCenter())
         mine:SetAngles(ph:GetAngles())
@@ -2026,10 +2062,11 @@ if SERVER then
     end
     
     --ESF
-    function UVDeployESF(car)
+    function UVDeployESF(car, pursuitTech)
         local driver = UVGetDriver(car)
 
         car.esfon = true
+		car.esfPursuitTech = pursuitTech
         local e = EffectData()
         e:SetEntity(car)
         util.Effect("entity_remove", e)
@@ -2047,6 +2084,7 @@ if SERVER then
 
         if IsValid(car) then
             car.esfon = nil
+			car.esfPursuitTech = nil
 
             net.Start("UVWeaponESFDisable")
             net.WriteEntity(car)
@@ -2074,7 +2112,8 @@ if SERVER then
         end
     end
     
-    function UVDeployKillSwitch(car, skyhammer)
+    function UVDeployKillSwitch(car, skyhammer, pursuitTech)
+		local upgraded = UVIsPTUpgraded(car, pursuitTech)
         if next(UVWantedTableVehicle) ~= nil then
             car.uvkillswitchingtarget = nil
             
@@ -2123,7 +2162,7 @@ if SERVER then
                             local enemyCallsign = enemyVehicle.racer or "Racer "..enemyVehicle:EntIndex()
                             local enemyDriver = UVGetDriver(enemyVehicle)
 
-                            if UVIsPTUpgraded(car) or car:GetClass() == "uvair" then
+                            if upgraded or car:GetClass() == "uvair" then
 				            	kstime = kstime * 2
 				            end
                             
@@ -2291,7 +2330,8 @@ if SERVER then
     end
     
     --SHOCKWAVE
-    function UVDeployShockwave(car)
+    function UVDeployShockwave(car, pursuitTech)
+		local upgraded = UVIsPTUpgraded(car, pursuitTech)
         local carchildren = car:GetChildren()
         local carconstraints = constraint.GetAllConstrainedEntities(car)
         local carPos = car:WorldSpaceCenter()
@@ -2310,6 +2350,11 @@ if SERVER then
                 local power = UVPTShockwavePower:GetFloat()
                 local damage = UVPTShockwaveDamage:GetFloat()
                 local force = power * (1 - (vectorDifference:Length()/1000))
+
+                if upgraded then
+                    damage = damage * 2
+                    force = force * 2
+                end
 
                 objectphys:ApplyForceCenter(angle:Forward()*force)
                 UVRamVehicle(object)
@@ -2342,12 +2387,17 @@ if SERVER then
     end
 
     --JAMMER
-    function UVDeployJammer(car)
+    function UVDeployJammer(car, pursuitTech)
         if UVJammerDeployed then return end
         
         UVJammerDeployed = true
         car.jammerdeployed = true
         car.jammerexempt = true
+
+        local time = UVPTJammerDuration:GetInt()
+        if UVIsPTUpgraded(car, pursuitTech) then
+            time = time * 2
+        end
         
         if UVBackupUnderway and not UVBackupTenSeconds and UVResourcePointsTimerMax then
             UVResourcePointsTimerMax = UVResourcePointsTimerMax + 10
@@ -2367,7 +2417,7 @@ if SERVER then
             UVEndJammer(car)
         end)
         
-        timer.Simple(UVPTJammerDuration:GetInt(), function()
+        timer.Simple(time, function()
             if IsValid(car) then
                 UVEndJammer(car)
                 car:RemoveCallOnRemove("UVJammerRemove")
@@ -2408,46 +2458,16 @@ if SERVER then
     end
 
     --POWER PLAY
-    function UVPowerPlay(car)
+    function UVPowerPlay(car, pursuitTech)
         local pos = car:WorldSpaceCenter()
-
-        local function WreckClosestUnit(car)
-            local closest_unit
-            local shortest_distanceunit = math.huge
-            
-            for _, ent in ents.Iterator() do
-                if IsValid(ent) then
-                    if ent.UnitVehicle then
-                        local distunit = pos:Distance(ent:GetPos())
-                    
-                        if distunit < shortest_distanceunit then
-                            shortest_distanceunit = distunit
-                            closest_unit = ent
-                        end
-                    end
-                end
-            end
-
-            if IsValid(closest_unit) then
-                if closest_unit.UnitVehicle then
-                    UVPlayerWreck(closest_unit)
-                    return closest_unit
-                end
-            else
-                if isfunction(car.GetDriver) and IsValid(UVGetDriver(car)) and UVGetDriver(car):IsPlayer() then 
-		            if not car.uvNextNoPBTime or car.uvNextNoPBTime < CurTime() then
-		            	UVPTEvent({UVGetDriver(car)}, 'PowerPlay', 'NoPB')
-		            	car.uvNextNoPBTime = CurTime() + 3
-		            end
-                end
-
-                return false
-            end
-        end
 
         local closest_ent
         local shortest_distance = math.huge
         local maximum_distance = 75000000
+
+        if UVIsPTUpgraded(car, pursuitTech) then
+            maximum_distance = maximum_distance * 2
+        end
 
         for _, ent in ents.Iterator() do
             if IsValid(ent) then
@@ -2481,7 +2501,7 @@ if SERVER then
     end
 
     --SHOCK RAM
-    function UVDeployShockRam(car)
+    function UVDeployShockRam(car, pursuitTech)
         local carchildren = car:GetChildren()
         local carconstraints = constraint.GetAllConstrainedEntities(car)
         local carPos = car:WorldSpaceCenter()
@@ -2505,7 +2525,7 @@ if SERVER then
                 local power = UVUnitPTShockRamPower:GetFloat()
                 local damage = UVUnitPTShockRamDamage:GetFloat()
 
-                if UVIsPTUpgraded(car) then
+                if UVIsPTUpgraded(car, pursuitTech) then
 					power = power * 2
                     damage = damage * 2
 				end
@@ -2646,7 +2666,7 @@ if SERVER then
     end
 
     --GRAPPLER
-    function UVDeployGrappler(car)
+    function UVDeployGrappler(car, pursuitTech)
         car.grappleron = true
 
         if car.grappler and IsValid(car.grappler) then
@@ -2752,7 +2772,7 @@ if SERVER then
         local strength = UVUnitPTGrapplerStrength:GetInt()
         local disableduration = UVUnitPTGrapplerDisableDuration:GetInt()
 
-        if UVIsPTUpgraded(car) then
+        if UVIsPTUpgraded(car, pursuitTech) then
 			strength = strength * 2
 		end
 

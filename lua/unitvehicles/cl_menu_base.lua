@@ -2883,6 +2883,14 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 			surface.DrawRect(0, 0, w, h)
 		end
 
+		local searchEntry = vgui.Create("DTextEntry", panel)
+		searchEntry:Dock(TOP)
+		searchEntry:DockMargin(6, 6, 6, 0)
+		searchEntry:SetTall(UV.ScaleH(30))
+		searchEntry:SetFont("UVSettingsFont")
+		searchEntry:SetPlaceholderText(UVString("uv.search"))
+		searchEntry:SetUpdateOnType(true)
+
 		local scroll = vgui.Create("DScrollPanel", panel)
 		scroll:Dock(FILL)
 		scroll:DockMargin(0, 6, 0, 0)
@@ -3000,13 +3008,38 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 			table.sort(buttonNames, function(a, b)
 				return tostring(a):lower() < tostring(b):lower()
 			end)
-	
+
+			local query = string.Trim(searchEntry:GetValue()):lower()
+			local matchingPresets = 0
 			for _, name in ipairs(buttonNames) do
-				addButton( name )
+				if query == "" or string.find(tostring(name):lower(), query, 1, true) then
+					addButton(name)
+					matchingPresets = matchingPresets + 1
+				end
+			end
+
+			if query ~= "" and matchingPresets == 0 then
+				local empty = vgui.Create("DLabel", scroll)
+				empty:Dock(TOP)
+				empty:SetTall(UV.ScaleH(30))
+				empty:SetText(UVString("uv.search.noresults"))
+				empty:SetTextColor(Color(200, 200, 200))
+				empty:SetContentAlignment(5)
 			end
 		end
 
 		refreshButtons()
+		searchEntry.OnTextChanged = refreshButtons
+		searchEntry.OnGetFocus = function()
+			if IsValid(UV.SettingsFrame) then
+				UV.SettingsFrame:SetKeyboardInputEnabled(true)
+			end
+		end
+		searchEntry.OnLoseFocus = function()
+			if IsValid(UV.SettingsFrame) then
+				UV.SettingsFrame:SetKeyboardInputEnabled(false)
+			end
+		end
 
 		-- local exportPanel
 		-- if not st.importonly then
@@ -3301,6 +3334,14 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 			DrawWrappedText(self, text, w * 0.95, w * 0.5, 2.5, true, "UVSettingsFontBig")
 		end
 
+		local searchEntry = vgui.Create("DTextEntry", panel)
+		searchEntry:Dock(TOP)
+		searchEntry:DockMargin(UV.ScaleW(8), UV.ScaleH(4), UV.ScaleW(8), 0)
+		searchEntry:SetTall(UV.ScaleH(30))
+		searchEntry:SetFont("UVSettingsFont")
+		searchEntry:SetPlaceholderText(UVString("uv.search"))
+		searchEntry:SetUpdateOnType(true)
+
 		local body = vgui.Create("DPanel", panel)
 		body:Dock(FILL)
 		body:DockMargin(0, 4, 0, 4)
@@ -3335,6 +3376,10 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 
 		if st.type == "drivermodel" then
 			activeFilterBaseId = 5
+		end
+
+		local function matchesSearch(entry, query)
+			return query == "" or string.find(entry.display:lower(), query, 1, true) ~= nil
 		end
 		
 		local filterBar = vgui.Create("DIconLayout", panel)
@@ -3467,6 +3512,9 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 		local function refreshLists()
 			left:Clear()
 			right:Clear()
+			local searchQuery = string.Trim(searchEntry:GetValue()):lower()
+			local visibleSelected = 0
+			local visibleAvailable = 0
 
 			local availableUnits = {}
 			local availableUnitsList = getAvailableUnits()
@@ -3514,9 +3562,13 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 			end
 
 			for _, entry in ipairs(selectedEntries) do
-				if (activeFilterBaseId ~= 0 and entry.baseId ~= activeFilterBaseId) or (st.type == "unitselect" and entry.baseId == 5) then
+				if (activeFilterBaseId ~= 0 and entry.baseId ~= activeFilterBaseId)
+					or (st.type == "unitselect" and entry.baseId == 5)
+					or not matchesSearch(entry, searchQuery) then
 					continue
 				end
+
+				visibleSelected = visibleSelected + 1
 
 				local row = right:Add("DPanel")
 				row:Dock(TOP)
@@ -3671,10 +3723,23 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 				end
 			end
 
+			if searchQuery ~= "" and visibleSelected == 0 then
+				local empty = vgui.Create("DLabel", right)
+				empty:Dock(TOP)
+				empty:SetTall(UV.ScaleH(24))
+				empty:SetText(UVString("uv.search.noresults"))
+				empty:SetTextColor(Color(200, 200, 200))
+				empty:SetContentAlignment(5)
+			end
+
 			for _, entry in ipairs(unselEntries) do
-				if (activeFilterBaseId ~= 0 and entry.baseId ~= activeFilterBaseId) or (st.type == "unitselect" and entry.baseId == 5) then
+				if (activeFilterBaseId ~= 0 and entry.baseId ~= activeFilterBaseId)
+					or (st.type == "unitselect" and entry.baseId == 5)
+					or not matchesSearch(entry, searchQuery) then
 					continue
 				end
+
+				visibleAvailable = visibleAvailable + 1
 
 				local btn = left:Add("DButton")
 				btn:Dock(TOP)
@@ -3729,6 +3794,27 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 				btn.OnCursorExited = function()
 					if promptBar then promptBar.Prompts = nil end
 				end
+			end
+
+			if searchQuery ~= "" and visibleAvailable == 0 then
+				local empty = vgui.Create("DLabel", left)
+				empty:Dock(TOP)
+				empty:SetTall(UV.ScaleH(24))
+				empty:SetText(UVString("uv.search.noresults"))
+				empty:SetTextColor(Color(200, 200, 200))
+				empty:SetContentAlignment(5)
+			end
+		end
+
+		searchEntry.OnTextChanged = refreshLists
+		searchEntry.OnGetFocus = function()
+			if IsValid(UV.SettingsFrame) then
+				UV.SettingsFrame:SetKeyboardInputEnabled(true)
+			end
+		end
+		searchEntry.OnLoseFocus = function()
+			if IsValid(UV.SettingsFrame) then
+				UV.SettingsFrame:SetKeyboardInputEnabled(false)
 			end
 		end
 

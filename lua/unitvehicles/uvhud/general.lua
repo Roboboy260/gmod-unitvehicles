@@ -92,7 +92,8 @@ local function uv_general()
                     local blink = 255 * math.abs(math.sin(RealTime() * 3))
                     fillOverlayColor = Color(blink, blink, 0, 175)
                 else
-                    bgColor = tech.Ammo > 0 and Color(100, 255, 100, 175) or Color(200, 0, 0, 175)
+                    local availableColor = tech.Upgraded and Color(100, 255, 255, 175) or Color(100, 255, 100, 175)
+                    bgColor = tech.Ammo > 0 and availableColor or Color(200, 0, 0, 175)
                     textColor = tech.Ammo > 0 and Color(255, 255, 255) or Color(255, 75, 75)
                     keyColor = tech.Ammo > 0 and Color(255, 255, 255) or Color(255, 75, 75)
                 end

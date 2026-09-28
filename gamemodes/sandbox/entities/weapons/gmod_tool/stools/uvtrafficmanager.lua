@@ -311,6 +311,12 @@ if CLIENT then
 
 		CPanel:AddItem(FilterBar)
 
+		local SearchEntry = vgui.Create("DTextEntry")
+		SearchEntry:SetTall(24)
+		SearchEntry:SetPlaceholderText(language.GetPhrase("uv.search"))
+		SearchEntry:SetUpdateOnType(true)
+		CPanel:AddItem(SearchEntry)
+
 		local function AddFilterButton(text, baseId)
 			local btn = vgui.Create("DButton", FilterBar)
 			btn:SetTall(24)
@@ -408,10 +414,19 @@ if CLIENT then
 				return
 			end
 
+			local searchQuery = string.Trim(SearchEntry:GetValue()):lower()
+			local matchingEntries = 0
+
 			for _, entry in ipairs(entries) do
 				if activeFilterBaseId ~= 0 and entry.baseId ~= activeFilterBaseId then
 					continue
 				end
+
+				if searchQuery ~= "" and not string.find(entry.display:lower(), searchQuery, 1, true) then
+					continue
+				end
+
+				matchingEntries = matchingEntries + 1
 
 				if not selecteditem then
 					selecteditem = entry.filename
@@ -468,6 +483,19 @@ if CLIENT then
 					net.SendToServer()
 				end
 			end
+
+			if matchingEntries == 0 then
+				local empty = vgui.Create("DLabel", ScrollPanel)
+				empty:SetText("#uv.search.noresults")
+				empty:SetTextColor(Color(200,200,200))
+				empty:SetContentAlignment(5)
+				empty:Dock(TOP)
+				empty:SetTall(24)
+			end
+		end
+
+		SearchEntry.OnTextChanged = function()
+			UVTrafficManagerTool.RefreshList()
 		end
 
 		timer.Simple(0, function()

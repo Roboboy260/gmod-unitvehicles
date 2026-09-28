@@ -370,6 +370,7 @@ UV_PT.EMP = {
         UVEMPLockingStart = nil
         UVEMPLockingTarget = nil
         UVEMPLockingSource = nil
+        UVEMPLockingUpgraded = nil
 
         local userString = "uv.ptech.emp.hit"
         local isTargetLocal = targetCallsign == LocalPlayer():Nick()
@@ -394,6 +395,7 @@ UV_PT.EMP = {
         UVEMPLockingStart = nil
         UVEMPLockingTarget = nil
         UVEMPLockingSource = nil
+        UVEMPLockingUpgraded = nil
 
         UV_UI.general.events.CenterNotification({
             text = UVString( userString ),
@@ -406,6 +408,7 @@ UV_PT.EMP = {
         local carEntIndex = user[1]
         local carCreationID = user[2]
         local carCallsign = user[3]
+        local carUpgraded = user[4]
 
         local targetEntIndex = target[1]
         local targetCreationID = target[2]
@@ -426,6 +429,7 @@ UV_PT.EMP = {
         UVEMPLockingStart = CurTime()
         UVEMPLockingSource = user
         UVEMPLockingTarget = target
+        UVEMPLockingUpgraded = carUpgraded
 
         --print('Locking', target)
         local userString = "uv.ptech.emp.lockingon"

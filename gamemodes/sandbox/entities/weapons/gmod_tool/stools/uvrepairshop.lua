@@ -173,6 +173,12 @@ if CLIENT then
 
 		local selecteditem = nil
 
+		local SearchEntry = vgui.Create("DTextEntry")
+		SearchEntry:SetTall(24)
+		SearchEntry:SetPlaceholderText(language.GetPhrase("uv.search"))
+		SearchEntry:SetUpdateOnType(true)
+		CPanel:AddItem(SearchEntry)
+
 		local Frame = vgui.Create("DPanel")
 		Frame:SetTall(320)
 		Frame.Paint = function(self, w, h)
@@ -201,7 +207,16 @@ if CLIENT then
 				return
 			end
 
+			local searchQuery = string.Trim(SearchEntry:GetValue()):lower()
+			local matchingEntries = 0
+
 			for _, filename in ipairs(files) do
+				if searchQuery ~= "" and not string.find(filename:lower(), searchQuery, 1, true) then
+					continue
+				end
+
+				matchingEntries = matchingEntries + 1
+
 				local btn = UVRepairShopScrollPanel:Add("DButton")
 				btn:Dock(TOP)
 				btn:DockMargin(0, 0, 0, 4)
@@ -248,7 +263,18 @@ if CLIENT then
 					net.SendToServer()
 				end
 			end
+
+			if matchingEntries == 0 then
+				local empty = vgui.Create("DLabel", UVRepairShopScrollPanel)
+				empty:SetText("#uv.search.noresults")
+				empty:SetTextColor(Color(200,200,200))
+				empty:SetContentAlignment(5)
+				empty:Dock(TOP)
+				empty:SetTall(24)
+			end
 		end
+
+		SearchEntry.OnTextChanged = RefreshRepairShopList
 
 		timer.Simple(0, RefreshRepairShopList)
 

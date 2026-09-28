@@ -115,6 +115,12 @@ if SERVER then
 					local power = UVPTStunMinePower:GetInt()
 					local damage = UVPTStunMineDamage:GetFloat()
 					local force = power * (1 - (vectorDifference:Length()/1000))
+
+					if self.upgraded then
+						damage = damage * 2
+						force = force * 2
+					end
+
 					objectphys:ApplyForceCenter(angle:Forward()*force)
 					UVRamVehicle(object)
 					damage = (table.HasValue(UVCommanders, object) and UVPTStunMineCommanderDamage:GetFloat()) or damage
@@ -149,6 +155,7 @@ else
 		local mat = Material("sprites/light_ignorez")
 		local model = self:GetModel()
 		local skins = self:GetSkin()
+		local color = self.upgraded and Color(125,249,255) or color_white
 	
 		self:DrawModel() 
 		self.LightPos1 = Vector(0,0,0)
@@ -158,7 +165,7 @@ else
 		if dist<10000 and math.floor(CurTime()*4)==math.Round(CurTime()*4) and util.TraceLine({start = EyePos(),endpos = lightpos1,filter = LocalPlayer(),mask = MASK_OPAQUE}).Fraction==1 then
 			mat:SetInt("$ignorez",0)
 				render.SetMaterial(mat)
-				render.DrawSprite(lightpos1,128,128,Color(255,255,255,255-dist/10000*255))
+				render.DrawSprite(lightpos1,128,128,Color(color.r,color.g,color.b,255-dist/10000*255))
 			mat:SetInt("$ignorez",1)
 		end
 	

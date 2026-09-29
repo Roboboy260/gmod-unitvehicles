@@ -1106,11 +1106,11 @@ if SERVER then
 			not (eScope and eScope.EnemyBusted) and not (eScope and eScope.EnemyEscaped) and self.uvmarkedfordeletion then
 				if self.v.disengaging then
 					SafeRemoveEntity(self)
+					if Chatter:GetBool() and not (eScope and eScope.EnemyEscaping) and not (eScope and eScope.EnemyBusted) then
+						UVChatterLeftPursuit(self) 
+					end
 				else
 					UVOptimizeRespawn(self.v)
-				end
-				if Chatter:GetBool() and not (eScope and eScope.EnemyEscaping) and not (eScope and eScope.EnemyBusted) then
-					UVChatterLeftPursuit(self) 
 				end
 			end
 		elseif TrafficStreaming:GetBool() then
@@ -1660,8 +1660,10 @@ if SERVER then
 										self.repairtimer = true
 
 										timer.Create(id, 1, 1, function()
-											self:DeployWeapon(self.v, k)
-											timer.Simple(5, function() self.repairtimer = false; end)
+											if IsValid(self.v) then
+												self:DeployWeapon(self.v, k)
+												timer.Simple(5, function() self.repairtimer = false; end)
+											end
 										end)
 										break
 									end
@@ -1677,8 +1679,10 @@ if SERVER then
 										self.repairtimer = true
 
 										timer.Create(id, 1, 1, function()
-											self:DeployWeapon(self.v, k)
-											timer.Simple(5, function() self.repairtimer = false; end)
+											if IsValid(self.v) then
+												self:DeployWeapon(self.v, k)
+												timer.Simple(5, function() self.repairtimer = false; end)
+											end
 										end)
 										break
 									end

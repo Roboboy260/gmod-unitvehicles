@@ -309,7 +309,7 @@ if SERVER then
 	end
 
 	function ENT:Think()
-		if (UVJammerDeployed and not self.uvdeployed) or (UVJammerDeployed and self.uvdeployed and not self.uvdeployed.exemptfromjammer) then
+		if (UVJammerDeployed and not self.racerdeployed) or (UVJammerDeployed and self.racerdeployed and not self.racerdeployed.jammerexempt) then
 			self:Remove()
 		end
 	end

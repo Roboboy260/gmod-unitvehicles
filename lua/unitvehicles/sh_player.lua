@@ -410,106 +410,112 @@ if SERVER then
 			end
 		end
 	
+        --Commander can only repair the tires and refill the nitrous if the convar is disabled
 		local repairnet = "UVHUDRepair"
+        local commander = vehicle.uvclasstospawnon == "npc_uvcommander" or vehicle.UVCommander
 		local comcanrep = GetConVar("unitvehicle_unit_commanderrepair"):GetBool()
-		local canrepair = true
+		local canrefillhealth = true
 	
-		if comcanrep then
-			if table.HasValue(UVCommanders, vehicle) then
-				if UVGetDriver(vehicle) and UVGetDriver(vehicle):IsPlayer() then
-					repairnet = "UVHUDRepairCommander"
-					canrepair = false
-				end
+		if not comcanrep and commander then
+            canrefillhealth = false
+			if UVGetDriver(vehicle) and UVGetDriver(vehicle):IsPlayer() then
+				repairnet = "UVHUDRepairCommander"
 			end
 		end
-	
-		if canrepair then
-			if vehicle:GetClass() == "prop_vehicle_jeep" then
-				if vcmod_main then
-					if not ptrefilled and vehicle:VC_getHealthMax() == vehicle:VC_getHealth() then return end
-				
-					vehicle:VC_repairFull_Admin()
-				else
-					if not ptrefilled and vehicle:GetMaxHealth() == vehicle:Health() then return end
-				
-					local mass = vehicle:GetPhysicsObject():GetMass()
-					vehicle:SetMaxHealth((AutoHealth:GetBool() and vehicle.UVWanted and math.huge) or (mass))
-					vehicle:SetHealth((AutoHealth:GetBool() and vehicle.UVWanted and math.huge) or (mass))
-					vehicle:StopParticles()
-				end
-			end
-			if vehicle.IsSimfphyscar then	
-				local repaired_tires = false 
-				
-				if istable(vehicle.Wheels) then
-					for i = 1, table.Count( vehicle.Wheels ) do
-						local Wheel = vehicle.Wheels[ i ]
-						if IsValid(Wheel) and Wheel:GetDamaged() then
-							repaired_tires = true
-							Wheel:SetDamaged( false )
-						end
-					end
-				end
-				
-				if not ptrefilled and not repaired_tires and vehicle:GetCurHealth() == vehicle:GetMaxHealth() then return end
-				
-				--vehicle.simfphysoldhealth = vehicle:GetMaxHealth()
-				vehicle:SetCurHealth((AutoHealth:GetBool() and vehicle.UVWanted and math.huge) or (vehicle.simfphysoldhealth or vehicle:GetMaxHealth()))
-				vehicle:SetOnFire( false )
-				vehicle:SetOnSmoke( false )
-				
-				net.Start( "simfphys_lightsfixall" )
-				net.WriteEntity( vehicle )
-				net.Broadcast()
-				
-				net.Start( "uvrepairsimfphys" )
-				net.WriteEntity( vehicle )
-				net.Broadcast()
-				
-				vehicle:OnRepaired()
-			
-			end
-			if vehicle.IsGlideVehicle then
-				local repaired = false
-				
-				for _, v in pairs(vehicle.wheels) do
-					if IsValid(v) and v.bursted then
-						repaired = true
-						v.bursted = false
-					    v:Repair()
-					    timer.Remove("uvspiked"..v:EntIndex())
-					end
-				end
-				
-				if not ptrefilled and not repaired and vehicle:GetChassisHealth() >= vehicle.MaxChassisHealth then return end
-				vehicle:Repair()
 
+        if cffunctions and vehicle.IsGlideVehicle then
+            CFRefillNitrous(vehicle)
+        end
+	
+		if canrefillhealth and vehicle:GetClass() == "prop_vehicle_jeep" then
+			if vcmod_main then
+				if not ptrefilled and vehicle:VC_getHealthMax() == vehicle:VC_getHealth() then return end
+			
+				vehicle:VC_repairFull_Admin()
+			else
+				if not ptrefilled and vehicle:GetMaxHealth() == vehicle:Health() then return end
+			
+				local mass = vehicle:GetPhysicsObject():GetMass()
+				vehicle:SetMaxHealth((AutoHealth:GetBool() and vehicle.UVWanted and math.huge) or (mass))
+				vehicle:SetHealth((AutoHealth:GetBool() and vehicle.UVWanted and math.huge) or (mass))
+				vehicle:StopParticles()
+			end
+		end
+		if vehicle.IsSimfphyscar then	
+			local repaired_tires = false 
+			
+			if istable(vehicle.Wheels) then
+				for i = 1, table.Count( vehicle.Wheels ) do
+					local Wheel = vehicle.Wheels[ i ]
+					if IsValid(Wheel) and Wheel:GetDamaged() then
+						repaired_tires = true
+						Wheel:SetDamaged( false )
+					end
+				end
+			end
+			
+			if not ptrefilled and not repaired_tires and vehicle:GetCurHealth() == vehicle:GetMaxHealth() then return end
+			
+            if canrefillhealth then
+			    --vehicle.simfphysoldhealth = vehicle:GetMaxHealth()
+			    vehicle:SetCurHealth((AutoHealth:GetBool() and vehicle.UVWanted and math.huge) or (vehicle.simfphysoldhealth or vehicle:GetMaxHealth()))
+			    vehicle:SetOnFire( false )
+			    vehicle:SetOnSmoke( false )
+                
+			    net.Start( "simfphys_lightsfixall" )
+			    net.WriteEntity( vehicle )
+			    net.Broadcast()
+                
+			    net.Start( "uvrepairsimfphys" )
+			    net.WriteEntity( vehicle )
+			    net.Broadcast()
+                
+			    vehicle:OnRepaired()
+            end
+		
+		end
+		if vehicle.IsGlideVehicle then
+			local repaired = false
+			
+			for _, v in pairs(vehicle.wheels) do
+				if IsValid(v) and v.bursted then
+					repaired = true
+					v.bursted = false
+				    v:Repair()
+				    timer.Remove("uvspiked"..v:EntIndex())
+				end
+			end
+			
+			if not ptrefilled and not repaired and vehicle:GetChassisHealth() >= vehicle.MaxChassisHealth then return end
+			
+            if canrefillhealth then
+                vehicle:Repair()
+                
                 if not vehicle.UnitVehicle and (AutoHealth:GetBool() or (vehicle.RacerVehicle and vehicle.RacerVehicle:IsNPC() and AutoHealthRacer:GetBool())) then
                     vehicle:SetChassisHealth(math.huge)
-				    vehicle:SetEngineHealth(math.huge)
+			        vehicle:SetEngineHealth(math.huge)
                     vehicle:UpdateHealthOutputs()
                 end
-				
-				if cffunctions then
-					CFRefillNitrous(vehicle)
-				end
-			end
-            if vehicle.LVS then
-                local repaired = false
-                local vehEngine = vehicle:GetEngine()
-
-                for _, wheel in ipairs(vehicle:GetWheels()) do
-                    if wheel:IsTireDestroyed() then
-                        repaired = true 
-                        wheel:RepairTire()
-                        timer.Remove("uvspiked"..wheel:EntIndex())
-                    end
+            end
+		end
+        if vehicle.LVS then
+            local repaired = false
+            local vehEngine = vehicle:GetEngine()
+            
+            for _, wheel in ipairs(vehicle:GetWheels()) do
+                if wheel:IsTireDestroyed() then
+                    repaired = true 
+                    wheel:RepairTire()
+                    timer.Remove("uvspiked"..wheel:EntIndex())
                 end
-
-                if not ptrefilled and not repaired and vehEngine:GetHP() == vehEngine:GetMaxHP() and vehicle:GetHP() == vehicle:GetMaxHP() then return end
+            end
+            
+            if not ptrefilled and not repaired and vehEngine:GetHP() == vehEngine:GetMaxHP() and vehicle:GetHP() == vehicle:GetMaxHP() then return end
+            
+            if canrefillhealth then
                 vehEngine:SetHP( vehEngine:GetMaxHP() )
                 vehicle:SetHP( vehicle:GetMaxHP() )
-
+                
                 if not vehicle.UnitVehicle and (AutoHealth:GetBool() or (vehicle.RacerVehicle and vehicle.RacerVehicle:IsNPC() and AutoHealthRacer:GetBool())) then
                     vehicle:SetHP(math.huge)
                     vehicle.MaxHealth = math.huge
@@ -517,7 +523,7 @@ if SERVER then
                     vehEngine:SetMaxHP(math.huge)
                 end
             end
-		end
+        end
 	
 		if UVGetDriver(vehicle) then
 			if UVGetDriver(vehicle):IsPlayer() then
@@ -1437,7 +1443,7 @@ if SERVER then
             UVDeploySpikeStrip(car, not car.UnitVehicle)
 
             timer.Simple( .5, function()
-                if IsValid(car) and (not UVJammerDeployed or car.exemptfromjammer) then
+                if IsValid(car) and (not UVJammerDeployed or car.jammerexempt) then
                     if UVIsPTUpgraded(car, pursuit_tech) then
                         UVDeploySpikeStrip(car, not car.UnitVehicle)
                     end
@@ -1531,7 +1537,7 @@ if SERVER then
             UVDeployGPSDart(car)
 
             timer.Simple( .5, function()
-                if IsValid(car) and UVIsPTUpgraded(car, pursuit_tech) and (not UVJammerDeployed or car.exemptfromjammer) then
+                if IsValid(car) and UVIsPTUpgraded(car, pursuit_tech) and (not UVJammerDeployed or car.jammerexempt) then
                     UVDeployGPSDart(car)
                 end
             end)
@@ -1931,24 +1937,31 @@ if SERVER then
     --REPAIR KIT
     function UVDeployRepairKit(car, pursuitTech)
         local is_repaired = false
+        
+        --Commander can only repair the tires and refill the nitrous if the convar is disabled
+        local commander = car.uvclasstospawnon == "npc_uvcommander" or car.UVCommander
+		local comcanrep = GetConVar("unitvehicle_unit_commanderrepair"):GetBool()
+		local canrefillhealth = true
+	
+		if not comcanrep and commander then
+            canrefillhealth = false
+		end
 
-        if UVIsPTUpgraded(car, pursuitTech) then
-            if cffunctions then
-				CFRefillNitrous(car)
-			end
+        if UVIsPTUpgraded(car, pursuitTech) and cffunctions and car.IsGlideVehicle then
+            CFRefillNitrous(car)
         end
         
-        if car:GetClass() == "prop_vehicle_jeep" then
+        if canrefillhealth and car:GetClass() == "prop_vehicle_jeep" then
             if vcmod_main then
                 if car:VC_getHealthMax() == car:VC_getHealth() then return end
                 is_repaired = true
                 car:EmitSound('ui/pursuit/repair.wav')
                 car:VC_repairFull_Admin()
             else
-                local mass = vehicle:GetPhysicsObject():GetMass()
-                vehicle:SetMaxHealth(mass)
-                vehicle:SetHealth(mass)
-                vehicle:StopParticles()
+                local mass = car:GetPhysicsObject():GetMass()
+                car:SetMaxHealth(mass)
+                car:SetHealth(mass)
+                car:StopParticles()
             end
         end
         if car.IsSimfphyscar then
@@ -1968,25 +1981,27 @@ if SERVER then
             
             is_repaired = true
             car:EmitSound('ui/pursuit/repair.wav')
-            
-            -- TODO: There is some bug when AI is using a simfphys car, GetMaxHealth for some reason returns -inf...
-            if IsValid(car:GetDriver()) then
-                car.simfphysoldhealth = car:GetMaxHealth()
-                car:SetCurHealth(car:GetMaxHealth())
+
+            if canrefillhealth then
+                -- TODO: There is some bug when AI is using a simfphys car, GetMaxHealth for some reason returns -inf...
+                if IsValid(car:GetDriver()) then
+                    car.simfphysoldhealth = car:GetMaxHealth()
+                    car:SetCurHealth(car:GetMaxHealth())
+                end
+
+                car:SetOnFire( false )
+                car:SetOnSmoke( false )
+
+                net.Start( "simfphys_lightsfixall" )
+                net.WriteEntity( car )
+                net.Broadcast()
+
+                net.Start( "uvrepairsimfphys" )
+                net.WriteEntity( car )
+                net.Broadcast()
+
+                car:OnRepaired()
             end
-            
-            car:SetOnFire( false )
-            car:SetOnSmoke( false )
-            
-            net.Start( "simfphys_lightsfixall" )
-            net.WriteEntity( car )
-            net.Broadcast()
-            
-            net.Start( "uvrepairsimfphys" )
-            net.WriteEntity( car )
-            net.Broadcast()
-            
-            car:OnRepaired()
         end
         if car.IsGlideVehicle then
             local repaired = false
@@ -2002,13 +2017,16 @@ if SERVER then
 			
 			if not repaired and car:GetChassisHealth() >= car.MaxChassisHealth then return end
             
-			car:Repair()
-            car:EmitSound('ui/pursuit/repair.wav')
-            if not car.UnitVehicle and (AutoHealth:GetBool() or (car.RacerVehicle and car.RacerVehicle:IsNPC() and AutoHealthRacer:GetBool())) then
-                car:SetChassisHealth(math.huge)
-			    car:SetEngineHealth(math.huge)
-                car:UpdateHealthOutputs()
+            if canrefillhealth then
+			    car:Repair()
+                if not car.UnitVehicle and (AutoHealth:GetBool() or (car.RacerVehicle and car.RacerVehicle:IsNPC() and AutoHealthRacer:GetBool())) then
+                    car:SetChassisHealth(math.huge)
+			        car:SetEngineHealth(math.huge)
+                    car:UpdateHealthOutputs()
+                end
             end
+
+            car:EmitSound('ui/pursuit/repair.wav')
 
             is_repaired = true
         end
@@ -2025,12 +2043,15 @@ if SERVER then
             end
 
             if not repaired and vehEngine:GetHP() == vehEngine:GetMaxHP() and car:GetHP() == car:GetMaxHP() then return end
-            vehEngine:SetHP( vehEngine:GetMaxHP() )
-            car:SetHP( car:GetMaxHP() )
-            car:EmitSound('ui/pursuit/repair.wav')
-            if not car.UnitVehicle and (AutoHealth:GetBool() or (car.RacerVehicle and car.RacerVehicle:IsNPC() and AutoHealthRacer:GetBool())) then
-                car:SetHP(math.huge)
-                vehEngine:SetHP(math.huge)
+            
+            if canrefillhealth then
+                vehEngine:SetHP( vehEngine:GetMaxHP() )
+                car:SetHP( car:GetMaxHP() )
+                car:EmitSound('ui/pursuit/repair.wav')
+                if not car.UnitVehicle and (AutoHealth:GetBool() or (car.RacerVehicle and car.RacerVehicle:IsNPC() and AutoHealthRacer:GetBool())) then
+                    car:SetHP(math.huge)
+                    vehEngine:SetHP(math.huge)
+                end
             end
 
             is_repaired = true
@@ -2259,7 +2280,7 @@ if SERVER then
         local enemy = car.uvkillswitchingtarget
         local AI = car.UnitVehicle
         
-        if not IsValid(enemy) or car.damagecooldown or car.crashing or (UVJammerDeployed and not car.exemptfromjammer) then
+        if not IsValid(enemy) or car.damagecooldown or car.crashing or (UVJammerDeployed and not car.jammerexempt) then
             UVDeactivateKillSwitch(car)
             return
         end

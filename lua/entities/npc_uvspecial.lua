@@ -13,7 +13,7 @@ include("entities/uvapi.lua")
 
 ENT.PrintName = "UVSpecial"
 ENT.Author = "UVPD Vehicular Autonomous Navigation and General Unit Automated Research Division"
-ENT.Contact = "Echo"
+ENT.Contact = "Echo" --Romeo for Rhino
 ENT.Purpose = "To commit vehicular manslaughter."
 ENT.Instruction = "Spawn on/under the vehicle until it shows a spawn effect."
 ENT.Spawnable = false

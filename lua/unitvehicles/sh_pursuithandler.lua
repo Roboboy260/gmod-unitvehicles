@@ -2282,6 +2282,9 @@ if SERVER then
 						scope.InCooldown = true
 						scope.IsEvading = true
 						scope.CooldownProgressTimeout = now
+
+						local v = Entity(scope.EntIndex)
+						if IsValid(v) and scope.InPursuit then UVAddInfraction(v, 'resist', true) end
 					end
 
 					if scope.EnemyEscaping then

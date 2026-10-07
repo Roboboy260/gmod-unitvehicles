@@ -1553,34 +1553,7 @@ if SERVER then
 				if selfvelocity > math.max(250000, enemyvelocity) or eedistSqr < 250000 then
 					forceStop = true
 				end
-			elseif self.v.rhino then --Getting unstuck
-				if distDotForward < 0 and dist2DSqr > 250000 and vectdot > 0 and not self.stuck then
-					if eeevectdot > 0 or enemyvelocity < 100000 then
-						if right.z > 0 then steer = -1 else steer = 1 end
-					else
-						throttle = throttle * -1
-					end
-				end --K/J turn
-				local eeeevectdot = eevect:Dot(self.e:GetVelocity()) --Fixed enemy's dot product, velocity and direction.
-				if edistSqr < 25000000 and eeeevectdot > 0 and enemyvelocity > selfvelocity then
-					if not self.v.rhinohit then
-						self.v.rhinohit = true
-						if Chatter:GetBool() and UVTargeting and not self.v.roadblocking and not self.v.disperse then
-							UVSoundChatter(self, self.voice, "rhinomiss", 1)
-						end
-					end
-				end
-				if edistDotForward > 0 and eeeevectdot < 0 and enemyvelocity > 100000 and (straightToEnemy or not self.aggressive) then 
-					if selfvelocity < enemyvelocity then 
-						throttle = 2
-					else 
-						throttle = 0 
-					end
-				end
-				if right.z > -0.1 and right.z < 0.1 then
-					steer = 0
-				end
-			else --Rhino
+			else --Getting unstuck
 				if distDotForward < 0 and dist2DSqr > 250000 and vectdot > 0 and not self.stuck then
 					if eeevectdot > 0 or enemyvelocity < 100000 then
 						if right.z > 0 then steer = -1 else steer = 1 end
@@ -1659,6 +1632,28 @@ if SERVER then
 					if vectdot < 0 or eright.z > -0.2 and eright.z < 0.2 then self:UVHandbrakeOn() end
 				end --Pinning/boxing in
 			end
+
+			if self.v.rhino then
+				local eeeevectdot = eevect:Dot(self.e:GetVelocity()) --Fixed enemy's dot product, velocity and direction.
+				if edistSqr < 25000000 and eeeevectdot > 0 and enemyvelocity > selfvelocity then
+					if not self.v.rhinohit then
+						self.v.rhinohit = true
+						if Chatter:GetBool() and UVTargeting and not self.v.roadblocking and not self.v.disperse then
+							UVSoundChatter(self, self.voice, "rhinomiss", 1)
+						end
+					end
+				end
+				if edistDotForward > 0 and eeeevectdot < 0 and enemyvelocity > 100000 and (straightToEnemy or not self.aggressive) then 
+					if selfvelocity < enemyvelocity then 
+						throttle = 2
+					else 
+						throttle = 0 
+					end
+				end
+				if right.z > -0.1 and right.z < 0.1 then
+					steer = 0
+				end
+			end --Rhino
 			
 			--Roadblocking
 			if self.v.roadblocking then

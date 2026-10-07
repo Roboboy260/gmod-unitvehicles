@@ -1135,7 +1135,7 @@ UVUnitsConVars = conVarList
 conVarList["selected_heat"] = 1
 
 conVarList["vehiclebase"] = 3
-conVarList["commanderrepair"] = 1
+conVarList["commanderrepair"] = 0
 conVarList["onecommanderhealth"] = 5000
 conVarList["helicoptermodel"] = "Default"
 conVarList["helicopterbarrels"] = 1
@@ -1510,7 +1510,7 @@ ActionCamTakedownThreshold = CreateConVar("unitvehicle_actioncam_takedownthresho
 ActionCamPursuitBreaker = CreateConVar("unitvehicle_actioncam_pursuitbreaker", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit Pursuit Breakers. Your vehicle will be taken over by an AI temporarily.")
 
 UVUOneCommanderHealth = CreateConVar("unitvehicle_unit_onecommanderhealth", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
-UVUCommanderRepair = CreateConVar("unitvehicle_unit_commanderrepair", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED},"Unit Vehicles: If set to 1, Commander Units can utilize the Repair Shop to repair themselves.")
+UVUCommanderRepair = CreateConVar("unitvehicle_unit_commanderrepair", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED},"Unit Vehicles: If set to 1, Commander Units can utilize the Repair Shop to repair themselves.")
 
 UVUTimeTillNextHeatEnabled = CreateConVar("unitvehicle_unit_timetillnextheatenabled", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, Heat Levels will progress automatically based on the time until the next heat level.")
 

@@ -1074,14 +1074,22 @@ if SERVER then
 	function UVChatterFineArrest(self)
 		local driver = UVGetDriver(self.e)
 		if driver and driver:IsPlayer() then
-			return UVSoundChatter(self, self.voice, "finearrest", 9, {driver})
+			if math.random(1, 2) == 1 then
+				return UVSoundChatter(self, self.voice, "finearrest", 2)
+			else
+				return UVSoundChatter(self, self.voice, "finearrest", 9, {driver})
+			end
 		end
 	end
 	
 	function UVChatterFinePaid(self)
 		local driver = UVGetDriver(self.e)
 		if driver and driver:IsPlayer() then
-			return UVSoundChatter(self, self.voice, "finepaid", 9, {driver})
+			if math.random(1, 2) == 1 then
+				return UVSoundChatter(self, self.voice, "finepaid", 2)
+			else
+				return UVSoundChatter(self, self.voice, "finepaid", 9, {driver})
+			end
 		end
 	end
 	
@@ -1191,12 +1199,7 @@ if SERVER then
 	end
 	
 	function UVChatterPursuitStartRanAway(self, target)
-		local timecheck = 0.1
-		if randomno == 1 then
-			timecheck = UVSoundChatter(self, self.voice, "finearrest", 2)
-		else
-			timecheck = UVSoundChatter(self, self.voice, "pursuitstartranaway")
-		end
+		local timecheck = UVSoundChatter(self, self.voice, "pursuitstartranaway")
 		target = target or self.e
 		timer.Simple(timecheck, function()
 			if IsValid(self) and IsValid(target) then

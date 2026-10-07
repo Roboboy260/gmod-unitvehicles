@@ -1545,7 +1545,7 @@ UVMenu.HeatManager = function()
 		{ type = "slider", text = "uv.hm.maxhl", desc = "uv.hm.maxhl.desc", convar = "unitvehicle_unit_maxheat", min = 1, max = MAX_HEAT_LEVEL, decimals = 0, func = function() UVMenu.OpenMenu(UVMenu.HeatManager, true) end, sv = true },
 
 		{ type = "label", text = "uv.hm.commander" },
-		{ type = "bool", text = "uv.hm.commander.norepair", desc = "uv.hm.commander.norepair.desc", convar = "unitvehicle_unit_commanderrepair", sv = true },
+		{ type = "bool", text = "uv.hm.commander.canrepair", desc = "uv.hm.commander.canrepair.desc", convar = "unitvehicle_unit_commanderrepair", sv = true },
 		{ type = "slider", text = "uv.hm.commander.health", desc = "uv.hm.commander.health.desc", convar = "unitvehicle_unit_onecommanderhealth", min = 1000, max = 10000, sv = true },
 		
 		{ type = "label", text = "uv.hm.air" },

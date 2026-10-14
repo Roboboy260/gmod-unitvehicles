@@ -642,6 +642,12 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecifie
 		heli:SetAngles(Angle(0, math.random(-180, 180), 0))
 		heli:Spawn()
 		heli:Activate()
+		
+		local helilimit = GetConVar( "unitvehicle_unit_helicopters_limit" .. UVHeatLevel ):GetInt()
+		if #ents.FindByClass("uvair") >= helilimit then
+			uvHelicopterCooldown = CurTime()
+		end
+
 		return
 	end
 	

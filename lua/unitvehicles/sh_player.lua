@@ -1057,36 +1057,69 @@ if SERVER then
 
         UVSetVehiclePos( vehicle, pos, ang )
 
-        if not vehicle.IsGlideVehicle and not vehicle.IsSimfphyscar then
-            vehicle:SetCollisionGroup(20)
+        vehicle.hasreset = true
+        UVDeactivateGhost(vehicle)
 
-            vehicle.__ogrendermode = vehicle:GetRenderMode()
-            vehicle:SetRenderMode(RENDERMODE_TRANSALPHA) --Required for transparency
-
-            local c = vehicle:GetColor()
-            vehicle:SetColor(Color(c.r, c.g, c.b, 100))
-
-            timer.Simple(5, function()
-                if not IsValid(vehicle) then return end
-
-                vehicle:SetRenderMode(vehicle.__ogrendermode)
-                vehicle:SetColor(Color(c.r, c.g, c.b, 255))
-                vehicle:SetCollisionGroup(0)
-            end)
-        end
+        -- glide > simfphys > lvs
+        local wheels = vehicle.wheels or vehicle.Wheels or car:GetWheels() or {}
         
-        vehicle.hasreset = CurTime()
-        timer.Simple(10, function()
-            vehicle.hasreset = nil
+        vehicle:SetCollisionGroup(20)
+        vehicle.__ogrendermode = vehicle:GetRenderMode()
+        vehicle:SetRenderMode(RENDERMODE_TRANSALPHA) --Required for transparency
+
+        for _, wheel in ipairs(wheels) do
+            wheel.__ogrendermode = wheel:GetRenderMode()
+            wheel:SetRenderMode(RENDERMODE_TRANSALPHA)
+        end
+
+        local carEntityIndex = vehicle:EntIndex()
+        local hookIdentifier = "UVHasReset_"..carEntityIndex
+        local c = vehicle:GetColor()
+
+        local function hookStop()
+            hook.Remove( "Think", hookIdentifier )
+        end
+
+       hook.Add( "Think", hookIdentifier, function() 
+            if not IsValid(vehicle) then
+                hookStop()
+                return 
+            end
+
+            local blink = math.floor(RealTime()*10)==math.Round(RealTime()*10) and 255 or 0
+            vehicle:SetColor(Color(c.r, c.g, c.b, blink))
+            for _, wheel in ipairs(wheels) do
+                local cw = wheel:GetColor()
+                wheel:SetColor(Color(cw.r, cw.g, cw.b, blink))
+            end
         end)
 
-		-- Penalties for 10s
-		if UVTargeting and not UVHUDCooldown then
+        vehicle.hasreset = CurTime()
+
+        -- Penalties for 3s
+        local scope = UVGetScope(vehicle)
+
+		if scope and not scope.EnemyEscaping and (scope.InPursuit or scope.IsBeingPulledOver) then
 			vehicle.UVBustingPenaltyMult = 5
-			timer.Simple(10, function()
-				vehicle.UVBustingPenaltyMult = 1
-			end)
 		end
+
+        timer.Simple(3, function()
+            hookStop()
+            if not IsValid(vehicle) then return end
+            
+            vehicle.hasreset = nil
+            vehicle.UVBustingPenaltyMult = 1
+
+            vehicle:SetRenderMode(vehicle.__ogrendermode)
+            vehicle:SetColor(Color(c.r, c.g, c.b, 255))
+            vehicle:SetCollisionGroup(0)
+
+            for _, wheel in ipairs(wheels) do
+                wheel:SetRenderMode(wheel.__ogrendermode)
+                local cw = wheel:GetColor()
+                wheel:SetColor(Color(cw.r, cw.g, cw.b, 255))
+            end
+        end)
     end
     
     net.Receive("UVResetPosition", function(len, ply)
@@ -1154,7 +1187,7 @@ if SERVER then
 					UVResetPosition(car)
 					if UVTargeting and not UVHUDCooldown then
 						net.Start( "uvresetpenalty" )
-						net.WriteInt(10, 16)
+						net.WriteInt(3, 16)
 						net.Send(ply)
 					end
 				end
@@ -1577,6 +1610,8 @@ if SERVER then
                 UVDeactivateJuggernaut(car)
             end)
         elseif pursuit_tech.Tech == "Ghost" then --Ghost
+            if car.hasreset then return end
+
             local Cooldown = pursuit_tech.Cooldown
             if CurTime() - pursuit_tech.LastUsed < Cooldown or car.aicontrolled then return end
             car:RemoveCallOnRemove("uvghost"..car:EntIndex())
@@ -1860,6 +1895,11 @@ if SERVER then
                     UVRamVehicle(target)
                 
                     hook.Add( "Think", hookIdentifier .. "headlight", function() 
+                        if not IsValid(target) then
+                            hook.Remove( "Think", hookIdentifier .. "headlight" )
+                            return 
+                        end
+
                         UVSetHeadlight( 
                             target, 
                             math.random( 0, 2 ) 
@@ -2671,7 +2711,7 @@ if SERVER then
     end
     
     function UVDeactivateGhost(car)
-        if not car.ghoston then return end
+        if not car.ghoston or car.hasreset then return end
 
         if IsValid(car) then
             car.ghoston = nil

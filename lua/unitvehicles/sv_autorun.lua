@@ -785,8 +785,6 @@ end
 
 -- Helper function for vehicle spawning logic
 function HandleVehicleSpawning(Patrolling)
-	
-	if not CheckVehicleLimit() then return end
 
 	-- Handle other special spawns
 
@@ -795,13 +793,16 @@ function HandleVehicleSpawning(Patrolling)
 	local rbchance = GetConVar( "unitvehicle_unit_roadblocks_chance" .. UVHeatLevel ):GetInt()
 	local helichance = GetConVar( "unitvehicle_unit_helicopters_chance" .. UVHeatLevel ):GetInt()
 	local helilimit = GetConVar( "unitvehicle_unit_helicopters_limit" .. UVHeatLevel ):GetInt()
+	local helicooldown = CurTime() - (uvHelicopterCooldown or 0) < UVUHelicopterMaxFuel:GetInt() --I will add an adjustable setting for this later
 
 	local canSpawnRoadblock = uvRoadblockDeployable and next(ents.FindByClass("npc_uv*")) ~= nil and table.Count(UVLoadedRoadblocks) < UVRBMax:GetInt() and CheckSpawnChance(rbchance)
-	local canSpawnHelicopter = uvHelicopterDeployable and #ents.FindByClass("uvair") < helilimit and CheckSpawnChance(helichance)
+	local canSpawnHelicopter = uvHelicopterDeployable and #ents.FindByClass("uvair") < helilimit and CheckSpawnChance(helichance) and not helicooldown
 
 	local pool = {
 		'normal',
 	}
+
+	if not CheckVehicleLimit() then pool = {} end
 
 	if canSpawnRoadblock then
 		table.insert(pool, 'roadblock')
@@ -809,9 +810,8 @@ function HandleVehicleSpawning(Patrolling)
 	if canSpawnHelicopter then
 		table.insert(pool, 'helicopter')
 	end
-	if UVCommanderRespawning then
-		table.insert(pool, 'commander')
-	end
+
+	if next(pool) == nil then return end
 
 	local random = pool[math.random(#pool)]
 
@@ -3945,17 +3945,20 @@ function UVCheckIfBeingBusted(enemy)
 	if not closestunit then closestunit = enemy end
 
 	local _LocalUVBustSpeed = UVBustSpeed or 5
-	
-	if enemy.hasreset then
-		_LocalUVBustSpeed = _LocalUVBustSpeed * (enemy.UVBustingPenaltyMult or 1)
-	end
 
 	local velocity = enemy:GetVelocity():LengthSqr()
+	local mindistance = 250000
+	local penalized = enemy.UVBustingPenaltyMult and enemy.UVBustingPenaltyMult > 1
+
+	if enemy.hasreset and penalized then
+		velocity = 0
+		mindistance = mindistance * 2
+	end
 
 	local scope = UVGetScope(enemy)
 	
 	if not enemy.uvbusted and btimeout and btimeout > 0 and velocity < _LocalUVBustSpeed and not scope.EnemyEscaping and (scope.InPursuit or scope.IsBeingPulledOver) and
-	(closestdistancetounit < 250000 or closestunit.CloseToTarget) then
+	(closestdistancetounit < mindistance or closestunit.CloseToTarget) then
 		if not enemy.UVHUDBusting and not enemy.UVHUDBustingDelayed then
 			enemy.UVHUDBusting = true
 			enemy.UVHUDBustingDelayed = true
@@ -4075,8 +4078,8 @@ function UVCheckIfBeingBusted(enemy)
 		net.Broadcast()
 	end
 	
-	if UVCheckIfWrecked(enemy) or not enemy.uvbusted and enemy:WaterLevel() > 2 or IsValid(UVGetDriver(enemy)) and UVGetDriver(enemy):Health() <= 0 then --Bust conditions.
-		UVBustEnemy(enemy, enemy)
+	if UVCheckIfWrecked(enemy) or IsValid(UVGetDriver(enemy)) and UVGetDriver(enemy):Health() <= 0 then --Bust conditions.
+		UVBustEnemy(closestunit.UnitVehicle or enemy, enemy)
 	end
 	
 end
@@ -4087,18 +4090,18 @@ function UVCheckIfWrecked(enemy)
 	if enemy.IsScar then
 		return enemy:IsDestroyed()
 	elseif enemy.IsSimfphyscar then
-		return enemy:GetCurHealth() <= 0 or enemy:OnFire() or enemy.destroyed or enemy:WaterLevel() > 2
+		return enemy:GetCurHealth() <= 0 or enemy:OnFire() or enemy.destroyed
 	elseif enemy.IsGlideVehicle then
 		return enemy:GetEngineHealth() <= 0 or enemy:GetIsEngineOnFire()
 	elseif enemy.LVS then
 		local vehEngine = enemy:GetEngine()
-		return (enemy:GetHP() <= 0 or enemy.ExplodedAlready) or (vehEngine and (vehEngine:GetHP() <= 0 or vehEngine:GetDestroyed())) or enemy:WaterLevel() > 2
+		return (enemy:GetHP() <= 0 or enemy.ExplodedAlready) or (vehEngine and (vehEngine:GetHP() <= 0 or vehEngine:GetDestroyed()))
 	elseif vcmod_main and isfunction(enemy.VC_GetHealth) then
 		local health = enemy:VC_GetHealth(false)
-		return (isnumber(health) and health <= 0) or enemy:WaterLevel() > 2
+		return (isnumber(health) and health <= 0)
 	elseif enemy:GetClass() == "prop_vehicle_jeep" then
 		local health = enemy:Health()
-		return health < 0 or enemy:WaterLevel() > 2 --Unless set, health is 0
+		return health < 0 --Unless set, health is 0
 	end
 end
 
@@ -4287,13 +4290,11 @@ function UVUnitIsWrecked(vehicle)
 	local isFlipCrashAllowed = not isCommander and not vehicle.RacerVehicle and CanWreck:GetBool()
 	local isFlipCrash = isFlipCrashAllowed and isFlipped and (( vehicle.rammed ) or ( vehicleVelSqr < 10000 and ( vehicle.UnitVehicle and vehicle.UnitVehicle.stuck )))
 
-	local isUnderwater = vehicle:WaterLevel() > 2
 	local isOnFire = vehicle:IsOnFire()
 	local isOtherPlayerWrecked = UVUnitShouldBeWrecked(vehicle)
 
 	local wrecked = isJeepNoHealth
 		or isFlipCrash
-		or isUnderwater
 		or isOnFire
 		or isOtherPlayerWrecked
 

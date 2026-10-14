@@ -1757,7 +1757,7 @@ if SERVER then
 				if CurTime() > self.moving + timeout then --If it has got stuck for enough time.
 					self.stuck = true
 					self.moving = CurTime()
-					if self.toofar then
+					if self.toofar and self.uvmarkedfordeletion then
 						UVOptimizeRespawn(self.v)
 						self.stuck = nil
 					end

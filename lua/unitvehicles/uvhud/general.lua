@@ -593,7 +593,10 @@ local function DetectionCode()
 	for _, unit in pairs(UnitTable) do
 		if IsValid(unit) then
 	    	local meter = unit:GetNWFloat("UVDetectionMeter", 0)
-	    	if meter <= 0 then continue end
+			local dist = unit:GetPos():DistToSqr(plyPos)
+			local toofar = unit:GetClass() == "uvair" and dist > 100000000 or dist > 25000000
+
+	    	if meter <= 0 or toofar then continue end
 
 	    	local dirToUnit = (unit:WorldSpaceCenter() - plyPos):GetNormalized()
 	    	local forwardDot = plyForward:Dot(dirToUnit)

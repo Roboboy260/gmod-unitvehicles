@@ -1109,7 +1109,7 @@ if SERVER then
 					if Chatter:GetBool() and not (eScope and eScope.EnemyEscaping) and not (eScope and eScope.EnemyBusted) then
 						UVChatterLeftPursuit(self) 
 					end
-				elseif not self.v.roadblocking then
+				else
 					UVOptimizeRespawn(self.v)
 				end
 			end
@@ -1829,7 +1829,7 @@ if SERVER then
 				if CurTime() > self.moving + timeout then --If it has got stuck for enough time.
 					self.stuck = true
 					self.moving = CurTime()
-					if self.toofar then
+					if self.toofar and self.uvmarkedfordeletion then
 						UVOptimizeRespawn(self.v)
 						self.stuck = nil
 					end

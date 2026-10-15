@@ -1061,7 +1061,7 @@ if SERVER then
         UVDeactivateGhost(vehicle)
 
         -- glide > simfphys > lvs
-        local wheels = vehicle.wheels or vehicle.Wheels or car:GetWheels() or {}
+        local wheels = vehicle.wheels or vehicle.Wheels or (isfunction(vehicle.GetWheels) and vehicle:GetWheels()) or {}
         
         vehicle:SetCollisionGroup(20)
         vehicle.__ogrendermode = vehicle:GetRenderMode()
@@ -2208,9 +2208,9 @@ if SERVER then
 
                 ReportPTEvent( car, closestsuspect, weapon, 'Locking' )
 
-                if car.UnitVehicle then
+                if not skyhammer and car.UnitVehicle then
                     UVChatterKillswitchStart(car.UnitVehicle)
-                elseif skyhammer then
+                else
                     UVChatterSkyhammerStart(car)
                 end
 
@@ -2280,9 +2280,9 @@ if SERVER then
                                 end
                             end)
                             car.uvkillswitchingtarget = nil
-                            if car.UnitVehicle then
+                            if car:GetClass() ~= "uvair" and car.UnitVehicle then
                                 UVChatterKillswitchHit(car.UnitVehicle)
-                            elseif car:GetClass() == "uvair" then
+                            else
                                 UVChatterSkyhammerHit(car)
                             end
                         end
@@ -2382,9 +2382,9 @@ if SERVER then
         -- end)
 
         -- car.uvkillswitchingtarget = nil
-        if car.UnitVehicle then
+        if car:GetClass() ~= "uvair" and car.UnitVehicle then
             UVChatterKillswitchMissed(car.UnitVehicle)
-        elseif car:GetClass() == "uvair" then
+        else
             UVChatterSkyhammerMissed(car)
         end
 

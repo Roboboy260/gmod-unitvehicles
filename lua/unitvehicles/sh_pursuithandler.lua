@@ -3131,8 +3131,10 @@ if SERVER then
 						local airUnits = ents.FindByClass("uvair")
 						table.Merge(units, airUnits)
 
-						local randomUnit = units[math.random(1, #units)]
-						UVChatterStuntJump(randomUnit)
+						if next(units) ~= nil then
+							local randomUnit = units[math.random(1, #units)]
+							UVChatterStuntJump(randomUnit)
+						end
 					end
 				end
 			end
@@ -3152,8 +3154,10 @@ if SERVER then
 						local airUnits = ents.FindByClass("uvair")
 						table.Merge(units, airUnits)
 
-						local randomUnit = units[math.random(1, #units)]
-						UVChatterStuntRoll(randomUnit)
+						if next(units) ~= nil then
+							local randomUnit = units[math.random(1, #units)]
+							UVChatterStuntRoll(randomUnit)
+						end
 					end
 				end
 			end
@@ -3173,8 +3177,10 @@ if SERVER then
 						local airUnits = ents.FindByClass("uvair")
 						table.Merge(units, airUnits)
 
-						local randomUnit = units[math.random(1, #units)]
-						UVChatterStuntSpin(randomUnit)
+						if next(units) ~= nil then
+							local randomUnit = units[math.random(1, #units)]
+							UVChatterStuntSpin(randomUnit)
+						end
 					end
 				end
 			end

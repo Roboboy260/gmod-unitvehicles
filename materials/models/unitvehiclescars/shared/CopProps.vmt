@@ -3,6 +3,7 @@
 	"$basetexture" "models\unitvehiclescars\shared\CopProps"
 	
 
+	"$bumpmap" "models\unitvehiclescars\shared\CopProps_n.vtf"
 	"$envmap" "env_cubemap"
 	"$envmaptint" "[0.2 0.2 0.2]"
 	"$envmapfresnel" "1"

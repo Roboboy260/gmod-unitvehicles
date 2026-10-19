@@ -1,0 +1,15 @@
+VertexLitGeneric
+{
+	$basetexture		"models\unitvehiclescars\uv_r35nismo\bottomcar.vtf"
+
+	$color2				"[1 1 1]"
+
+	Proxies
+	{
+		Equals
+		{
+			srcVar1		$color2
+			resultVar	$color
+		}
+	}
+}

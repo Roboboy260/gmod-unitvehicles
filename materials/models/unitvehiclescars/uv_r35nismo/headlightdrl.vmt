@@ -1,0 +1,20 @@
+VertexLitGeneric
+{
+	$basetexture		"models\unitvehiclescars\uv_r35nismo\misc.vtf"
+
+	$nocull 1
+
+	$color2				"[1 1 1]"
+	$envmap				env_cubemap
+	$envmapsaturation	0.5
+	$envmaptint 		"[.2 .2 .2]"
+
+	Proxies
+	{
+		Equals
+		{
+			srcVar1		$color2
+			resultVar	$color
+		}
+	}
+}

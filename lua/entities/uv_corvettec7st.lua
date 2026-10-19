@@ -157,8 +157,8 @@ if CLIENT then
         { ifBodygroupId = 15, ifSubModelId = 0, offset = Vector(-49.15,-3.67,43.2), time = 0.5, duration = 0.5, size = 50, color = Color(0,115,255) },
         { ifBodygroupId = 15, ifSubModelId = 0, offset = Vector(4.18,9.67,43.15), dir = Vector( 1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0.5, duration = 0.5, size = 180, color = Color(0,115,255) },
         { ifBodygroupId = 15, ifSubModelId = 0, offset = Vector(4.18,-9.67,43.15), dir = Vector( 1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0.5, duration = 0.5, size = 180, color = Color(0,115,255) },
-        { ifBodygroupId = 15, ifSubModelId = 0, offset = Vector(-49.15,3.67,43.15), dir = Vector( -1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0.5, duration = 0.5, size = 180, color = Color(0,115,255) },
-        { ifBodygroupId = 15, ifSubModelId = 0, offset = Vector(-49.15,-3.67,43.15), dir = Vector( -1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0.5, duration = 0.5, size = 180, color = Color(0,115,255) },
+        { ifBodygroupId = 15, ifSubModelId = 0, offset = Vector(-49.15,3.67,43.2), dir = Vector( -1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0.5, duration = 0.5, size = 180, color = Color(0,115,255) },
+        { ifBodygroupId = 15, ifSubModelId = 0, offset = Vector(-49.15,-3.67,43.2), dir = Vector( -1, 0, 0 ), spriteMaterial = Material( "models/unitvehiclescars/shared/policesprite" ), time = 0.5, duration = 0.5, size = 180, color = Color(0,115,255) },
 
     }
     
@@ -315,12 +315,13 @@ if SERVER then
     }
 
     ENT.ExplosionDamagedSubMaterials = {
-        [5] = "models/unitvehiclescars/uv_corvettec7/skin_0dam",
         [2] = "models/unitvehiclescars/shared/windowdamage1",
         [16] = "models/unitvehiclescars/shared/windowdamage1",
         [3] = "models/unitvehiclescars/shared/windowdamage1",
         [4] = "models/unitvehiclescars/shared/windowdamage1",
     }
+
+    ENT.ExplosionDamagedSkin = 1
     
     function ENT:InitializePhysics()
         self:SetSolid( SOLID_VPHYSICS )
@@ -540,7 +541,7 @@ if SERVER then
         local enginehealth = self:GetEngineHealth()
 
         if enginehealth < .5 then --BASE
-            self:SetSubMaterial(5, "models/unitvehiclescars/uv_corvettec7/skin_0dam")
+            self:SetSkin(1)
         end
 
         if self:GetBodygroup( 12 ) != 1 then --LIGHT BAR
@@ -662,7 +663,7 @@ if SERVER then
                 self.rightdamaged = 2
             elseif self.rightdamaged < 3 then
                 self:SetBodygroup( 6, 3 )
-                self:SetSubMaterial(3, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(4, "models/unitvehiclescars/shared/windowdamage1")
                 local gibmodels = {
                     "models/unitvehiclescars/uv_corvettec7/doorright.mdl",
                 }

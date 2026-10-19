@@ -1,0 +1,19 @@
+VertexLitGeneric
+{
+	$basetexture		"models\unitvehiclescars\uv_r35nismo\tire.vtf"
+
+	$color2				"[1 1 1]"
+	$bumpmap			"models\unitvehiclescars\uv_r35nismo\tire_n.vtf"
+	$envmap				env_cubemap
+	$envmapsaturation	0
+	$envmaptint 		"[.15 .15 .15]"
+
+	Proxies
+	{
+		Equals
+		{
+			srcVar1		$color2
+			resultVar	$color
+		}
+	}
+}

@@ -322,12 +322,13 @@ if SERVER then
     }
 
     ENT.ExplosionDamagedSubMaterials = {
-        [27] = "models/unitvehiclescars/shared/skin_1dam",
         [12] = "models/unitvehiclescars/shared/windowdamage1",
         [11] = "models/unitvehiclescars/shared/windowdamage1",
         [22] = "models/unitvehiclescars/shared/windowdamage1",
         [23] = "models/unitvehiclescars/shared/windowdamage1",
     }
+
+    ENT.ExplosionDamagedSkin = 3
 
     function ENT:InitializePhysics()
         self:SetSolid( SOLID_VPHYSICS )
@@ -462,7 +463,7 @@ if SERVER then
         self:SetBodygroup( 6, 0 )
         self:SetBodygroup( 9, 1 )
         self:SetBodygroup( 12, 0 )
-        self:SetSkin(1)
+        self:SetSkin(2)
 
         self.frontdamaged = 0
         self.reardamaged = 0
@@ -534,7 +535,7 @@ if SERVER then
         local enginehealth = self:GetEngineHealth()
 
         if enginehealth < .5 then --BASE
-            self:SetSubMaterial(8, "models/unitvehiclescars/uv_fordcrownvic/skin_0dam")
+            self:SetSkin(3)
         end
 
         if self:GetBodygroup( 9 ) != 1 then --LIGHT BAR

@@ -169,10 +169,13 @@ if CLIENT then
     
     local Lights = {
         ['Off'] = {
+            [24] = "",
             [20] = "",
             [19] = "",
         },
-        ['On'] = {},
+        ['On'] = {
+            [24] = lightsPath .. "lit2",
+        },
         ['Brake'] = {
             [20] = lightsPath .. "brakelightlit",
             [19] = lightsPath .. "brakelightlit",
@@ -313,12 +316,13 @@ if SERVER then
     }
 
     ENT.ExplosionDamagedSubMaterials = {
-        [5] = "models/unitvehiclescars/uv_corvettec7/skin_0dam",
         [2] = "models/unitvehiclescars/shared/windowdamage1",
         [16] = "models/unitvehiclescars/shared/windowdamage1",
         [3] = "models/unitvehiclescars/shared/windowdamage1",
         [4] = "models/unitvehiclescars/shared/windowdamage1",
     }
+
+    ENT.ExplosionDamagedSkin = 1
     
     function ENT:InitializePhysics()
         self:SetSolid( SOLID_VPHYSICS )
@@ -466,6 +470,7 @@ if SERVER then
         self:SetBodygroup( 8, 0 )
         self:SetBodygroup( 12, 0 )
         self:SetBodygroup( 15, 1 )
+        self:SetSkin(0)
 
         self.frontdamaged = 0
         self.reardamaged = 0
@@ -537,7 +542,7 @@ if SERVER then
         local enginehealth = self:GetEngineHealth()
 
         if enginehealth < .5 then --BASE
-            self:SetSubMaterial(5, "models/unitvehiclescars/uv_corvettec7/skin_0dam")
+            self:SetSkin(1)
         end
 
         if self:GetBodygroup( 12 ) != 1 then --LIGHT BAR
@@ -659,7 +664,7 @@ if SERVER then
                 self.rightdamaged = 2
             elseif self.rightdamaged < 3 then
                 self:SetBodygroup( 6, 3 )
-                self:SetSubMaterial(3, "models/unitvehiclescars/shared/windowdamage1")
+                self:SetSubMaterial(4, "models/unitvehiclescars/shared/windowdamage1")
                 local gibmodels = {
                     "models/unitvehiclescars/uv_corvettec7/doorright.mdl",
                 }

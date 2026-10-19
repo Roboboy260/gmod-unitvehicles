@@ -203,12 +203,13 @@ if SERVER then
     }
 
     ENT.ExplosionDamagedSubMaterials = {
-        [4] = "models/unitvehiclescars/uv_rhinotruck/skin_0dam",
         [13] = "models/unitvehiclescars/shared/windowdamage1",
         [10] = "models/unitvehiclescars/shared/windowdamage1",
         [11] = "models/unitvehiclescars/shared/windowdamage1",
         [12] = "models/unitvehiclescars/shared/windowdamage1",
     }
+
+    ENT.ExplosionDamagedSkin = 1
 
     ENT.SpawnPositionOffset = Vector( 0, 0, 30 )
     ENT.ChassisMass = 1600
@@ -328,6 +329,7 @@ if SERVER then
         self:SetBodygroup( 3, 0 )
         self:SetBodygroup( 4, 0 )
         self:SetBodygroup( 8, 0 )
+        self:SetSkin(0)
 
         self.frontdamaged = 0
         self.reardamaged = 0
@@ -399,7 +401,7 @@ if SERVER then
         local enginehealth = self:GetEngineHealth()
 
         if enginehealth < .5 then --BASE
-            self:SetSubMaterial(4, "models/unitvehiclescars/uv_rhinotruck/skin_0dam")
+            self:SetSkin(1)
         end
 
         if self:GetBodygroup( 8 ) != 1 then --LIGHT BAR

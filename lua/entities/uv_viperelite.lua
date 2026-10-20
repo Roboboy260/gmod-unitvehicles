@@ -454,32 +454,35 @@ if SERVER then
         self.rightdamaged = self.rightdamaged or 0
 
         local enginehealth = self:GetEngineHealth()
+        local function CanDamage(state)
+            return enginehealth <= (1 / state)
+        end
 
         if enginehealth < .5 then --BASE
             self:SetSubMaterial(22, "models/unitvehiclescars/uv_viperelite/carskin_skin1_dmg")
         end
 
         if fronthit then --FRONT
-            if self.frontdamaged < 1 then
+            if self.frontdamaged < 1 and CanDamage(1) then
                 self:SetBodygroup( 1, 1 )
                 self:SetBodygroup( 2, 1 )
                 self.frontdamaged = 1
-            elseif self.frontdamaged < 2 then
+            elseif self.frontdamaged < 2 and CanDamage(2) then
                 self:SetSubMaterial(9, "models/unitvehiclescars/shared/windowdamage")
                 self.frontdamaged = 2
-            elseif self.frontdamaged < 3 then
+            elseif self.frontdamaged < 3 and CanDamage(3) then
                 self:SetSubMaterial(9, "models/unitvehiclescars/shared/windowdamage1")
                 self.frontdamaged = 3
 			end
         end
 
         if rearhit then --REAR
-            if self.reardamaged < 1 then
+            if self.reardamaged < 1 and CanDamage(1) then
                 self:SetBodygroup( 5, 1 )
                 self:SetBodygroup( 6, 1 )
                 self:SetSubMaterial(18, "models/unitvehiclescars/shared/windowdamage")
                 self.reardamaged = 1
-            elseif self.reardamaged < 2 then
+            elseif self.reardamaged < 2 and CanDamage(2) then
                 self:SetBodygroup( 5, 1 )
                 self:SetBodygroup( 6, 1 )
                 self:SetSubMaterial(18, "models/unitvehiclescars/shared/windowdamage1")
@@ -488,13 +491,13 @@ if SERVER then
         end
 
         if lefthit then --LEFT
-            if self.leftdamaged < 1 then
+            if self.leftdamaged < 1 and CanDamage(1) then
                 self:SetBodygroup( 0, 1 )
                 self:SetBodygroup( 3, 1 )
                 self:SetBodygroup( 7, 1 )
                 self:SetSubMaterial(7, "models/unitvehiclescars/shared/windowdamage")
                 self.leftdamaged = 1
-            elseif self.leftdamaged < 2 then
+            elseif self.leftdamaged < 2 and CanDamage(2) then
                 self:SetBodygroup( 0, 1 )
                 self:SetBodygroup( 3, 1 )
                 self:SetBodygroup( 7, 1 )
@@ -504,13 +507,13 @@ if SERVER then
         end
 
         if righthit then --RIGHT
-            if self.rightdamaged < 1 then
+            if self.rightdamaged < 1 and CanDamage(1) then
                 self:SetBodygroup( 0, 1 )
                 self:SetBodygroup( 4, 1 )
                 self:SetBodygroup( 7, 1 )
                 self:SetSubMaterial(8, "models/unitvehiclescars/shared/windowdamage")
                 self.rightdamaged = 1
-            elseif self.rightdamaged < 2 then
+            elseif self.rightdamaged < 2 and CanDamage(2) then
                 self:SetBodygroup( 0, 1 )
                 self:SetBodygroup( 4, 1 )
                 self:SetBodygroup( 7, 1 )

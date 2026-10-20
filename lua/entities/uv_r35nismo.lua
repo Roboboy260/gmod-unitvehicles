@@ -431,32 +431,32 @@ if SERVER then
         self:CreateSeat( Vector(-20,17,5.5), Angle( 0.000000, -90.000000, 2.000000 ), Vector( 0.000000,  80.000000, 10.000000 ), true )
         self:CreateSeat( Vector(-7,-17,8.5), Angle( 0.000000, -90.000000, 15.000000 ), Vector( 0.000000, -80.000000, 10.000000 ), true )
 
-        self:SetSuspensionLength( 8 )
+        self:SetSuspensionLength( 9 )
         self:SetSpringStrength( 800 )
-        self:SetSpringDamper( 3000 )
+        self:SetSpringDamper( 2000 )
 
-        self:SetDifferentialRatio( 1 )
-        self:SetTransmissionEfficiency( 1 )
+        self:SetDifferentialRatio( 0.90 )
+        self:SetTransmissionEfficiency( 0.80 )
         self:SetPowerDistribution( -0.25 )
-        self:SetBrakePower( 4800 )
-
+        self:SetBrakePower( 4000 )
+        
         self:SetMinRPM( 2000 ) 
         self:SetMaxRPM( 25000 ) 
         self:SetMinRPMTorque( 10800 )
         self:SetMaxRPMTorque( 9300 )
-
+        
         self:SetMaxSteerAngle( 45 )
         self:SetSteerConeChangeRate( 8 )
         self:SetSteerConeMaxSpeed( 1500 )
         self:SetSteerConeMaxAngle( 0.25 )
 		self:SetCounterSteer ( 0.8 )
-
-        self:SetForwardTractionMax( 10000 )
-        self:SetForwardTractionBias( 0.45 )
-        self:SetSideTractionMultiplier( 77 )
-        self:SetSideTractionMaxAng( 67 )
-        self:SetSideTractionMax( 6000 ) 
-        self:SetSideTractionMin( 3250 )
+        
+        self:SetForwardTractionMax( 9000 )
+        self:SetForwardTractionBias( 0 )
+        self:SetSideTractionMultiplier( 40 )
+        self:SetSideTractionMaxAng( 30 )
+        self:SetSideTractionMax( 7000 ) 
+        self:SetSideTractionMin( 2750 )
 
 		self:SetTurboCharged( true )
 		self:SetFastTransmission( true ) 

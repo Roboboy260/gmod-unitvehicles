@@ -608,10 +608,10 @@ if SERVER then
 
         local vehicle_class = vehicle:GetClass()
         
-        -- if vehicle_class == "gmod_sent_vehicle_fphysics_base" then
-        --     SafeRemoveEntity(NPC) --yeahhh
-        --     return
-        -- end
+        if rhino then
+            SafeRemoveEntity(NPC) --yeahhh
+            return
+        end
 
         NPC.uvmarkedfordeletion = nil
         timer.Simple(1, function()
@@ -705,13 +705,9 @@ if SERVER then
 	    end
     
 	    if UVTargeting then
-	    	if not rhino then
-	    		local mathangle = math.random(1,2)
-	    		if mathangle == 2 then
-	    			uvspawnpointangles = uvspawnpointangles+Angle(0,180,0)
-	    		end
-	    	else
-	    		uvspawnpointangles = suspectvelocity:Angle() + Angle(0,180,0)
+	    	local mathangle = math.random(1,2)
+	    	if mathangle == 2 then
+	    		uvspawnpointangles = uvspawnpointangles+Angle(0,180,0)
 	    	end
 	    end
 

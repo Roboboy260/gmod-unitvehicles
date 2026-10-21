@@ -3313,7 +3313,7 @@ else -- CLIENT stuff
 	hook.Add("HUDPaint", "UVRace_DisplayTrackInfo", function()
 		if not IsValid(LocalPlayer()) then return end -- Am I invalid? Tough shit
 		if not UVRace_CurrentTrackName then return end -- No track
-		if not UVRace_RacerList then return false end -- No invite, no accepted invite, not host
+		if not UVRace_RacerList then return end -- No invite, no accepted invite, not host
 		if UVRaceStarting then return end -- Race is starting; hide it
 
 		local function ShouldShowRacerHUD()

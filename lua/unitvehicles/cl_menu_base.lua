@@ -5369,14 +5369,20 @@ function UVMenu:Open(menu)
 				)
 
 				if tab.Icon and tab.ShowIcon then
-					local mat = Material(tab.Icon, "smooth")
-					local iconSize = tab.IconSize or UV.ScaleW(40)
-					local iconY = (h - iconSize) / 2
+				    local mat = Material(tab.Icon, "smooth")
 
-					surface.SetDrawColor(255, 255, 255, self:GetAlpha())
-					surface.SetMaterial(mat)
-					surface.DrawTexturedRect(0, iconY, iconSize, iconSize)
-					surface.DrawTexturedRect(w - iconSize, iconY, iconSize, iconSize)
+				    if not mat or mat:IsError() then
+						print("[UVMenu] Error loading icon for tab " .. tostring(tabIndex) .. ": " .. tostring(tab.Icon))
+				        mat = Material("unitvehicles/icons_settings/pnotes/pnotesplaceholder.png", "smooth")
+				    end
+				
+				    local iconSize = tab.IconSize or UV.ScaleW(40)
+				    local iconY = (h - iconSize) / 2
+				
+				    surface.SetDrawColor(255, 255, 255, self:GetAlpha())
+				    surface.SetMaterial(mat)
+				    surface.DrawTexturedRect(0, iconY, iconSize, iconSize)
+				    surface.DrawTexturedRect(w - iconSize, iconY, iconSize, iconSize)
 				end
 			end
 		end
@@ -5643,6 +5649,12 @@ function UVMenu:Open(menu)
 
                 if tab.Icon then
                     local mat = Material(tab.Icon, "smooth")
+
+					if not mat or mat:IsError() then
+						print("[UVMenu] Error loading icon for tab " .. tostring(i) .. ": " .. tostring(tab.Icon))
+				        mat = Material("unitvehicles/icons_settings/pnotes/pnotesplaceholder.png", "smooth")
+				    end
+
                     local iconSize = UV.ScaleW(40)
                     local iconX = TAB_SIDE_PADDING + 2
                     local iconY = (h - iconSize) / 2

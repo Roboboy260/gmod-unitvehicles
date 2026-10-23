@@ -1,6 +1,6 @@
 VertexLitGeneric
 {
-	$basetexture		"models\unitvehiclescars\uv_r35nismo\bottomcar.vtf"
+	$basetexture		"models\unitvehiclescars\uv_r35nismo\misc.vtf"
 
 	$color2				"[1 1 1]"
 

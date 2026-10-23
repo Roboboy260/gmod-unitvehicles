@@ -174,10 +174,13 @@ if CLIENT then
     
     local Lights = {
         ['Off'] = {
+            [24] = "",
             [20] = "",
             [19] = "",
         },
-        ['On'] = {},
+        ['On'] = {
+            [24] = lightsPath .. "lit2",
+        },
         ['Brake'] = {
             [20] = lightsPath .. "brakelightlit",
             [19] = lightsPath .. "brakelightlit",

@@ -4952,18 +4952,6 @@ else -- CLIENT Settings | HUD/Options
 			UVHUDDisplayPursuit = nil
 		end
 
-		if UVActionCam then			
-			if UVPlayingRace then return end
-
-			UVStopSound()
-			if UVSoundLoop then
-				UVSoundLoop:Stop()
-				UVSoundLoop = nil
-			end
-
-			return
-		end
-
 		if not UVBustedState then
 			if UVHUDDisplayPursuit then
 				if not PlayMusic:GetBool() and not UVPlayingRace then 

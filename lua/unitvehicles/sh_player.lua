@@ -1095,7 +1095,7 @@ if SERVER then
         -- Penalties for 3s
         local scope = UVGetScope(vehicle)
 
-		if scope and not scope.EnemyEscaping and (scope.InPursuit or scope.IsBeingPulledOver) then
+		if not vehicle.aicontrolled and scope and not scope.EnemyEscaping and (scope.InPursuit or scope.IsBeingPulledOver) then
 			vehicle.UVBustingPenaltyMult = 5
 		end
 

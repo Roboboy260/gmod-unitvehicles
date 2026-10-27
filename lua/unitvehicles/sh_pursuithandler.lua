@@ -2647,6 +2647,40 @@ if SERVER then
 
 	--Think
 	hook.Add("Think", "UVServerThink", function()
+		for _, ply in pairs(UVPlayersInActionCam) do
+			if not IsValid(ply) then
+				table.RemoveByValue(UVPlayersInActionCam, ply)
+				continue
+			end
+
+			if ply.ActionCam and RealTime() >= ply.ActionCamTime then
+				table.RemoveByValue(UVPlayersInActionCam, ply)
+
+				ply.ActionCamAIControl = nil
+
+				local vehicle = UVGetVehicle(ply)
+				if IsValid(vehicle) then
+					vehicle.aicontrolled = nil
+
+					if not vehicle.ghoston and vehicle:GetCollisionGroup() == 20 then
+						vehicle:SetCollisionGroup(0)
+					end
+
+					if vehicle.RacerVehicle then
+						vehicle.RacerVehicle:Remove()
+					end
+				end
+
+				net.Start("UVActionCamStop")
+				net.Send(ply)
+
+				ply.ActionCam = nil
+
+				game.SetTimeScale(1.0)
+				CF_CanSetTimeScale = true
+			end
+		end
+
 		UVScopeThink()
 
 		--One Commander Active
@@ -3301,41 +3335,6 @@ if SERVER then
 					net.WriteString( v.racer )
 					net.Broadcast()
 				end
-			end
-		end
-
-		--Players in Action Cam
-		for _, ply in pairs(UVPlayersInActionCam) do
-			if not IsValid(ply) then 
-				table.RemoveByValue(UVPlayersInActionCam, ply)
-				continue 
-			end
-
-			if ply.ActionCam and RealTime() >= ply.ActionCamTime then
-				table.RemoveByValue(UVPlayersInActionCam, ply)
-
-				ply.ActionCamAIControl = nil
-
-				local vehicle = UVGetVehicle(ply)
-				if IsValid(vehicle) then
-					vehicle.aicontrolled = nil
-
-					if not vehicle.ghoston and vehicle:GetCollisionGroup() == 20 then
-						vehicle:SetCollisionGroup(0)
-					end
-	
-					if vehicle.RacerVehicle then
-						vehicle.RacerVehicle:Remove()
-					end
-				end
-
-				net.Start("UVActionCamStop")
-				net.Send(ply)
-
-				ply.ActionCam = nil
-
-				game.SetTimeScale(1.0)
-				CF_CanSetTimeScale = true
 			end
 		end
 

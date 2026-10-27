@@ -1173,19 +1173,19 @@ if SERVER then
 		elseif randomChance == 3 then
 			timeCheck = UVSoundChatter(self, self.voice, "heat" .. heat, 4, "DISPATCH")
 		else
-			timeCheck = UVSoundChatter(self, self.voice, "heat" .. heat, 8)
+			timeCheck = UVSoundChatter(self, self.voice, "heat" .. heat)
 		end
 		
 			if next(ents.FindByClass("npc_uv*")) ~= nil and not UVEnemyBusted then
 				local units = ents.FindByClass("npc_uv*")
 				local random_entry = math.random(#units)	
 				local unit = units[random_entry]
-				local timeCheck = 5
+				local timeCheck = UVSoundChatter(self, self.voice, "heat" .. heat .. "takeover", 4, "DISPATCH")
 				local randomno = math.random(1,2)
 				if randomno == 1 then
-					timeCheck = UVSoundChatter(self, self.voice, "heat" .. heat .. "acknowledge", 1)
+					timeCheck = UVSoundChatter(self, self.voice, "heat" .. heat .. "acknowledge")
 				elseif next(ents.FindByClass("npc_uvspecial")) ~= nil then
-					timeCheck = UVSoundChatter(self, self.voice, "heat" .. heat .. "argue", 1)
+					timeCheck = UVSoundChatter(self, self.voice, "heat" .. heat .. "argue")
 					if next(ents.FindByClass("npc_uv*")) ~= nil and not UVEnemyBusted then
 						local units = ents.FindByClass("npc_uv*")
 						local random_entry = math.random(#units)	

@@ -8,6 +8,73 @@ UV = UV or {}
 -- },
 
 UV.PNotes = {
+["1.9.0"] = {
+Date = { year = 2026, month = 11, day = 5 },
+Type = "Minor",
+Text = [[
+Update 1.9.0 is here!
+
+**New Features**
+- UVPD: Added new stuff for the department:
+      |-- Nissan GT-R NISMO Command Interceptor '17
+      |-- <color=255,255,100>Slicktop</color> and <color=255,255,100>Unmarked</color> Variants for:
+            |-- Ford Crown Victoria Police Interceptor '10
+            |-- Ford Police Interceptor Utility '11
+            |-- Dodge Charger SRT8 Super Bee (LX) '07
+            |-- Chevrolet Corvette Stingray '17
+            |-- Chevrolet Colorado ZR2 '17
+      |-- Voice profiles:
+            |-- swat1
+            |-- swat2
+            |-- fed1
+            |-- fed2
+            |-- commander1
+      |-- New damage system for all vehicles, now with more detachable gibs
+- Ramming/using PT against Racer AI will now make them hate you and will use PT against you
+- Added <color=255,255,100>Need for Speed: High Stakes</color> helicopter model and UI Sounds
+- Added back subtitles
+- Added <color=255,255,100>Visual Detection</color> logic
+      |-- Units will take time to recognize you on sight
+      |-- Use stealth to avoid them, hide or use <color=255,255,100>Jammer Pursuit Tech</color> to increase their detection time
+      |-- Comes with <color=255,255,100>Display Visual Detection</color> option, enabled by default
+- Added model and grid slot preview placement for <color=255,255,100>Creator: Roadblocks</color> tool and <color=255,255,100>Creator: Races</color> tool respectively
+- Added race preview layout when selecting races
+- Added undercover flag when creating new Units
+- <color=255,255,100>Pursuit Tech</color> tool: Added option to apply upgraded Pursuit Tech for each slot, updated visual display for it
+- Added individual vehicle chances when assigning Units via <color=255,255,100>Heat Level Manager</color>
+- Added search bar for all data lists
+- Added custom Pursuit Tech slot override when creating units and racers <color=0,255,0>(existing data will not be affected)</color>
+- Added vehicle blinking effect when resetting
+
+**Changes**
+- Revamped <color=255,255,100>Default</color> preset:
+      |-- Make use of new UVPD vehicles
+      |-- Expand until Heat 6
+      |-- Resorted voice profiles
+      |-- Subscribe to <color=255,255,100>[Unit Vehicles] Default Voice Pack Extended</color> to use unused/extra voice profiles
+- Made racers be able to use Jammer once again
+- AI use of pursuit tech is randomly delayed, giving you a chance to dodge it
+- Tweaked Call Response logic
+- Improved AI logic controlling your vehicle during Action Cam
+- Improved chatter logic
+- Spike(s) are dropped at a reduced speed when using Spikes strip Pursuit Tech
+- Units and Racers will no longer instantly get wrecked/busted/disqualified when underwater
+- Tweaked penalty logic when resetting as a Racer during pursuits
+
+**Fixes**
+- Fixed UVPD Dispatcher lines being too loud
+- Fixed the issue where you cant use Pursuit Tech while in Action Cam
+- Fixed time formatting
+- Fixed some Pursuit Tech SFX being too quiet
+- Fixed your own Spikes Strip getting removed by your own Jammer
+- Fixed Commander Repairing logic:
+      |-- Commander can now be given Repair Kit Pursuit Tech, but will only repair blown tires if 'Can Commander Repair?' option is turned off
+- Fixed Roadblock Units respawning way too soon
+
+/// RACE /// CHASE /// ESCAPE ///
+]],
+},
+
 ["1.8.0"] = {
 Date = { year = 2026, month = 8, day = 8 },
 Type = "Minor",

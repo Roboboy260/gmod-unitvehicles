@@ -112,6 +112,10 @@ if SERVER then
 			if (self.uvscripted and not self.wrecked) then
 				SafeRemoveEntity(self.v)
 			end
+
+			if not self.wrecked and self.v.DriverModel and IsValid(self.v.DriverModel) then 
+				self.v.DriverModel:Remove() 
+			end
 			
 		end
 		
@@ -853,8 +857,24 @@ if SERVER then
 
 		self.v.racer = "Traffic"
 
-		if isfunction(self.v.UVVehicleInitialize) then --For vehicles that has a driver bodygroup
-			self.v:UVVehicleInitialize()
+		if DriverModel:GetBool() then
+			local selectedDriverModel = GetConVar("unitvehicle_traffic_drivermodel"):GetString()
+			local splittedText = string.Explode( " ", selectedDriverModel )
+
+			local ya = {}
+
+			for k, v in pairs( splittedText ) do
+				table.insert( ya, string.Trim( v ) )
+			end
+
+			self._cooldownString = "NavigateCooldown_Entity"..self:EntIndex()
+			self.drivermodel = ya[math.random(1, #ya)]
+
+			self:AttachDriverModel(self.drivermodel)
+		else
+			if isfunction(self.v.UVVehicleInitialize) then
+				self.v:UVVehicleInitialize() --For vehicles that has a driver bodygroup
+			end
 		end
 
 		local deletiontime = 1

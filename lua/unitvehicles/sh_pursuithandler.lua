@@ -2001,7 +2001,6 @@ if SERVER then
 		UVResetStats()
 		UVHeatZone = false
 		UVCallLocation = nil
-		uvcallexists = nil
 		UVHiding = nil
 		UVCommanders = {}
 		UVWantedTableDriver = {}

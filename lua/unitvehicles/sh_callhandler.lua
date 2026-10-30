@@ -85,12 +85,8 @@ if SERVER then
             UVCheckForSpeeders()
             UVTimeToCheckForPotentialSuspects = CurTime()
         end
-
-        if UVTargeting then 
-            uvcallexists = false
-        end
         
-        if GetConVar("ai_ignoreplayers"):GetBool() or not GetConVar("unitvehicle_callresponse"):GetBool() or UVTargeting or uvcallexists then
+        if GetConVar("ai_ignoreplayers"):GetBool() or not GetConVar("unitvehicle_callresponse"):GetBool() or UVTargeting or UVHeatZone then
             if UVCallLocation and UVTargeting then --Remove the call, allow for new calls to come in
                 UVCallLocation = nil
             end
@@ -194,15 +190,13 @@ if SERVER then
     }
     
     function UVCallInitiate(suspectvehicle, infraction)
-        if not GetConVar("unitvehicle_callresponse"):GetBool() or UVTargeting or uvcallexists or not UVPassConVarFilter(suspectvehicle) then return end
+        if not GetConVar("unitvehicle_callresponse"):GetBool() or UVTargeting or UVHeatZone or not UVPassConVarFilter(suspectvehicle) then return end
 
         local calltype = CALL_TYPE[infraction] or 1
 
         UVAddInfraction(suspectvehicle, infraction, true)
         
         UVPreInfractionCount = 0
-        
-        uvcallexists = true
         
         local calllocation = suspectvehicle:GetPos()+(vector_up * 50)
         
@@ -249,10 +243,8 @@ if SERVER then
     
     function UVCallReportDescription(suspectvehicle, calllocation)
         if UVTargeting then return end
-
         
         local timecheck = 5
-
         
         if next(ents.FindByClass("npc_uv*" )) ~= nil and GetConVar("unitvehicle_chatter"):GetBool() then
             local units = ents.FindByClass("npc_uv*" )
@@ -295,11 +287,6 @@ if SERVER then
     end
     
     function UVCallRespond(suspectvehicle, unknown)
-
-        timer.Simple(20, function()
-            uvcallexists = nil
-        end)
-        
         if UVTargeting then return end
         
         if next(ents.FindByClass("npc_uv*" )) == nil then return end

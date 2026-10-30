@@ -32,7 +32,7 @@ Update 1.9.0 is here!
       |-- New damage system for all vehicles, now with more detachable gibs
 - Ramming/using PT against Racer AI will now make them hate you and will use PT against you
 - Added <color=255,255,100>Need for Speed: High Stakes</color> helicopter model and UI Sounds
-- Added back subtitles
+- Added back subtitles, now available for Default presets
 - Added <color=255,255,100>Visual Detection</color> logic
       |-- Units will take time to recognize you on sight
       |-- Use stealth to avoid them, hide or use <color=255,255,100>Jammer Pursuit Tech</color> to increase their detection time
@@ -47,11 +47,12 @@ Update 1.9.0 is here!
 - Added vehicle blinking effect when resetting
 
 **Changes**
-- Revamped <color=255,255,100>Default</color> preset:
+- Revamped <color=255,255,100>Default</color> presets:
       |-- Make use of new UVPD vehicles
       |-- Expand until Heat 6
       |-- Resorted voice profiles
       |-- Subscribe to <color=255,255,100>[Unit Vehicles] Default Voice Pack Extended</color> to use unused/extra voice profiles
+- Patrolling Units and Traffic AI now stops at red lights (Decent Vehicle Traffic Light) or when something gets in their way
 - Made racers be able to use Jammer once again
 - AI use of pursuit tech is randomly delayed, giving you a chance to dodge it
 - Tweaked Call Response logic

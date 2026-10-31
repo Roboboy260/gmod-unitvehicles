@@ -126,7 +126,7 @@ if SERVER then
 
 					UVDisableVehicleEngine(object, UVPTStunMineDisableDuration:GetFloat())
 
-                    UVDeactivateActivePursuitTechs(object, true)
+                    UVDeactivateActivePursuitTechs(object)
 
 					hook.Add( "Think", hookIdentifier .. "headlight", function() 
                         if not IsValid(object) then

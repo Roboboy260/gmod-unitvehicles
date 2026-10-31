@@ -1951,7 +1951,7 @@ if SERVER then
                     local disableDuration = isUnit and UVUnitPTEMPDisableDuration:GetFloat() or UVPTEMPDisableDuration:GetFloat()
                     UVDisableVehicleEngine(target, disableDuration)
 
-                    UVDeactivateActivePursuitTechs(target, true)
+                    UVDeactivateActivePursuitTechs(target)
                 
                     hook.Add( "Think", hookIdentifier .. "headlight", function() 
                         if not IsValid(target) then
@@ -2299,7 +2299,7 @@ if SERVER then
                                 enemyVehicle:StopEngine()
                             end
 
-                            UVDeactivateActivePursuitTechs(enemyVehicle, true)
+                            UVDeactivateActivePursuitTechs(enemyVehicle)
 
                             UVDisableVehicleEngine(enemyVehicle, kstime)
 
@@ -2829,7 +2829,7 @@ if SERVER then
         end)
     end
 
-    function UVDeactivateActivePursuitTechs(car, disableJammer)
+    function UVDeactivateActivePursuitTechs(car)
         if not IsValid(car) then return end
 
         if car.esfon then UVDeactivateESF(car) end
@@ -2838,7 +2838,6 @@ if SERVER then
         if car.ghoston then UVDeactivateGhost(car) end
         if car.grappleron or IsValid(car.grappler) then UVDeactivateGrappler(car, true) end
         if car.empCleanup then car.empCleanup() end
-        if disableJammer and car.jammerdeployed then UVEndJammer(car) end -- is this even possible?
     end
 
     function UVGrapple(car, object)

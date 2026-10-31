@@ -1340,6 +1340,7 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 
                 local disableDuration = car.UnitVehicle and UVUnitPTESFDisableDuration:GetFloat() or UVPTESFDisableDuration:GetFloat()
                 UVDisableVehicleEngine(enemyVehicle, disableDuration)
+				UVDeactivateActivePursuitTechs(enemyVehicle)
 
                 ReportPTEvent( car, enemyVehicle, 'ESF', 'Hit' )
 
@@ -1615,6 +1616,7 @@ hook.Add("simfphysPhysicsCollide", "UVCollisionSimfphys", function(car, coldata,
 
 		local disableDuration = car.UnitVehicle and UVUnitPTESFDisableDuration:GetFloat() or UVPTESFDisableDuration:GetFloat()
 		UVDisableVehicleEngine(enemyVehicle, disableDuration)
+		UVDeactivateActivePursuitTechs(enemyVehicle)
 
 		ReportPTEvent( car, enemyVehicle, 'ESF', 'Hit' )
 
@@ -1908,6 +1910,7 @@ hook.Add("OnEntityCreated", "UVCollisionJeep", function(vehicle)
 
 			local disableDuration = car.UnitVehicle and UVUnitPTESFDisableDuration:GetFloat() or UVPTESFDisableDuration:GetFloat()
 			UVDisableVehicleEngine(enemyVehicle, disableDuration)
+			UVDeactivateActivePursuitTechs(enemyVehicle)
 
 			ReportPTEvent( car, enemyVehicle, 'ESF', 'Hit' )
 
@@ -2203,6 +2206,7 @@ hook.Add("OnEntityCreated", "UVCollisionLVS", function(lvsvehicle)
 
 				local disableDuration = car.UnitVehicle and UVUnitPTESFDisableDuration:GetFloat() or UVPTESFDisableDuration:GetFloat()
 				UVDisableVehicleEngine(enemyVehicle, disableDuration)
+				UVDeactivateActivePursuitTechs(enemyVehicle)
 
 				ReportPTEvent( car, enemyVehicle, 'ESF', 'Hit' )
 

@@ -46,6 +46,8 @@ end
 
 function ENT:Initialize()
 
+	UVRegisterHelicopterSpawn(self)
+
 	self:GetModelData()
 
 	self:SetModel(self.Model or "models/uvair_default.mdl")
@@ -159,6 +161,8 @@ function ENT:Initialize()
 end
 
 function ENT:OnRemove()
+	UVRegisterHelicopterRemoval(self)
+
 	if self.displaybusting then
 		UVHUDBusting = nil
 		net.Start( "UVHUDStopBusting" )

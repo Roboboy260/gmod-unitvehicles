@@ -1144,6 +1144,7 @@ conVarList["helicopterskyhammer"] = 1
 conVarList["helicopterbusting"] = 1
 conVarList["helicopterminfuel"] = 60
 conVarList["helicoptermaxfuel"] = 180
+conVarList["helicoptercooldown"] = 180
 
 conVarList["pursuittech"] = 1
 conVarList["pursuittech_esf"] = 1
@@ -1339,6 +1340,7 @@ UVPTPTDuration = CreateConVar("uvpursuittech_ptduration", 60, {FCVAR_ARCHIVE, FC
 
 -- ESF
 UVPTESFDuration = CreateConVar("uvpursuittech_esf_duration", 10, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+UVPTESFDisableDuration = CreateConVar("uvpursuittech_esf_disableduration", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTESFPower = CreateConVar("uvpursuittech_esf_power", 1000000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTESFDamage = CreateConVar("uvpursuittech_esf_damage", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTESFCommanderDamage = CreateConVar("uvpursuittech_esf_damagecommander", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
@@ -1368,6 +1370,7 @@ UVPTSpikeStripCooldown = CreateConVar("uvpursuittech_spikestrip_cooldown", 30, {
 UVPTStunMinePower = CreateConVar("uvpursuittech_stunmine_power", 1000000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTStunMineDamage = CreateConVar("uvpursuittech_stunmine_damage", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTStunMineCommanderDamage = CreateConVar("uvpursuittech_stunmine_damagecommander", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+UVPTStunMineDisableDuration = CreateConVar("uvpursuittech_stunmine_disableduration", 1.5, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTStunMineMaxAmmo = CreateConVar("uvpursuittech_stunmine_maxammo", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Pursuit Tech Max Ammo")
 UVPTStunMineCooldown = CreateConVar("uvpursuittech_stunmine_cooldown", 30, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Pursuit Tech Cooldown")
 
@@ -1375,6 +1378,7 @@ UVPTStunMineCooldown = CreateConVar("uvpursuittech_stunmine_cooldown", 30, {FCVA
 UVPTEMPDamage = CreateConVar("uvpursuittech_emp_damage", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTEMPCommanderDamage = CreateConVar("uvpursuittech_emp_damagecommander", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTEMPForce = CreateConVar("uvpursuittech_emp_force", 100, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+UVPTEMPDisableDuration = CreateConVar("uvpursuittech_emp_disableduration", 2, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTEMPMaxAmmo = CreateConVar("uvpursuittech_emp_maxammo", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Pursuit Tech Max Ammo")
 UVPTEMPCooldown = CreateConVar("uvpursuittech_emp_cooldown", 30, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Pursuit Tech Cooldown")
 UVPTEMPMaxDistance = CreateConVar("uvpursuittech_emp_maxdistance", 1000, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Pursuit Tech Max Distance")
@@ -1405,6 +1409,7 @@ UVUnitPTDuration = CreateConVar("uvpursuittech_ptduration_unit", 20, {FCVAR_ARCH
 
 -- ESF
 UVUnitPTESFDuration = CreateConVar("uvpursuittech_esf_duration_unit", 10, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+UVUnitPTESFDisableDuration = CreateConVar("uvpursuittech_esf_disableduration_unit", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTESFPower = CreateConVar("uvpursuittech_esf_power_unit", 1000000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTESFDamage = CreateConVar("uvpursuittech_esf_damage_unit", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTESFMaxAmmo = CreateConVar("uvpursuittech_esf_maxammo_unit", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Pursuit Tech Max Ammo")
@@ -1419,13 +1424,14 @@ UVUnitPTSpikeStripRoadblockFriendlyFire = CreateConVar("unitvehicle_spikestripro
 
 -- KillSwitch
 UVUnitPTKillSwitchLockOnTime = CreateConVar("uvpursuittech_killswitch_lockontime_unit", 3, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
-UVUnitPTKillSwitchDisableDuration = CreateConVar("uvpursuittech_killswitch_disableduration_unit", 2.5, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+UVUnitPTKillSwitchDisableDuration = CreateConVar("uvpursuittech_killswitch_disableduration_unit", 3, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTKillSwitchMaxAmmo = CreateConVar("uvpursuittech_killswitch_maxammo_unit", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTKillSwitchCooldown = CreateConVar("uvpursuittech_killswitch_cooldown_unit", 30, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 
 -- EMP
 UVUnitPTEMPDamage = CreateConVar("uvpursuittech_emp_damage_unit", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTEMPForce = CreateConVar("uvpursuittech_emp_force_unit", 100, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+UVUnitPTEMPDisableDuration = CreateConVar("uvpursuittech_emp_disableduration_unit", 2, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTEMPMaxAmmo = CreateConVar("uvpursuittech_emp_maxammo_unit", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTEMPCooldown = CreateConVar("uvpursuittech_emp_cooldown_unit", 30, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTEMPMaxDistance = CreateConVar("uvpursuittech_emp_maxdistance_unit", 1000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
@@ -1549,6 +1555,7 @@ UVUHelicopterSkyhammer = CreateConVar("unitvehicle_unit_helicopterskyhammer", 1,
 UVUHelicopterBusting = CreateConVar("unitvehicle_unit_helicopterbusting", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "1 = Helicopter can bust racers\n0 = Helicopter cannot bust racers")
 UVUHelicopterMinFuel = CreateConVar("unitvehicle_unit_helicopterminfuel", 60, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Minimum Fuel Time before the Air Unit runs out of fuel and leaves the pursuit.")
 UVUHelicopterMaxFuel = CreateConVar("unitvehicle_unit_helicoptermaxfuel", 180, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Maximum Fuel Time before the Air Unit runs out of fuel and leaves the pursuit.")
+UVUHelicopterCooldown = CreateConVar("unitvehicle_unit_helicoptercooldown", 180, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Cooldown before an Air Unit can respawn after being removed.")
 
 UVUBountyPatrol = CreateConVar("unitvehicle_unit_bountypatrol", 1000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUBountySupport = CreateConVar("unitvehicle_unit_bountysupport", 5000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})

@@ -1554,8 +1554,9 @@ UVMenu.HeatManager = function()
 		{ type = "bool", text = "uv.hm.air.pt.exp", desc = "uv.hm.air.pt.desc", convar = "unitvehicle_unit_helicopterbarrels", sv = true },
 		{ type = "bool", text = "uv.hm.air.pt.spikes", desc = "uv.hm.air.pt.desc", convar = "unitvehicle_unit_helicopterspikestrip", sv = true },
 		{ type = "bool", text = "uv.hm.air.pt.skyhammer", desc = "uv.hm.air.pt.desc", convar = "unitvehicle_unit_helicopterskyhammer", sv = true },
-		{ type = "slider", text = "uv.hm.air.fuel.min", desc = "uv.hm.air.fuel.min.desc", convar = "unitvehicle_unit_helicopterminfuel", min = 0, max = 10000, decimals = 0, sv = true },
-		{ type = "slider", text = "uv.hm.air.fuel.max", desc = "uv.hm.air.fuel.max.desc", convar = "unitvehicle_unit_helicoptermaxfuel", min = 1, max = 10000, decimals = 0, sv = true },
+		{ type = "slider", text = "uv.hm.air.fuel.min", desc = "uv.hm.air.fuel.min.desc", convar = "unitvehicle_unit_helicopterminfuel", min = 0, max = 3600, decimals = 0, sv = true },
+		{ type = "slider", text = "uv.hm.air.fuel.max", desc = "uv.hm.air.fuel.max.desc", convar = "unitvehicle_unit_helicoptermaxfuel", min = 1, max = 3600, decimals = 0, sv = true },
+		{ type = "slider", text = "uv.hm.air.cooldown", desc = "uv.hm.air.cooldown.desc", convar = "unitvehicle_unit_helicoptercooldown", min = 0, max = 3600, decimals = 0, sv = true },
 		
 		{ type = "label", text = "uv.ptech" },
 		{ type = "bool", text = "uv.hm.enablept", desc = "uv.hm.enablept.desc", convar = "unitvehicle_unit_pursuittech", sv = true },

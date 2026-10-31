@@ -7,21 +7,12 @@ local UV_PT = {}
 
 UV_PT.Killswitch = {
     Hit = function(tbl)
-        local displayMe = false
-        if tbl.User == LocalPlayer():Nick() then
-            displayMe = true
-        end
-
-        local userString = "uv.ptech.killswitch.hit"
-        local targetString = "uv.ptech.killswitch.hit.you"
+        if tbl.User ~= LocalPlayer():Nick() then return end
 
         UV_UI.general.events.CenterNotification({
-            text = string.format( (displayMe and UVString( userString )) or UVString( targetString ), (displayMe and UVString( tbl.Target )) or UVString( tbl.User )),
-			color = not displayMe and Color(255, 0, 0) or nil,
-			immediate = not displayMe and true or nil,
-			critical = not displayMe and true or nil,
-			time = not displayMe and 3 or 1,
-		})
+            text = string.format(UVString("uv.ptech.killswitch.hit"), UVString(tbl.Target)),
+            time = 1,
+        })
     end,
     Locking = function(tbl)
         local displayMe = false

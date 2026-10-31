@@ -14,6 +14,7 @@ local PursuitTechDefs = {
         description = "#uv.ptech.emp.desc",
         racer = true, unit = true,
         convars = {
+            disableduration = { default = 2, min = 0, max = 10, decimals = 1 },
             damage   = { default = 0.1, min = 0, max = 1, decimals = 1 },
             damagecommander = { default = 0.1, min = 0, max = 1, decimals = 1, nounit = true },
             force    = { default = 100, min = 0, max = 1000, decimals = 0 },
@@ -30,6 +31,7 @@ local PursuitTechDefs = {
         shortname = "esf",
         racer = true, unit = true,
         convars = {
+            disableduration = { default = 1, min = 0, max = 10, decimals = 1 },
             duration = { default = 10, min = 1, max = 30, decimals = 0 },
             power    = { default = 1000000, min = 100000, max = 10000000, decimals = 0 },
             damage   = { default = 0.1, min = 0, max = 1, decimals = 1 },
@@ -59,7 +61,7 @@ local PursuitTechDefs = {
         racer = false, unit = true,
         convars = {
             lockontime      = { default = 3, min = 1, max = 10, decimals = 1 },
-            disableduration = { default = 2.5, min = 1, max = 10, decimals = 1 },
+            disableduration = { default = 3, min = 1, max = 10, decimals = 1 },
             cooldown        = { default = 30, min = 0, max = 120, decimals = 0 },
             maxammo            = { default = 5, min = 0, max = 120, decimals = 0 }
         }
@@ -199,6 +201,7 @@ local PursuitTechDefs = {
             power    = { default = 1000000, min = 100000, max = 10000000, decimals = 0 },
             damage   = { default = 0.1, min = 0, max = 1, decimals = 1 },
             damagecommander = { default = 0.1, min = 0, max = 1, decimals = 1, nounit = true },
+            disableduration = { default = 1.5, min = 0, max = 10, decimals = 1 },
             cooldown = { default = 30, min = 0, max = 120, decimals = 0 },
             maxammo     = { default = 5, min = 0, max = 120, decimals = 0 }
         }
@@ -669,9 +672,9 @@ if CLIENT then
                     end
                 end
 
-                function slider:OnValueChanged( val )
-                    print(self:IsEditing(), val)
-                end
+                --function slider:OnValueChanged( val )
+                --    print(self:IsEditing(), val)
+                --end
 
 				table.insert(sliders, slider)
 			end

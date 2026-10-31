@@ -281,7 +281,7 @@ if SERVER then
     end
 
     function UVSetHeadlight(vehicle, state)
-        if not IsValid(vehicle) then return end
+        if not IsValid(vehicle) or not state then return end
 
         if vehicle.IsGlideVehicle then
             vehicle:SetHeadlightState( state )
@@ -1372,12 +1372,70 @@ if SERVER then
 
         UVPTEvent( {attacker, unpack( playerTargets )}, pt, event, message )
     end
+
+    function UVDisableVehicleEngine(vehicle, duration)
+        if not IsValid(vehicle) or vehicle.enginedisabledbyuv then return end
+
+        vehicle.enginedisabledbyuv = true
+
+        local function setEngineEnabled(enabled)
+            if vehicle.IsSimfphyscar then
+                vehicle:SetActive(enabled)
+                if enabled then
+                    vehicle:StartEngine()
+                else
+                    vehicle:StopEngine()
+                end
+            elseif vehicle.IsGlideVehicle then
+                if enabled then
+                    vehicle:TurnOn()
+                else
+                    vehicle:TurnOff()
+                end
+            elseif vehicle:GetClass() == "prop_vehicle_jeep" then
+                vehicle:StartEngine(enabled)
+            elseif vehicle.LVS then
+                if enabled then
+                    vehicle:StartEngine()
+                else
+                    vehicle:StopEngine()
+                end
+            else
+                local unit = vehicle.UnitVehicle
+                if IsValid(unit) and unit:IsNPC() and isfunction(unit.SetEngineStarted) then
+                    unit:SetEngineStarted(enabled)
+                end
+            end
+        end
+
+        setEngineEnabled(false)
+
+        timer.Simple(math.max(duration, 0), function()
+            if not IsValid(vehicle) or not vehicle.enginedisabledbyuv then return end
+
+            vehicle.enginedisabledbyuv = nil
+            setEngineEnabled(true)
+        end)
+    end
     
+    local function isEngineNotRunning(vehicle)
+        if not IsValid(vehicle) then return true end
+        if vehicle.IsGlideVehicle then
+            return vehicle:GetEngineState() ~= 2
+        elseif vehicle.IsSimfphyscar then
+            return vehicle:EngineActive() == false
+        elseif vehicle.LVS then
+            return not vehicle:GetEngineActive()
+        end
+        return false
+    end
+
     function UVDeployWeapon(car, slot)
         if not IsValid(car) then return end
         if car.uvbusted or car.wrecked then return end
         if UVJammerDeployed and not car.jammerexempt then return end
         if not car.PursuitTech then return end
+        if isEngineNotRunning(car) then return end
         
         if car.uvraceparticipant then
             if UVRaceInEffect and not UVRaceInProgress then return end
@@ -1889,6 +1947,11 @@ if SERVER then
                     )
 
                     UVRamVehicle(target)
+
+                    local disableDuration = isUnit and UVUnitPTEMPDisableDuration:GetFloat() or UVPTEMPDisableDuration:GetFloat()
+                    UVDisableVehicleEngine(target, disableDuration)
+
+                    UVDeactivateActivePursuitTechs(target, true)
                 
                     hook.Add( "Think", hookIdentifier .. "headlight", function() 
                         if not IsValid(target) then
@@ -2235,6 +2298,16 @@ if SERVER then
                             elseif enemyVehicle.LVS then
                                 enemyVehicle:StopEngine()
                             end
+
+                            UVDeactivateActivePursuitTechs(enemyVehicle, true)
+
+                            UVDisableVehicleEngine(enemyVehicle, kstime)
+
+                            timer.Simple(kstime, function() 
+                                if IsValid(enemyVehicle) then
+                                    UVPTEvent( {UVGetDriver( enemyVehicle )}, 'Killswitch', 'EngineRestarting' )
+                                end
+                            end)
                             
                             if car:GetClass() == "uvair" then
                                 net.Start("UVWeaponSkyhammerDisable")
@@ -2243,30 +2316,12 @@ if SERVER then
                             end
                             
                             ReportPTEvent( car, closestsuspect, weapon, 'Hit' )
-                            enemyVehicle.enginedisabledbyuv = true
+
                             car:StopSound("gadgets/killswitch/start1.wav")
                             car:StopSound("gadgets/killswitch/start2.wav")
                             enemyVehicle:StopSound("gadgets/killswitch/startloop.wav")
                             enemyVehicle:EmitSound("gadgets/killswitch/hit.wav")
-                            timer.Simple(kstime, function() 
-                                if IsValid(enemyVehicle) then
-                                    if enemyVehicle.IsSimfphyscar then
-                                        enemyVehicle:SetActive(true)
-                                        enemyVehicle:StartEngine()
-                                    elseif enemyVehicle.IsGlideVehicle then
-                                        enemyVehicle:TurnOn()
-                                    elseif enemyVehicle:GetClass() == "prop_vehicle_jeep" then
-                                        enemyVehicle:StartEngine(true)
-                                    elseif enemyVehicle.LVS then
-                                        enemyVehicle:StartEngine()
-                                    end
-                                    -- if isfunction(enemyVehicle.GetDriver) and IsValid(UVGetDriver(enemyVehicle)) and UVGetDriver(enemyVehicle):IsPlayer() then 
-                                    --     UVGetDriver(enemyVehicle):PrintMessage( HUD_PRINTCENTER, "Engine restarted!")
-                                    -- end
-                                    UVPTEvent( {UVGetDriver( enemyVehicle )}, 'Killswitch', 'EngineRestarting' )
-                                    enemyVehicle.enginedisabledbyuv = nil
-                                end
-                            end)
+                            
                             car.PursuitTechStatus = "Reloading"
                             timer.Simple(UVUnitPTDuration:GetInt(), function()
                                 if IsValid(car) and car.uvkillswitchdeployed and not car.wrecked then
@@ -2481,12 +2536,9 @@ if SERVER then
             end
         end)
         
-        for unit, _ in pairs(UVUnitVehicles) do
-            UVDeactivateESF(unit)
-            UVDeactivateKillSwitch(unit)
-            UVDeactivateGrappler(unit)
-            if unit.empCleanup then 
-                unit.empCleanup()
+        for _, vehicle in ipairs(ents.GetAll()) do
+            if vehicle ~= car and not vehicle.jammerexempt then
+                UVDeactivateActivePursuitTechs(vehicle)
             end
         end
         
@@ -2499,15 +2551,23 @@ if SERVER then
     end
     
     function UVEndJammer(car)
+        if not car.jammerdeployed then return end
+
+        car.jammerdeployed = nil
         UVJammerDeployed = nil
         car.jammerexempt = nil
+        if IsValid(car) then
+            car:RemoveCallOnRemove("UVJammerRemove")
+        end
         net.Start("UVWeaponJammerDisable")
         if IsValid(UVGetDriver(car)) then
             net.WriteEntity(UVGetDriver(car))
         end
         net.Broadcast()
-        car:StopSound( "gadgets/jammer/loop2.wav" )
-        car:EmitSound( "gadgets/jammer/deactivate1.wav" )
+        if IsValid(car) then
+            car:StopSound( "gadgets/jammer/loop2.wav" )
+            car:EmitSound( "gadgets/jammer/deactivate1.wav" )
+        end
         
         if UVTargeting then
             UVSoundChatter(car, "nil", "dispatchjammerend", nil, "DISPATCH")
@@ -2742,12 +2802,14 @@ if SERVER then
         end
     end
     
-    function UVDeactivateGrappler(car)
+    function UVDeactivateGrappler(car, force)
         car.grappleron = nil
 
-        if car.wrecked or UVJammerDeployed then
+        if force or car.wrecked or UVJammerDeployed then
             if car.grappler and IsValid(car.grappler) then
-                car.grapplerconstraint:Remove()
+                if IsValid(car.grapplerconstraint) then
+                    car.grapplerconstraint:Remove()
+                end
                 car.grapplerconstraint = nil
                 car.grappler:Remove()
                 car.grappler = nil
@@ -2765,6 +2827,18 @@ if SERVER then
                 UVChatterGrapplerMissed(car.UnitVehicle)
             end
         end)
+    end
+
+    function UVDeactivateActivePursuitTechs(car, disableJammer)
+        if not IsValid(car) then return end
+
+        if car.esfon then UVDeactivateESF(car) end
+        if car.uvkillswitching then UVDeactivateKillSwitch(car) end
+        if car.juggernauton then UVDeactivateJuggernaut(car) end
+        if car.ghoston then UVDeactivateGhost(car) end
+        if car.grappleron or IsValid(car.grappler) then UVDeactivateGrappler(car, true) end
+        if car.empCleanup then car.empCleanup() end
+        if disableJammer and car.jammerdeployed then UVEndJammer(car) end -- is this even possible?
     end
 
     function UVGrapple(car, object)

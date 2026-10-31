@@ -1,5 +1,15 @@
 UV_UI.general = UV_UI.general or {}
 
+local function IsVehicleEngineOff(vehicle)
+    if not IsValid(vehicle) then return false end
+
+    if vehicle.IsGlideVehicle then
+        return vehicle:GetEngineState() ~= 2 --remind me to do other vehicle bases
+    end
+
+    return false
+end
+
 local function uv_general()
     local hudyes = GetConVar("cl_drawhud"):GetBool()
 
@@ -12,8 +22,11 @@ local function uv_general()
         return
     end
 
-    UVHUDPursuitTech = vehicle.PursuitTech or (IsValid(vehicle:GetParent()) and vehicle:GetParent().PursuitTech) or nil
+    local parent = vehicle:GetParent()
+    local techVehicle = IsValid(parent) and parent.PursuitTech and parent or vehicle
+    UVHUDPursuitTech = techVehicle.PursuitTech or nil
     if not UVHUDPursuitTech then return end
+    local engineOff = IsVehicleEngineOff(techVehicle)
 
     local PT_Replacement_Strings = {
         ['EMP'] = 'uv.ptech.emp.short',
@@ -60,16 +73,15 @@ local function uv_general()
             local x = xOffsetI
             local textX = xOffset + (bw * 0.5) + ((i - 1) * (h * 0.105))
 
-            local bgColor = Color(0, 0, 0, 225)
+            local bgColor = engineOff and Color(90, 90, 90, 175) or Color(0, 0, 0, 225)
             local fillOverlayColor = nil
             local fillFrac = 0
             local showFillOverlay = false
-            local textColor = Color(255, 255, 255, 125)
-            local keyColor = Color(255, 255, 255, 125)
+            local textColor = engineOff and Color(150, 150, 150) or Color(255, 255, 255, 125)
             local ammoText, techText = " - ", " - "
 
             if tech then
-                if input.IsKeyDown(keyCode) and not gui.IsGameUIVisible() and vgui.GetKeyboardFocus() == nil then
+                if not engineOff and input.IsKeyDown(keyCode) and not gui.IsGameUIVisible() and vgui.GetKeyboardFocus() == nil then
                     net.Start("UVPTUse")
                     net.WriteInt(i, 16)
                     net.SendToServer()
@@ -80,22 +92,26 @@ local function uv_general()
                 local inDuration = duration > 0 and timeSinceUsed <= duration
                 local inCooldown = tech.Ammo > 0 and timeSinceUsed <= (duration > 0 and duration + tech.Cooldown or tech.Cooldown)
 
-                if inDuration then
-                    fillFrac = math.Clamp(timeSinceUsed / duration, 0, 1)
-                    showFillOverlay = true
-                elseif inCooldown then
-                    fillFrac = math.Clamp((timeSinceUsed - duration) / tech.Cooldown, 0, 1)
-                    showFillOverlay = true
+                if not engineOff then
+                    if inDuration then
+                        fillFrac = math.Clamp(timeSinceUsed / duration, 0, 1)
+                        showFillOverlay = true
+                    elseif inCooldown then
+                        fillFrac = math.Clamp((timeSinceUsed - duration) / tech.Cooldown, 0, 1)
+                        showFillOverlay = true
+                    end
                 end
 
-                if showFillOverlay then
+                if engineOff then
+                    bgColor = Color(90, 90, 90, 175)
+                    textColor = Color(150, 150, 150)
+                elseif showFillOverlay then
                     local blink = 255 * math.abs(math.sin(RealTime() * 3))
                     fillOverlayColor = Color(blink, blink, 0, 175)
                 else
                     local availableColor = tech.Upgraded and Color(100, 255, 255, 175) or Color(100, 255, 100, 175)
                     bgColor = tech.Ammo > 0 and availableColor or Color(200, 0, 0, 175)
                     textColor = tech.Ammo > 0 and Color(255, 255, 255) or Color(255, 75, 75)
-                    keyColor = tech.Ammo > 0 and Color(255, 255, 255) or Color(255, 75, 75)
                 end
 
                 ammoText = tech.Ammo > 0 and tech.Ammo or " - "
@@ -136,7 +152,11 @@ local function uv_general()
 				draw.SimpleTextOutlined( techText, "UVMostWantedLeaderboardFont2", textX, y + (h * 0.0075), textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 2, Color(0,0,0))
 				draw.SimpleTextOutlined( ammoText, "UVMostWantedLeaderboardFont", textX, y + (h * 0.0275), textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 2, Color(0,0,0))
 
-				local mk = markup.Parse( UVReplaceKeybinds( "[key:unitvehicle_pursuittech_keybindslot_" .. i .. "]", "Big" ), w )
+				local keybindText = UVReplaceKeybinds( "[key:unitvehicle_pursuittech_keybindslot_" .. i .. "]", "Big" )
+				if engineOff then
+					keybindText = "<color=150,150,150>" .. keybindText .. "</color>"
+				end
+				local mk = markup.Parse( keybindText, w )
 				mk:Draw(x + (bw * 0.5), y - (bh * 0.45), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
             end
         end

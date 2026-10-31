@@ -40,11 +40,16 @@ Update 1.9.0 is here!
 - Added model and grid slot preview placement for <color=255,255,100>Creator: Roadblocks</color> tool and <color=255,255,100>Creator: Races</color> tool respectively
 - Added race preview layout when selecting races
 - Added undercover flag when creating new Units
-- <color=255,255,100>Pursuit Tech</color> tool: Added option to apply upgraded Pursuit Tech for each slot, updated visual display for it
 - Added individual vehicle chances when assigning Units via <color=255,255,100>Heat Level Manager</color>
 - Added search bar for all data lists
-- Added custom Pursuit Tech slot override when creating units and racers <color=0,255,0>(existing data will not be affected)</color>
 - Added vehicle blinking effect when resetting
+- Added adjustable Air Unit <color=255,255,100>Cooldown Time</color>, default is 180 seconds
+- Added new Pursuit Tech Improvements:
+      |-- ESF, Stun mines, and EMP Pursuit Tech can now disable your engine! Adjust the <color=255,255,100>Disable Duration</color> in the Pursuit Tech tool or via ConVars
+      |-- All electrical Pursuit Techs (ESF, Stun Mine, EMP, Killswitch) can now disable any active Pursuit Techs you have on your vehicle
+      |-- Added custom Pursuit Tech slot override when creating units and racers <color=0,255,0>(existing data will not be affected)</color>
+      |-- <color=255,255,100>Pursuit Tech</color> tool: Added option to apply upgraded Pursuit Tech for each slot, updated visual display for it
+
 
 **Changes**
 - Revamped <color=255,255,100>Default</color> presets:

@@ -29,6 +29,64 @@ local UVUHelicopterBusting = GetConVar("unitvehicle_unit_helicopterbusting")
 
 local dvd = DecentVehicleDestination
 
+UVHelicopterSpawnSlots = UVHelicopterSpawnSlots or {}
+
+local function GetHelicopterSpawnSlot(slotIndex)
+	if not UVHelicopterSpawnSlots[slotIndex] then
+		UVHelicopterSpawnSlots[slotIndex] = {
+			spawned = false,
+			cooldownCompletionTime = 0,
+		}
+	end
+
+	return UVHelicopterSpawnSlots[slotIndex]
+end
+
+function UVFindAvailableHelicopterSlot(limit)
+	for slotIndex = 1, limit do
+		local slot = GetHelicopterSpawnSlot(slotIndex)
+		if not slot.spawned and slot.cooldownCompletionTime <= CurTime() then
+			return slotIndex
+		end
+	end
+end
+
+function UVRegisterHelicopterSpawn(ent)
+	local slotIndex = ent.HelicopterSlot
+	if not slotIndex then
+		local limit = GetConVar("unitvehicle_unit_helicopters_limit" .. UVHeatLevel):GetInt()
+		slotIndex = UVFindAvailableHelicopterSlot(limit)
+
+		if not slotIndex then
+			local maxSlotIndex = limit
+			for existingSlotIndex in pairs(UVHelicopterSpawnSlots) do
+				maxSlotIndex = math.max(maxSlotIndex, existingSlotIndex)
+			end
+
+			for candidateIndex = 1, maxSlotIndex do
+				local slot = GetHelicopterSpawnSlot(candidateIndex)
+				if not slot.spawned and slot.cooldownCompletionTime <= CurTime() then
+					slotIndex = candidateIndex
+					break
+				end
+			end
+
+			slotIndex = slotIndex or maxSlotIndex + 1
+		end
+	end
+
+	GetHelicopterSpawnSlot(slotIndex).spawned = true
+	ent.HelicopterSlot = slotIndex
+end
+
+function UVRegisterHelicopterRemoval(ent)
+	local slot = UVHelicopterSpawnSlots[ent.HelicopterSlot]
+	if not slot or not slot.spawned then return end
+
+	slot.spawned = false
+	slot.cooldownCompletionTime = CurTime() + UVUHelicopterCooldown:GetInt()
+end
+
 NETWORK_STRINGS = {
 	-- Pursuit Tech
 	"UV_SendPursuitTech",
@@ -793,10 +851,10 @@ function HandleVehicleSpawning(Patrolling)
 	local rbchance = GetConVar( "unitvehicle_unit_roadblocks_chance" .. UVHeatLevel ):GetInt()
 	local helichance = GetConVar( "unitvehicle_unit_helicopters_chance" .. UVHeatLevel ):GetInt()
 	local helilimit = GetConVar( "unitvehicle_unit_helicopters_limit" .. UVHeatLevel ):GetInt()
-	local helicooldown = CurTime() - (uvHelicopterCooldown or 0) < UVUHelicopterMaxFuel:GetInt() --I will add an adjustable setting for this later
+	local availableHelicopterSlot = UVFindAvailableHelicopterSlot(helilimit)
 
 	local canSpawnRoadblock = uvRoadblockDeployable and next(ents.FindByClass("npc_uv*")) ~= nil and table.Count(UVLoadedRoadblocks) < UVRBMax:GetInt() and CheckSpawnChance(rbchance)
-	local canSpawnHelicopter = uvHelicopterDeployable and #ents.FindByClass("uvair") < helilimit and CheckSpawnChance(helichance) and not helicooldown
+	local canSpawnHelicopter = uvHelicopterDeployable and #ents.FindByClass("uvair") < helilimit and availableHelicopterSlot and CheckSpawnChance(helichance)
 
 	local pool = {
 		'normal',
@@ -1110,6 +1168,20 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 	if not Glide then return end
 
 	if ( glidevehicle.IsGlideVehicle ) then
+		local oldturnOn = glidevehicle.TurnOn
+		glidevehicle.TurnOn = function( car )
+			if not car.isEngineEnabled or car.enginedisabledbyuv then return end
+
+    		local state = car:GetEngineState()
+
+    		if state == 3 then
+    		    car:SetEngineState( 2 )
+			
+    		elseif state ~= 2 then
+    		    car:SetEngineState( 1 )
+    		end
+		end
+
 		local oldphysCollide = glidevehicle.PhysicsCollide
 		glidevehicle.PhysicsCollide = function( car, coldata, ent )
 			oldphysCollide(car, coldata, ent)
@@ -1212,6 +1284,10 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 				local enemyDriver = UVGetDriver(enemyVehicle)
 				local power
 				local damage
+				local carEntityIndex = enemyVehicle:EntIndex()
+				local hookIdentifier = "UVStunMine_"..carEntityIndex
+				local lastHeadlightState = UVGetHeadlight( target )
+
 				if car.UnitVehicle then
 					power = UVUnitPTESFPower:GetInt()
 					damage = UVUnitPTESFDamage:GetFloat()
@@ -1237,12 +1313,35 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 				enemyVehiclePhys:ApplyForceCenter(angle:Forward()*force)
 				UVRamVehicle(enemyVehicle)
 
-				if object.UnitVehicle or (object.UVWanted and not AutoHealth:GetBool()) or not (object.UnitVehicle and object.UVWanted) then
-					damage = (table.HasValue(UVCommanders, object) and UVPTESFCommanderDamage:GetFloat()) or damage
-					UVDamage(object, damage)
+				if enemyVehicle.UnitVehicle or (enemyVehicle.UVWanted and not AutoHealth:GetBool()) or not (enemyVehicle.UnitVehicle and enemyVehicle.UVWanted) then
+					damage = (table.HasValue(UVCommanders, enemyVehicle) and UVPTESFCommanderDamage:GetFloat()) or damage
+					UVDamage(enemyVehicle, damage)
 				end
 
-				ReportPTEvent( car, enemyVehicle, 'ESF', 'Hit' )
+				hook.Add( "Think", hookIdentifier .. "headlight", function() 
+                    if not IsValid(enemyVehicle) then
+                        hook.Remove( "Think", hookIdentifier .. "headlight" )
+                        return 
+                    end
+					
+                    UVSetHeadlight( 
+                        enemyVehicle, 
+                        math.random( 0, 2 ) 
+                    ) 
+                end)
+            
+                timer.Simple( 1, function()
+                    hook.Remove( "Think", hookIdentifier .. "headlight" )
+                    UVSetHeadlight( 
+                        enemyVehicle, 
+                        lastHeadlightState 
+                    )
+                end)
+
+                local disableDuration = car.UnitVehicle and UVUnitPTESFDisableDuration:GetFloat() or UVPTESFDisableDuration:GetFloat()
+                UVDisableVehicleEngine(enemyVehicle, disableDuration)
+
+                ReportPTEvent( car, enemyVehicle, 'ESF', 'Hit' )
 
 				local e = EffectData()
 				e:SetEntity(enemyVehicle)
@@ -1513,6 +1612,9 @@ hook.Add("simfphysPhysicsCollide", "UVCollisionSimfphys", function(car, coldata,
 			damage = (table.HasValue(UVCommanders, object) and UVPTESFCommanderDamage:GetFloat()) or damage
 			UVDamage(object, damage)
 		end
+
+		local disableDuration = car.UnitVehicle and UVUnitPTESFDisableDuration:GetFloat() or UVPTESFDisableDuration:GetFloat()
+		UVDisableVehicleEngine(enemyVehicle, disableDuration)
 
 		ReportPTEvent( car, enemyVehicle, 'ESF', 'Hit' )
 
@@ -1803,6 +1905,9 @@ hook.Add("OnEntityCreated", "UVCollisionJeep", function(vehicle)
 				damage = (table.HasValue(UVCommanders, object) and UVPTESFCommanderDamage:GetFloat()) or damage
 				UVDamage(object, damage)
 			end
+
+			local disableDuration = car.UnitVehicle and UVUnitPTESFDisableDuration:GetFloat() or UVPTESFDisableDuration:GetFloat()
+			UVDisableVehicleEngine(enemyVehicle, disableDuration)
 
 			ReportPTEvent( car, enemyVehicle, 'ESF', 'Hit' )
 
@@ -2095,6 +2200,9 @@ hook.Add("OnEntityCreated", "UVCollisionLVS", function(lvsvehicle)
 					damage = (table.HasValue(UVCommanders, object) and UVPTESFCommanderDamage:GetFloat()) or damage
 					UVDamage(object, damage)
 				end
+
+				local disableDuration = car.UnitVehicle and UVUnitPTESFDisableDuration:GetFloat() or UVPTESFDisableDuration:GetFloat()
+				UVDisableVehicleEngine(enemyVehicle, disableDuration)
 
 				ReportPTEvent( car, enemyVehicle, 'ESF', 'Hit' )
 

@@ -803,7 +803,7 @@ local function CheckVehicleLimit()
 
 	if #UVWreckedVehicles > 0 then
 		for k, car in pairs(UVWreckedVehicles) do
-			if #UVPotentialSuspects > 0 then
+			if IsValid(car) and #UVPotentialSuspects > 0 then
 				local closestsuspect
 				local closestdistancetosuspect
 				local suspects = UVPotentialSuspects

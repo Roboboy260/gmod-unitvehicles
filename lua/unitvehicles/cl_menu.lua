@@ -1385,7 +1385,7 @@ UVMenu.WreckedDebrief = function()
 					UVMenu.CloseCurrentMenu()
 				end
 				},
-				{ type = "timer", text = "uv.results.autoclose", duration = 10, func = 
+				{ type = "timer", text = "uv.results.autoclose", duration = 30, func = 
 					function(self2)
 						net.Start("uvrace_invite")
 						net.WriteBool(false)
@@ -1428,7 +1428,7 @@ UVMenu.RaceInvite = function()
 					UVMenu.CloseCurrentMenu()
 				end
 				},
-				{ type = "timer", text = "uv.race.invite.autodecline", duration = 10, func = 
+				{ type = "timer", text = "uv.race.invite.autodecline", duration = 30, func = 
 					function(self2)
 						net.Start("uvrace_invite")
 						net.WriteBool(false)
@@ -1919,7 +1919,13 @@ UVMenu.DVWarningDontShowAgain = function()
 		Tabs = {
 			{ TabName = "uv.hm.presets.warning", Icon = "unitvehicles/icons/generic_alert.png", ShowIcon = true,
 				{ type = "infosimple", text = "uv.system.dontshowagain.finalwarn" },
-				{ type = "timer", text = "uv.results.autoclose", duration = 10, func = 
+				{ type = "button", text = "uv.system.close", playsfx = "clickback", prompts = {"uv.prompt.confirm"}, func =
+					function(self2)
+						UVMenu.CloseCurrentMenu(true) 
+						__DV_WARNING_NOSHOW = true
+					end
+				},
+				{ type = "timer", text = "uv.results.autoclose", duration = 30, func = 
 					function(self2)
 						UVMenu.CloseCurrentMenu(true)
 						__DV_WARNING_NOSHOW = true

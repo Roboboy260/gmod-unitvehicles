@@ -3683,9 +3683,6 @@ function UVBustEnemy(self, enemy, finearrest)
 				end
 				UVRemoveScope(enemy)
 				driver:KillSilent()
-				driver:SetNoDraw(true)
-				driver:Spectate(OBS_MODE_DEATHCAM)
-				driver:SpectateEntity(driver)
 				net.Start( "UVHUDStopBusting" )
 				net.Send( UVGetVehicleOccupants(enemy) )
 			end)
@@ -4515,9 +4512,6 @@ function UVPlayerWreck(vehicle)
 				net.Send(driver)
 			end
 			driver:KillSilent()
-			driver:SetNoDraw(true)
-			driver:Spectate(OBS_MODE_DEATHCAM)
-			driver:SpectateEntity(driver)
 		end
 
 		UVComboBounty = UVComboBounty + 1

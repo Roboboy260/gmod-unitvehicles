@@ -791,7 +791,7 @@ function ApplyHeatSettings(heatLevel)
 	end
 end
 
-local function CheckVehicleLimit()
+function UVCheckUnitLimit(clearWrecked)
 	local activeUnits = ents.FindByClass("npc_uv*")
 	local activeUnitsCount = 0
 	local wreckedUnitsCount = #UVWreckedVehicles
@@ -801,7 +801,7 @@ local function CheckVehicleLimit()
 		activeUnitsCount = activeUnitsCount + 1
 	end
 
-	if #UVWreckedVehicles > 0 then
+	if clearWrecked and wreckedUnitsCount > 0 then
 		for k, car in pairs(UVWreckedVehicles) do
 			if IsValid(car) and #UVPotentialSuspects > 0 then
 				local closestsuspect
@@ -860,7 +860,7 @@ function HandleVehicleSpawning(Patrolling)
 		'normal',
 	}
 
-	if not CheckVehicleLimit() then pool = {} end
+	if not UVCheckUnitLimit(true) then pool = {} end
 
 	if canSpawnRoadblock then
 		table.insert(pool, 'roadblock')

@@ -3367,10 +3367,6 @@ if SERVER then
 						local closestdistancetounit, closestunit = r^2
 	
 						for i, w in pairs(units) do
-							if not w.uvmarkedfordeletion and w:GetClass() ~= 'uvair' then
-								w.uvmarkedfordeletion = true
-							end
-
 							local plypos = ply:WorldSpaceCenter()
 							local distance = plypos:DistToSqr(w:WorldSpaceCenter())
 							if distance < closestdistancetounit and UVStraightToWaypoint(plypos, w:WorldSpaceCenter()) then

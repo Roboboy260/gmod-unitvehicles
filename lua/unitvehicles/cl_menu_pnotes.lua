@@ -21,7 +21,7 @@ Update 1.9.0 is here!
             |-- Ford Crown Victoria Police Interceptor '10
             |-- Ford Police Interceptor Utility '11
             |-- Dodge Charger SRT8 Super Bee (LX) '07
-            |-- Chevrolet Corvette Stingray '17
+            |-- Chevrolet Corvette Stingray (C7) '14
             |-- Chevrolet Colorado ZR2 '17
       |-- Voice profiles:
             |-- swat1

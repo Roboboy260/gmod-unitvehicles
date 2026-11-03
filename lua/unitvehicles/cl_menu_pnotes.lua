@@ -12,68 +12,76 @@ UV.PNotes = {
 Date = { year = 2026, month = 11, day = 5 },
 Type = "Minor",
 Text = [[
-Update 1.9.0 is here!
+After a long time, update 1.9.0 is finally here!
 
 **New Features**
-- UVPD: Added new stuff for the department:
-      |-- Nissan GT-R NISMO Command Interceptor '17
-      |-- <color=255,255,100>Slicktop</color> and <color=255,255,100>Unmarked</color> Variants for:
-            |-- Ford Crown Victoria Police Interceptor '10
-            |-- Ford Police Interceptor Utility '11
-            |-- Dodge Charger SRT8 Super Bee (LX) '07
-            |-- Chevrolet Corvette Stingray (C7) '14
-            |-- Chevrolet Colorado ZR2 '17
-      |-- Voice profiles:
-            |-- swat1
-            |-- swat2
-            |-- fed1
-            |-- fed2
+- The UVPD has received new equipment:
+      |-- New Vehicles:
+            |-- Nissan GT-R NISMO Command Interceptor '17
+            |-- <color=255,255,100>Slicktop</color> and <color=255,255,100>Unmarked</color> versions of the:
+                  |-- Ford Crown Victoria Police Interceptor '10
+                  |-- Ford Police Interceptor Utility '11
+                  |-- Dodge Charger SRT8 Super Bee (LX) '07
+                  |-- Chevrolet Corvette Stingray (C7) '14
+                  |-- Chevrolet Colorado ZR2 '17
+      |-- New Voice Profiles:
+            |-- swat1 & swat2
+            |-- fed1 & fed2
             |-- commander1
-      |-- New damage system for all vehicles, now with more detachable gibs
-- Ramming/using PT against Racer AI will now make them hate you and will use PT against you
-- Added <color=255,255,100>Need for Speed: High Stakes</color> helicopter model and UI Sounds
-- Added back subtitles, now available for Default presets
-- Added <color=255,255,100>Visual Detection</color> logic
-      |-- Units will take time to recognize you on sight
-      |-- Use stealth to avoid them, hide or use <color=255,255,100>Jammer Pursuit Tech</color> to increase their detection time
-      |-- Comes with <color=255,255,100>Display Visual Detection</color> option, enabled by default
-- Added model and grid slot preview placement for <color=255,255,100>Creator: Roadblocks</color> tool and <color=255,255,100>Creator: Races</color> tool respectively
+      |-- Updated damage system for all UVPD vehicles - now with more detachable gibs
+
+- Added <color=255,255,100>Need for Speed: High Stakes</color> Helicopter model and UI SFX
+- Added a <color=255,255,100>Visual Detection</color> system
+      |-- Units now take a moment before they recognize you
+      |-- Use evasive driving to avoid them, hide or use a <color=255,255,100>Jammer</color> to increase their detection time
+      |-- Comes with a <color=255,255,100>Display Visual Detection</color> option, enabled by default
+- Added a model preview for the <color=255,255,100>Creator: Roadblocks</color> tool
+- Added a grid slot preview for the <color=255,255,100>Creator: Races</color> tool
 - Added race preview layout when selecting races
-- Added undercover flag when creating new Units
+- Added an "undercover" flag when creating new Units
+      |-- Undercover vehicles do not show up on the <color=255,255,100>Police Scanner</color>
 - Added individual vehicle spawn chances when assigning Units via <color=255,255,100>Heat Level Manager</color>
-- Added search bar for all data lists
-- Added vehicle blinking effect when resetting
+- Added a search feature for all data lists
+- Added a vehicle blinking effect when resetting
 - Added adjustable Air Unit <color=255,255,100>Cooldown Time</color>, default is 180 seconds
-- Added new Pursuit Tech Improvements:
-      |-- ESF, Stun mines, and EMP Pursuit Tech can now disable your engine! Adjust the <color=255,255,100>Disable Duration</color> in the Pursuit Tech tool or via ConVars
-      |-- All electrical Pursuit Techs (ESF, Stun Mine, EMP, Killswitch) can now disable any active Pursuit Techs you have on your vehicle
-      |-- Added custom Pursuit Tech slot override when creating units and racers <color=0,255,0>(existing data will not be affected)</color>
-      |-- <color=255,255,100>Pursuit Tech</color> tool: Added option to apply upgraded Pursuit Tech for each slot, updated visual display for it
+- Added back <color=255,255,100>Subtitles</color>, now available for the Default preset Voice Profiles
 
 **Changes**
-- Revamped <color=255,255,100>Default</color> presets:
+- Revamped the <color=255,255,100>Default</color> presets:
       |-- Make use of new UVPD vehicles
       |-- Expand until Heat 6
       |-- Re-sorted existing voice profiles
       |-- Subscribe to <color=255,255,100>[Unit Vehicles] Default Voice Pack Extended</color> to use unused/extra voice profiles
-- Patrolling Units and Traffic AI now stops at red lights (Decent Vehicle Traffic Light) or when something gets in their way
-- Made racers be able to use Jammer once again
-- AI use of pursuit tech is randomly delayed, giving you a chance to dodge it
-- Tweaked Call Response logic
+
+- Pursuit Tech Improvements:
+      |-- ESF, Stun mines, and the EMP can now disable your engine!
+            |-- Adjust the <color=255,255,100>Disable Duration</color> in the <color=255,255,100>Pursuit Tech</color> tool or via ConVars
+      |-- All electronic Pursuit Tech can now disable all active Pursuit Tech you have on your vehicle
+            |-- Affects the <color=255,255,100>ESF</color>, <color=255,255,100>Stun Mine</color>, <color=255,255,100>EMP </color>& <color=255,255,100>Killswitch</color>
+      |-- Added custom Pursuit Tech slot override when creating units and racers <color=100,255,100>(existing data will not be affected)</color>
+      |-- Tool - <color=255,255,100>Pursuit Tech</color>: Added an option to apply upgraded Pursuit Tech for each slot
+      |-- Added an updated visual display for applying upgrade Pursuit Tech on a vehicle
+
+- Pursuit Tech Adjustments: 
+      |-- Ramming or using Pursuit Tech on Racer AI will cause them to retaliate with Pursuit Tech if they have it
+      |-- AI Racers can once more use the <color=255,255,100>Jammer</color>
+      |-- AI Racers and Units' useage of Pursuit Tech now have a random delay, giving you a brief chance to avoid them
+      |-- <color=255,255,100>Spike Strips</color> are now dropped at reduced speed
+      |-- The Commander can now be given the <color=255,255,100>Repair Kit</color>
+            |-- However, they can only repair blown tires if <color=255,255,100>Can Commander Repair?</color> is disabled.
+
+- Patrolling AI Units and AI Traffic now stop at Decent Vehicle red lights, or when something blocks their way
 - Improved AI logic controlling your vehicle during Action Cam
-- Improved chatter logic
-- Spike(s) are dropped at a reduced speed when using Spikes strip Pursuit Tech
+- Tweaked Call Response and Police Radio logic
 - Units and Racers will no longer instantly get wrecked/busted/disqualified when underwater
-- Tweaked penalty logic when resetting as a Racer during pursuits
+- Tweaked the penalty logic when resetting as a Racer during pursuits
 
 **Fixes**
 - Fixed UVPD Dispatcher lines being too loud
-- Fixed the issue where you cant use Pursuit Tech while in Action Cam
+- Fixed an issue where you can't use Pursuit Tech while in Action Cam
 - Fixed time formatting
 - Fixed some Pursuit Tech SFX being too quiet
 - Fixed your own Spikes Strip getting removed by your own Jammer
-- Fixed Commander Repairing logic:
-      |-- Commander can now be given Repair Kit Pursuit Tech, but will only repair blown tires if 'Can Commander Repair?' option is turned off
 - Fixed Roadblock Units respawning way too soon
 
 /// RACE /// CHASE /// ESCAPE ///

@@ -54,7 +54,7 @@ Update 1.9.0 is here!
 - Revamped <color=255,255,100>Default</color> presets:
       |-- Make use of new UVPD vehicles
       |-- Expand until Heat 6
-      |-- Resorted voice profiles
+      |-- Re-sorted existing voice profiles
       |-- Subscribe to <color=255,255,100>[Unit Vehicles] Default Voice Pack Extended</color> to use unused/extra voice profiles
 - Patrolling Units and Traffic AI now stops at red lights (Decent Vehicle Traffic Light) or when something gets in their way
 - Made racers be able to use Jammer once again

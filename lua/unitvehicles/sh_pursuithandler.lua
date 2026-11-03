@@ -997,7 +997,7 @@ HEAT_DEFAULTS = {
 	},
 	['heatminimumbounty'] = {
 		['1'] = 1000,
-		['2'] = 10000,
+		['2'] = 5000,
 		['3'] = 50000,
 		['4'] = 250000,
 		['5'] = 1000000,
@@ -1033,9 +1033,9 @@ HEAT_DEFAULTS = {
 	},
 	['backuptimer'] = {
 		['1'] = 120,
-		['2'] = 120,
+		['2'] = 105,
 		['3'] = 90,
-		['4'] = 90,
+		['4'] = 75,
 		['5'] = 60,
 		['6'] = 60,
 		['7'] = 60,
@@ -1169,23 +1169,23 @@ conVarList["bountycommander"] = 100000
 conVarList["bountyrhino"] = 50000
 
 local defaultdrivermodeltable = {
-	"police.json, policefem.json", --Patrol
-	"police.json, policefem.json", --Support
-	"police.json, policefem.json", --Pursuit
-	"police.json, policefem.json", --Interceptor
+	"police.json policefem.json", --Patrol
+	"police.json policefem.json", --Support
+	"police.json policefem.json", --Pursuit
+	"police.json policefem.json", --Interceptor
 	"combine.json", --Special
 	"combineelite.json", --Commander
 	"combineprison.json", --Rhino
 }
 
 local defaultvoicetable = {
-	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Patrol
-	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Support
-	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Pursuit
-	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Interceptor
-	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Special
+	"patrol1,patrol2", --Patrol
+	"support1,support2", --Support
+	"pursuit1,pursuit2,pursuit3,pursuit4", --Pursuit
+	"federal1,federal2", --Interceptor
+	"swat1,swat2", --Special
 	"commander1", --Commander
-	"cop1, cop2, cop3, cop4, cop5, cop6, cop7, cop8", --Rhino
+	"swat1,swat2", --Rhino
 	"air1", --Air
 }
 
@@ -1206,13 +1206,11 @@ end
 for index, v in pairs( {'Patrol', 'Support', 'Pursuit', 'Interceptor', 'Special', 'Commander', 'Rhino'} ) do
 	local lowercaseUnit = string.lower( v )
 	local conVarKey = string.format( '%s_drivermodel', lowercaseUnit )
-	local conVarKeyDriverModelProfile = string.format( '%s_drivermodel', lowercaseUnit )
 	conVarList[conVarKey] = defaultdrivermodeltable[index]
-	conVarList[conVarKeyDriverModelProfile] = "default"
 end
 
 local unitsheat1 = {
-	"default_crownvic.json", --Patrol
+	"default_crownvicuc.json default_crownvic.json default_crownvicst.json", --Patrol
 	"", --Support
 	"", --Pursuit
 	"", --Interceptor
@@ -1222,8 +1220,8 @@ local unitsheat1 = {
 }
 
 local unitsheat2 = {
-	"default_crownvic.json", --Patrol
-	"default_explorer.json", --Support
+	"default_crownvicuc.json default_crownvic.json default_crownvicst.json", --Patrol
+	"default_explorer.json default_exploreruc.json default_explorerst.json", --Support
 	"", --Pursuit
 	"", --Interceptor
 	"", --Special
@@ -1232,9 +1230,9 @@ local unitsheat2 = {
 }
 
 local unitsheat3 = {
-	"default_crownvic.json", --Patrol
-	"default_explorer.json", --Support
-	"default_chargerbee.json", --Pursuit
+	"default_crownvicuc.json default_crownvic.json default_crownvicst.json", --Patrol
+	"default_explorer.json default_exploreruc.json default_explorerst.json", --Support
+	"default_chargerbeest.json default_chargerbee.json default_chargerbeeuc.json", --Pursuit
 	"", --Interceptor
 	"", --Special
 	"", --Commander
@@ -1243,9 +1241,9 @@ local unitsheat3 = {
 
 local unitsheat4 = {
 	"", --Patrol
-	"default_explorer.json", --Support
-	"default_chargerbee.json", --Pursuit
-	"default_corvettec7.json", --Interceptor
+	"default_explorer.json default_exploreruc.json default_explorerst.json", --Support
+	"default_chargerbeeuc.json default_chargerbee.json default_chargerbeest.json", --Pursuit
+	"default_corvettec7uc.json default_corvettec7.json default_corvettec7st.json", --Interceptor
 	"", --Special
 	"", --Commander
 	"" --Rhino
@@ -1254,10 +1252,10 @@ local unitsheat4 = {
 local unitsheat5 = {
 	"", --Patrol
 	"", --Support
-	"default_chargerbee.json", --Pursuit
-	"default_corvettec7.json", --Interceptor
-	"default_coloradozr2.json", --Special
-	"default_viperelite.json", --Commander
+	"default_chargerbeeuc.json default_chargerbee.json default_chargerbeest.json", --Pursuit
+	"default_corvettec7uc.json default_corvettec7.json default_corvettec7st.json", --Interceptor
+	"default_coloradozr2st.json default_coloradozr2.json default_coloradozr2uc.json", --Special
+	"", --Commander
 	"default_rhinotruck.json" --Rhino
 }
 
@@ -1265,9 +1263,9 @@ local unitsheat6 = {
 	"", --Patrol
 	"", --Support
 	"", --Pursuit
-	"default_corvettec7.json", --Interceptor
-	"default_coloradozr2.json", --Special
-	"default_viperelite.json", --Commander
+	"default_corvettec7uc.json default_corvettec7.json default_corvettec7st.json", --Interceptor
+	"default_coloradozr2st.json default_coloradozr2.json default_coloradozr2uc.json", --Special
+	"default_r35nismo.json", --Commander
 	"default_rhinotruck.json" --Rhino
 }
 
@@ -1300,7 +1298,7 @@ for i = 1, MAX_HEAT_LEVEL do
 		end
 		
 		conVarList[chanceConVarKey] = 100
-		conVarList[limitConVarKey] = 0
+		conVarList[limitConVarKey] = lowercaseUnit == "rhino" and i >= 5 and i <= 6 and 2 or 0
 	end
 	
 	for _, conVar in pairs( HEAT_SETTINGS ) do
@@ -1515,7 +1513,7 @@ ActionCamTakedown = CreateConVar("unitvehicle_actioncam_takedown", 1, {FCVAR_ARC
 ActionCamTakedownThreshold = CreateConVar("unitvehicle_actioncam_takedownthreshold", 1000, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: Distance to trigger.")
 ActionCamPursuitBreaker = CreateConVar("unitvehicle_actioncam_pursuitbreaker", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit Pursuit Breakers. Your vehicle will be taken over by an AI temporarily.")
 
-UVUOneCommanderHealth = CreateConVar("unitvehicle_unit_onecommanderhealth", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+UVUOneCommanderHealth = CreateConVar("unitvehicle_unit_onecommanderhealth", 5000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUCommanderRepair = CreateConVar("unitvehicle_unit_commanderrepair", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED},"Unit Vehicles: If set to 1, Commander Units can utilize the Repair Shop to repair themselves.")
 
 UVUTimeTillNextHeatEnabled = CreateConVar("unitvehicle_unit_timetillnextheatenabled", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, Heat Levels will progress automatically based on the time until the next heat level.")
@@ -1536,7 +1534,7 @@ UVRMaxRacer = CreateConVar("unitvehicle_racer_maxracer", 5, {FCVAR_ARCHIVE, FCVA
 UVRDriverModels = CreateConVar("unitvehicle_racer_drivermodel", "", {ShouldArchive}, "Assigned Racer Driver Models")
 
 --unit convars
-UVUVehicleBase = CreateConVar("unitvehicle_unit_vehiclebase", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "\n1 = Default Vehicle Base (prop_vehicle_jeep)\n2 = simfphys\n3 = Glide")
+UVUVehicleBase = CreateConVar("unitvehicle_unit_vehiclebase", 3, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "\n1 = Default Vehicle Base (prop_vehicle_jeep)\n2 = simfphys\n3 = Glide")
 
 UVUPursuitTech = CreateConVar("unitvehicle_unit_pursuittech", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, AI and player-controlled Unit Vehicles can use weapons (spike strips, ESF, EMP, etc.).")
 UVUPursuitTech_ESF = CreateConVar("unitvehicle_unit_pursuittech_esf", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, AI and player-controlled Unit Vehicles can spawn with ESF.")
@@ -1592,7 +1590,7 @@ end
 
 for _, v in pairs( {'Misc', 'Dispatch'} ) do
 	local lowercaseType = string.lower( v )
-	CreateConVar( "unitvehicle_unit_" .. lowercaseType .. "_voiceprofile", "", {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+	CreateConVar( "unitvehicle_unit_" .. lowercaseType .. "_voiceprofile", "default", {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 end
 
 for i = 1, MAX_HEAT_LEVEL do
@@ -1608,9 +1606,9 @@ for i = 1, MAX_HEAT_LEVEL do
 
 		ReplicatedVars["unitvehicle_unit_" .. conVarKey] = true
 
-		CreateConVar( "unitvehicle_unit_" .. conVarKey, "", {ShouldArchive})
-		CreateConVar( "unitvehicle_unit_" .. conVarKey .. "_chance", 100, {FCVAR_REPLICATED, FCVAR_ARCHIVE})
-		CreateConVar( "unitvehicle_unit_" .. conVarKey .. "_limit", 0, {FCVAR_REPLICATED, FCVAR_ARCHIVE})
+		CreateConVar( "unitvehicle_unit_" .. conVarKey, conVarList[conVarKey], {ShouldArchive})
+		CreateConVar( "unitvehicle_unit_" .. conVarKey .. "_chance", conVarList[conVarKey .. "_chance"], {FCVAR_REPLICATED, FCVAR_ARCHIVE})
+		CreateConVar( "unitvehicle_unit_" .. conVarKey .. "_limit", conVarList[conVarKey .. "_limit"], {FCVAR_REPLICATED, FCVAR_ARCHIVE})
 	end
 
 	for _, conVar in pairs( HEAT_SETTINGS ) do

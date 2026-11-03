@@ -40,7 +40,7 @@ Update 1.9.0 is here!
 - Added model and grid slot preview placement for <color=255,255,100>Creator: Roadblocks</color> tool and <color=255,255,100>Creator: Races</color> tool respectively
 - Added race preview layout when selecting races
 - Added undercover flag when creating new Units
-- Added individual vehicle chances when assigning Units via <color=255,255,100>Heat Level Manager</color>
+- Added individual vehicle spawn chances when assigning Units via <color=255,255,100>Heat Level Manager</color>
 - Added search bar for all data lists
 - Added vehicle blinking effect when resetting
 - Added adjustable Air Unit <color=255,255,100>Cooldown Time</color>, default is 180 seconds

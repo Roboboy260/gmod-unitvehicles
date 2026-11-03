@@ -1095,7 +1095,7 @@ if SERVER then
         -- Penalties for 3s
         local scope = UVGetScope(vehicle)
 
-		if not vehicle.aicontrolled and scope and not scope.EnemyEscaping and (scope.InPursuit or scope.IsBeingPulledOver) then
+		if not vehicle.aicontrolled and scope and (scope.InPursuit or scope.IsBeingPulledOver) then
 			vehicle.UVBustingPenaltyMult = 5
 		end
 
@@ -1181,7 +1181,7 @@ if SERVER then
 
 				if IsValid(car) and car:GetDriver() == ply then
 					UVResetPosition(car)
-					if UVTargeting and not UVHUDCooldown then
+					if car.UVBustingPenaltyMult and car.UVBustingPenaltyMult > 1 then
 						net.Start( "uvresetpenalty" )
 						net.WriteInt(3, 16)
 						net.Send(ply)

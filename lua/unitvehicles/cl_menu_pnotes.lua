@@ -50,7 +50,6 @@ Update 1.9.0 is here!
       |-- Added custom Pursuit Tech slot override when creating units and racers <color=0,255,0>(existing data will not be affected)</color>
       |-- <color=255,255,100>Pursuit Tech</color> tool: Added option to apply upgraded Pursuit Tech for each slot, updated visual display for it
 
-
 **Changes**
 - Revamped <color=255,255,100>Default</color> presets:
       |-- Make use of new UVPD vehicles

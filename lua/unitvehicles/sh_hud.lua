@@ -1819,8 +1819,8 @@ function UVRenderCommander(ent)
 			displayString = UVString("uv.dist.meter")
 		end
 		
+		if not GetConVar("cl_drawhud"):GetBool() then return end
         cam.Start2D()
-			if not GetConVar("cl_drawhud"):GetBool() then return end
 			
 			-- local bustdist = math.Round(displayDist) .. " m"
 			
@@ -2105,8 +2105,8 @@ function UVRenderEnemySquare(ent)
 			displayString = UVString("uv.dist.meter")
 		end
 
+		if not GetConVar("cl_drawhud"):GetBool() then return end
         cam.Start2D()
-			if not GetConVar("cl_drawhud"):GetBool() then return end
 			local pos = ent:GetPos() + Vector(0, 0, 80)
 			local bustpro = math.Clamp(math.floor((((ent.UVBustingProgress or 0) / BustedTimer:GetInt()) * 100) + .5), 0, 100)
 			local bustdist = math.Round(distInMeters) .. " m"

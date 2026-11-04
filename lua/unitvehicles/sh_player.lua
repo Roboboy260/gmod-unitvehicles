@@ -609,7 +609,7 @@ if SERVER then
 
         local vehicle_class = vehicle:GetClass()
         
-        if rhino or not UVCheckUnitLimit() then
+        if not commander and (rhino or not UVCheckUnitLimit()) then
             SafeRemoveEntity(NPC) --yeahhh
             return
         end

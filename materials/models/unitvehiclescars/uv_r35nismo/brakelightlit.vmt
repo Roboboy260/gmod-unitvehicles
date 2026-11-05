@@ -1,0 +1,28 @@
+VertexLitGeneric
+{
+	$basetexture		"models\unitvehiclescars\uv_r35nismo\brakelightlit.vtf"
+
+	"$selfillum" 1
+	"$nodecal" "1"
+	"$phong" 1
+	"$nocull" 1
+
+	"$phongboost" "1"
+	"$phongexponent" 7
+
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[.3 .3 .3]"
+	"$envmapfresnel" "1"
+
+	"$phongfresnelranges" "[0.1 0.1 0.1]"
+
+	"$colorfix" "{255 255 255}"
+	"Proxies"
+	{
+		"Equals"
+		{
+			srcVar1 $colorfix
+			resultVar	$color
+		}
+	}
+}

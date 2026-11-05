@@ -200,6 +200,21 @@ UVMenuSound({
     }
 })
 
+UVMenuSound({
+    name = "HS",
+    displayname = "High Stakes",
+    sounds = {
+       menuopen  = "uvui/HS/ZFESFX8.wav",
+        menuclose = "uvui/HS/ZFESFX9.wav",
+        hover     = "uvui/HS/ZFESFX5.wav",
+        hovertab  = "uvui/HS/ZFESFX5.wav",
+        click     = "uvui/HS/ZFESFX1.wav",
+        clickopen = "uvui/HS/ZFESFX9.wav",
+        clickback = "uvui/HS/ZFESFX9.wav",
+        confirm   = "uvui/HS/ZFESFX1.wav"
+    }
+})
+
 
 -- if cffunctions then -- Hero's Glide Extras
 	-- UVAddon({
@@ -263,6 +278,16 @@ UVMenu.Sounds = {
         clickback = "uvui/HP2/fesfx#15.wav",
         confirm   = "uvui/HP2/fesfx#1.wav"
     },
+	["HS"] = {
+       menuopen  = "uvui/HS/ZFESFX8.wav",
+        menuclose = "uvui/HS/ZFESFX9.wav",
+        hover     = "uvui/HS/ZFESFX5.wav",
+        hovertab  = "uvui/HS/ZFESFX5.wav",
+        click     = "uvui/HS/ZFESFX1.wav",
+        clickopen = "uvui/HS/ZFESFX9.wav",
+        clickback = "uvui/HS/ZFESFX9.wav",
+        confirm   = "uvui/HS/ZFESFX1.wav"
+	}
 }
 
 --[[ 
@@ -880,7 +905,7 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 			-- end
 			-- return p
 			
-			mat = Material("unitvehicles/icons_settings/pnotes/1.0.0.png", "smooth")
+			mat = Material("unitvehicles/icons_settings/pnotes/pnotesplaceholder.png", "smooth")
 		end
 
 		-- Cache image size
@@ -1599,6 +1624,8 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 		btn.OnCursorEntered = function()
 			if descPanel then
 				descPanel.Desc = st.desc or ""
+				descPanel.Layout = st.layout
+				descPanel.Grid = st.grid
 				if st.convar then
 					descPanel.SelectedConVar = st.convar or "?"
 				end
@@ -1608,6 +1635,8 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 		btn.OnCursorExited = function()
 			if descPanel then
 				descPanel.Desc = ""
+				descPanel.Layout = nil
+				descPanel.Grid = nil
 				if st.convar then
 					descPanel.SelectedConVar = ""
 				end
@@ -2854,6 +2883,14 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 			surface.DrawRect(0, 0, w, h)
 		end
 
+		local searchEntry = vgui.Create("DTextEntry", panel)
+		searchEntry:Dock(TOP)
+		searchEntry:DockMargin(6, 6, 6, 0)
+		searchEntry:SetTall(UV.ScaleH(30))
+		searchEntry:SetFont("UVSettingsFont")
+		searchEntry:SetPlaceholderText(UVString("uv.search"))
+		searchEntry:SetUpdateOnType(true)
+
 		local scroll = vgui.Create("DScrollPanel", panel)
 		scroll:Dock(FILL)
 		scroll:DockMargin(0, 6, 0, 0)
@@ -2971,13 +3008,38 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 			table.sort(buttonNames, function(a, b)
 				return tostring(a):lower() < tostring(b):lower()
 			end)
-	
+
+			local query = string.Trim(searchEntry:GetValue()):lower()
+			local matchingPresets = 0
 			for _, name in ipairs(buttonNames) do
-				addButton( name )
+				if query == "" or string.find(tostring(name):lower(), query, 1, true) then
+					addButton(name)
+					matchingPresets = matchingPresets + 1
+				end
+			end
+
+			if query ~= "" and matchingPresets == 0 then
+				local empty = vgui.Create("DLabel", scroll)
+				empty:Dock(TOP)
+				empty:SetTall(UV.ScaleH(30))
+				empty:SetText(UVString("uv.search.noresults"))
+				empty:SetTextColor(Color(200, 200, 200))
+				empty:SetContentAlignment(5)
 			end
 		end
 
 		refreshButtons()
+		searchEntry.OnTextChanged = refreshButtons
+		searchEntry.OnGetFocus = function()
+			if IsValid(UV.SettingsFrame) then
+				UV.SettingsFrame:SetKeyboardInputEnabled(true)
+			end
+		end
+		searchEntry.OnLoseFocus = function()
+			if IsValid(UV.SettingsFrame) then
+				UV.SettingsFrame:SetKeyboardInputEnabled(false)
+			end
+		end
 
 		-- local exportPanel
 		-- if not st.importonly then
@@ -3035,6 +3097,18 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 		--
 
 		local panelBottom
+		local actionRow
+		local saveBtn
+		local deleteBtn
+
+		local function layoutActionButtons()
+			if not IsValid(actionRow) then return end
+
+			local width = math.max(0, math.floor((actionRow:GetWide() - 6) * 0.5))
+			if IsValid(saveBtn) then saveBtn:SetWide(width) end
+			if IsValid(deleteBtn) then deleteBtn:SetWide(width) end
+		end
+
 		if not st.importonly then
 			panelBottom = vgui.Create("DPanel", panel)
 			panelBottom:Dock(BOTTOM)
@@ -3062,6 +3136,14 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 				end
 			end
 
+			actionRow = vgui.Create("DPanel", panelBottom)
+			actionRow:Dock(BOTTOM)
+			actionRow:DockMargin(6, 0, 6, 6)
+			actionRow:SetTall(UV.ScaleH(42))
+			actionRow.Paint = nil
+
+			actionRow.OnSizeChanged = layoutActionButtons
+
 			textbox.OnTextChanged = function(self)
 				presetName = self:GetValue()
 			end
@@ -3085,14 +3167,12 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 
 		--
 
-		local saveBtn
-		
 		if not st.importonly then
-			saveBtn = vgui.Create("DButton", panelBottom)
+			saveBtn = vgui.Create("DButton", actionRow)
 			saveBtn:Dock(RIGHT)
-			saveBtn:DockMargin(6, 6, 6, 6)
-			saveBtn:SetWide(UV.ScaleW(400))
-			saveBtn:SetTall(UV.ScaleH(35))
+			saveBtn:DockMargin(6, 6, 0, 0)
+			saveBtn:SetWide(0)
+			saveBtn:SetTall(UV.ScaleH(36))
 			saveBtn:SetText(" ")
 
 			saveBtn.DoClick = function(self)
@@ -3167,14 +3247,12 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 
 		--
 
-		local deleteBtn
-		
 		if not st.importonly then
-			deleteBtn = vgui.Create("DButton", panelBottom)
+			deleteBtn = vgui.Create("DButton", actionRow)
 			deleteBtn:Dock(LEFT)
-			deleteBtn:DockMargin(6, 6, 6, 6)
-			deleteBtn:SetWide(UV.ScaleW(400))
-			deleteBtn:SetTall(UV.ScaleH(35))
+			deleteBtn:DockMargin(0, 6, 6, 0)
+			deleteBtn:SetWide(0)
+			deleteBtn:SetTall(UV.ScaleH(36))
 			deleteBtn:SetText(" ")
 
 			deleteBtn.DoClick = function(self)
@@ -3232,12 +3310,14 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 				if descPanel then descPanel.Desc = "" end
 				if promptBar then promptBar.Prompts = nil end
 			end
+
+			timer.Simple(0, layoutActionButtons)
 		end
 
 		return panel
 	end
 	
-	if st.type == "unitselect" then
+	if st.type == "unitselect" or st.type == "drivermodel" then
 		local panel = vgui.Create("DPanel", parent)
 		panel:Dock(TOP)
 		panel:DockMargin(8, 4, 8, 4)
@@ -3253,6 +3333,14 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 			local text = UVString(GetDisplayText()) or "???"
 			DrawWrappedText(self, text, w * 0.95, w * 0.5, 2.5, true, "UVSettingsFontBig")
 		end
+
+		local searchEntry = vgui.Create("DTextEntry", panel)
+		searchEntry:Dock(TOP)
+		searchEntry:DockMargin(UV.ScaleW(8), UV.ScaleH(4), UV.ScaleW(8), 0)
+		searchEntry:SetTall(UV.ScaleH(30))
+		searchEntry:SetFont("UVSettingsFont")
+		searchEntry:SetPlaceholderText(UVString("uv.search"))
+		searchEntry:SetUpdateOnType(true)
 
 		local body = vgui.Create("DPanel", panel)
 		body:Dock(FILL)
@@ -3277,13 +3365,22 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 		end
 
 		local vehicleBases = {
-			{ id = 1, name = "HL2",      path = "prop_vehicle_jeep>>units", type = "txt"  },
-			{ id = 2, name = "Simfphys", path = "simfphys>>units",           type = "txt"  },
-			{ id = 3, name = "Glide",    path = "glide>>units",               type = "json" },
-			{ id = 4, name = "LVS",      path = "lvs>>units",                 type = "json" }
+			{ id = 1, name = "HL2", path = "prop_vehicle_jeep>>units", type = "txt"  },
+			{ id = 2, name = "Simfphys", path = "simfphys>>units", type = "txt"  },
+			{ id = 3, name = "Glide", path = "glide>>units", type = "json" },
+			{ id = 4, name = "LVS", path = "lvs>>units", type = "json" },
+			{ id = 5, name = "DriverModel", path = "drivermodels", type = "json" }
 		}
 		
 		local activeFilterBaseId = 0 -- 0 = show all
+
+		if st.type == "drivermodel" then
+			activeFilterBaseId = 5
+		end
+
+		local function matchesSearch(entry, query)
+			return query == "" or string.find(entry.display:lower(), query, 1, true) ~= nil
+		end
 		
 		local filterBar = vgui.Create("DIconLayout", panel)
 		filterBar:Dock(TOP)
@@ -3384,7 +3481,7 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 					table.insert(entries, {
 						filename = filename, -- stored value
 						base  = base.name,
-						display  = "[ " .. base.name .. " ] " .. filename,
+						display  = st.type == "unitselect" and "[ " .. base.name .. " ] " .. filename or filename,
 						baseId   = base.id
 					})
 				end
@@ -3395,9 +3492,29 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 
 		local selected = getUnitTable()
 
+		local function getVehicleChance(entry)
+			local heat = string.match(st.convar, "(%d+)$")
+			local unit = string.match(st.convar, "units([%a]+)%d+$")
+			return UVGetVehicleSpawnChance(tonumber(heat) or 1, unit or "", entry.baseId, entry.filename)
+		end
+
+		local function setVehicleChance(entry, value)
+			local heat = string.match(st.convar, "(%d+)$")
+			local unit = string.match(st.convar, "units([%a]+)%d+$")
+			local key = UVVehicleSpawnChanceKey(tonumber(heat) or 1, unit or "", entry.baseId, entry.filename)
+
+			net.Start("UVVehicleSpawnChance")
+				net.WriteString(key)
+				net.WriteUInt(math.Clamp(math.Round(value), 0, 100), 7)
+			net.SendToServer()
+		end
+
 		local function refreshLists()
 			left:Clear()
 			right:Clear()
+			local searchQuery = string.Trim(searchEntry:GetValue()):lower()
+			local visibleSelected = 0
+			local visibleAvailable = 0
 
 			local availableUnits = {}
 			local availableUnitsList = getAvailableUnits()
@@ -3445,14 +3562,24 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 			end
 
 			for _, entry in ipairs(selectedEntries) do
-				if activeFilterBaseId ~= 0 and entry.baseId ~= activeFilterBaseId then
+				if (activeFilterBaseId ~= 0 and entry.baseId ~= activeFilterBaseId)
+					or (st.type == "unitselect" and entry.baseId == 5)
+					or not matchesSearch(entry, searchQuery) then
 					continue
 				end
 
-				local btn = right:Add("DButton")
+				visibleSelected = visibleSelected + 1
+
+				local row = right:Add("DPanel")
+				row:Dock(TOP)
+				row:DockMargin(0, 0, 0, 2)
+				local entryHeight = UV.ScaleH(24)
+				row:SetTall(entryHeight + (st.type == "unitselect" and UV.ScaleH(28) or 0))
+				row.Paint = nil
+
+				local btn = row:Add("DButton")
 				btn:Dock(TOP)
-				btn:DockMargin(0, 0, 0, 4)
-				btn:SetTall(UV.ScaleH(24))
+				btn:SetTall(entryHeight)
 				btn:SetText("")
 				btn.Selected = true
 				btn.Missing = not entry.exists
@@ -3494,7 +3621,7 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 					end
 
 					local textCol = self.Missing and Color(255,60,60) or nil
-					DrawWrappedText(self, entry.display, w * 0.95, w * 0.05, 0, nil, "UVSettingsFontSmall", nil, textCol)
+					UVDrawCursorText(self, entry.display, "UVSettingsFontSmall", w * 0.05, h * 0.5, textCol or color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, 1.5, color_black, w * 0.05, w * 0.95)
 				end
 
 				btn.DoClick = function()
@@ -3516,16 +3643,107 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 				btn.OnCursorExited = function()
 					if promptBar then promptBar.Prompts = nil end
 				end
+
+				if st.type == "unitselect" then
+					local chancePanel = row:Add("DPanel")
+					chancePanel:Dock(TOP)
+					chancePanel:SetTall(UV.ScaleH(28))
+					chancePanel:DockMargin(UV.ScaleW(6), 0, UV.ScaleW(6), 0)
+					chancePanel.Paint = nil
+
+					local chanceValue = math.Round(getVehicleChance(entry))
+
+					local chanceBox = chancePanel:Add("DTextEntry")
+					chanceBox:Dock(RIGHT)
+					chanceBox:SetWide(UV.ScaleW(58))
+					chanceBox:DockMargin(UV.ScaleW(6), UV.ScaleH(2), 0, UV.ScaleH(2))
+					chanceBox:SetFont("UVSettingsFontSmall")
+					chanceBox:SetTextColor(color_white)
+					chanceBox:SetHighlightColor(Color(58, 193, 0))
+					chanceBox:SetCursorColor(Color(58, 193, 0))
+					chanceBox:SetText(chanceValue .. "%")
+					chanceBox:SetContentAlignment(5)
+					chanceBox:SetZPos(2)
+					chanceBox.Paint = function(self, w, h)
+						draw.RoundedBox(4, 0, 0, w, h, Color(30, 30, 30, 220))
+						self:DrawTextEntryText(color_white, Color(58, 193, 0), color_white)
+					end
+
+					local chance = chancePanel:Add("DNumSlider")
+					chance:Dock(FILL)
+					chance:SetMin(0)
+					chance:SetMax(100)
+					chance:SetDecimals(0)
+					chance:SetValue(chanceValue)
+					chance.Label:SetVisible(false)
+					chance.TextArea:SetVisible(false)
+
+					local editing = false
+					local function applyChance(value)
+						local clamped = math.Clamp(math.Round(tonumber(value) or chanceValue), 0, 100)
+						chanceValue = clamped
+						chance:SetValue(clamped)
+						chanceBox:SetText(clamped .. "%")
+						setVehicleChance(entry, clamped)
+					end
+
+					chance.OnValueChanged = function(_, value)
+						local clamped = math.Clamp(math.Round(value), 0, 100)
+						chanceValue = clamped
+						if not editing then
+							chanceBox:SetText(clamped .. "%")
+							setVehicleChance(entry, clamped)
+						end
+					end
+
+					chanceBox.OnGetFocus = function()
+						editing = true
+						if IsValid(UV.SettingsFrame) then
+							UV.SettingsFrame:SetKeyboardInputEnabled(true)
+						end
+						chanceBox:SetText(tostring(chanceValue))
+						chanceBox:SelectAllText()
+					end
+
+					chanceBox.OnEnter = function(self)
+						editing = false
+						applyChance(string.Trim(self:GetValue()):gsub("%%", ""))
+						self:KillFocus()
+					end
+
+					chanceBox.OnLoseFocus = function(self)
+						if editing then
+							applyChance(string.Trim(self:GetValue()):gsub("%%", ""))
+							editing = false
+						end
+						if IsValid(UV.SettingsFrame) then
+							UV.SettingsFrame:SetKeyboardInputEnabled(false)
+						end
+					end
+				end
+			end
+
+			if searchQuery ~= "" and visibleSelected == 0 then
+				local empty = vgui.Create("DLabel", right)
+				empty:Dock(TOP)
+				empty:SetTall(UV.ScaleH(24))
+				empty:SetText(UVString("uv.search.noresults"))
+				empty:SetTextColor(Color(200, 200, 200))
+				empty:SetContentAlignment(5)
 			end
 
 			for _, entry in ipairs(unselEntries) do
-				if activeFilterBaseId ~= 0 and entry.baseId ~= activeFilterBaseId then
+				if (activeFilterBaseId ~= 0 and entry.baseId ~= activeFilterBaseId)
+					or (st.type == "unitselect" and entry.baseId == 5)
+					or not matchesSearch(entry, searchQuery) then
 					continue
 				end
 
+				visibleAvailable = visibleAvailable + 1
+
 				local btn = left:Add("DButton")
 				btn:Dock(TOP)
-				btn:DockMargin(0, 0, 0, 4)
+				btn:DockMargin(0, 0, 0, 2)
 				btn:SetTall(UV.ScaleH(24))
 				btn:SetText("")
 				btn.Selected = false
@@ -3554,7 +3772,7 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 						draw.RoundedBox(12, w * 0.0125, 0, w * 0.9875, h, hover)
 					end
 
-					DrawWrappedText(self, entry.display, w * 0.95, w * 0.05, 0, nil, "UVSettingsFontSmall")
+					UVDrawCursorText(self, entry.display, "UVSettingsFontSmall", w * 0.05, h * 0.5, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, 1.5, color_black, w * 0.05, w * 0.95)
 				end
 
 				btn.DoClick = function()
@@ -3576,6 +3794,27 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 				btn.OnCursorExited = function()
 					if promptBar then promptBar.Prompts = nil end
 				end
+			end
+
+			if searchQuery ~= "" and visibleAvailable == 0 then
+				local empty = vgui.Create("DLabel", left)
+				empty:Dock(TOP)
+				empty:SetTall(UV.ScaleH(24))
+				empty:SetText(UVString("uv.search.noresults"))
+				empty:SetTextColor(Color(200, 200, 200))
+				empty:SetContentAlignment(5)
+			end
+		end
+
+		searchEntry.OnTextChanged = refreshLists
+		searchEntry.OnGetFocus = function()
+			if IsValid(UV.SettingsFrame) then
+				UV.SettingsFrame:SetKeyboardInputEnabled(true)
+			end
+		end
+		searchEntry.OnLoseFocus = function()
+			if IsValid(UV.SettingsFrame) then
+				UV.SettingsFrame:SetKeyboardInputEnabled(false)
 			end
 		end
 
@@ -3624,11 +3863,13 @@ function UV.BuildSetting(parent, st, descPanel, promptBar)
 			end
 		end
 
-		addFilterButton(UVString("all"), 0)
-		addFilterButton("HL2", 1)
-		addFilterButton("Simfphys", 2)
-		addFilterButton("Glide", 3)
-		addFilterButton("LVS", 4)
+		if st.type == "unitselect" then
+			addFilterButton(UVString("all"), 0)
+			addFilterButton("HL2", 1)
+			addFilterButton("Simfphys", 2)
+			addFilterButton("Glide", 3)
+			addFilterButton("LVS", 4)
+		end
 
 		timer.Simple(0, function()
 			if IsValid(panel) then
@@ -4788,7 +5029,7 @@ function UVMenu:Open(menu)
 		local chromePadding = UV.ScaleH(140)
 
 		local maxH = ScrH() * 0.92
-		local desiredH = contentH + chromePadding
+		local desiredH = math.max(contentH + chromePadding, CurrentMenu.MinHeight or 0)
 
 		if desiredH >= maxH then
 			CurrentMenu.Height = maxH - SCROLL_SAFETY
@@ -4859,11 +5100,63 @@ function UVMenu:Open(menu)
     if ShowDesc then
         descPanel = vgui.Create("DPanel", frame)
         descPanel:Dock(RIGHT)
-        descPanel:SetWide(math.Clamp(fw * 0.25, UV.ScaleW(220), UV.ScaleW(380)))
+        descPanel:SetWide(math.Clamp(fw * 0.4, UV.ScaleW(320), UV.ScaleW(500)))
         descPanel.Paint = function(self, w, h)
             local a = self:GetAlpha()
             surface.SetDrawColor( GetConVar("uvmenu_col_desc_r"):GetInt(), GetConVar("uvmenu_col_desc_g"):GetInt(), GetConVar("uvmenu_col_desc_b"):GetInt(), math.floor(GetConVar("uvmenu_col_desc_a"):GetInt() * (a / 255)) )
             surface.DrawRect(0, 0, w, h)
+
+            local layout = self.Layout
+            local route = layout or {}
+            local grid = self.Grid or {}
+            if #route > 0 or #grid > 0 then
+                local firstPoint = route[1] or grid[1]
+                local minX, maxX = firstPoint.x, firstPoint.x
+                local minY, maxY = firstPoint.y, firstPoint.y
+                for _, point in ipairs(layout) do
+                    minX = math.min(minX, point.x)
+                    maxX = math.max(maxX, point.x)
+                    minY = math.min(minY, point.y)
+                    maxY = math.max(maxY, point.y)
+                end
+                for _, point in ipairs(grid) do
+                    minX = math.min(minX, point.x)
+                    maxX = math.max(maxX, point.x)
+                    minY = math.min(minY, point.y)
+                    maxY = math.max(maxY, point.y)
+                end
+
+                local padding = 28
+                local topOffset = 110
+                local mapWidth, mapHeight = w - padding * 2, h - topOffset - padding - 28
+                local scale = math.min(mapWidth / math.max(maxX - minX, 1), mapHeight / math.max(maxY - minY, 1))
+                local function toScreen(point)
+                    return padding + (point.x - minX) * scale, topOffset + (maxY - point.y) * scale
+                end
+
+                surface.SetDrawColor(0, 0, 0, math.floor(90 * (a / 255)))
+                surface.DrawRect(padding - 8, topOffset - 8, mapWidth + 16, mapHeight + 16)
+
+                for _, spawn in ipairs(grid) do
+                    local x, y = toScreen(spawn)
+                    draw.RoundedBox(2, x - 7, y - 4, 4, 4, Color(255, 100, 20, a))
+                end
+
+                for index = 1, #route - 1 do
+                    local x1, y1 = toScreen(route[index])
+                    local x2, y2 = toScreen(route[index + 1])
+                    surface.SetDrawColor(220, 220, 220, math.floor(180 * (a / 255)))
+                    surface.DrawLine(x1, y1, x2, y2)
+                end
+
+                for _, point in ipairs(route) do
+                    local x, y = toScreen(point)
+                    local isFinish = point.id == route[#route].id
+                    local color = isFinish and Color(255, 50, 50, a) or point.id == 1 and Color(50, 255, 50, a) or Color(255, 220, 0, a)
+                    draw.RoundedBox(6, x - 4, y - 4, 8, 8, color)
+                end
+
+            end
 
 			if self.SelectedConVar then
 				draw.SimpleText(self.SelectedConVar, "UVMostWantedLeaderboardFont2", w * 0.5, h * 0.98 - 40, Color(175, 175, 175, a), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
@@ -4890,6 +5183,8 @@ function UVMenu:Open(menu)
 
         descPanel.Text = ""
         descPanel.Desc = ""
+        descPanel.Layout = nil
+        descPanel.Grid = nil
         descPanel.SelectedConVar = ""
         descPanel.SelectedDefault = ""
         descPanel.SelectedCurrent = ""
@@ -5074,14 +5369,20 @@ function UVMenu:Open(menu)
 				)
 
 				if tab.Icon and tab.ShowIcon then
-					local mat = Material(tab.Icon, "smooth")
-					local iconSize = tab.IconSize or UV.ScaleW(40)
-					local iconY = (h - iconSize) / 2
+				    local mat = Material(tab.Icon, "smooth")
 
-					surface.SetDrawColor(255, 255, 255, self:GetAlpha())
-					surface.SetMaterial(mat)
-					surface.DrawTexturedRect(0, iconY, iconSize, iconSize)
-					surface.DrawTexturedRect(w - iconSize, iconY, iconSize, iconSize)
+				    if not mat or mat:IsError() then
+						print("[UVMenu] Error loading icon for tab " .. tostring(tabIndex) .. ": " .. tostring(tab.Icon))
+				        mat = Material("unitvehicles/icons_settings/pnotes/pnotesplaceholder.png", "smooth")
+				    end
+				
+				    local iconSize = tab.IconSize or UV.ScaleW(40)
+				    local iconY = (h - iconSize) / 2
+				
+				    surface.SetDrawColor(255, 255, 255, self:GetAlpha())
+				    surface.SetMaterial(mat)
+				    surface.DrawTexturedRect(0, iconY, iconSize, iconSize)
+				    surface.DrawTexturedRect(w - iconSize, iconY, iconSize, iconSize)
 				end
 			end
 		end
@@ -5348,6 +5649,12 @@ function UVMenu:Open(menu)
 
                 if tab.Icon then
                     local mat = Material(tab.Icon, "smooth")
+
+					if not mat or mat:IsError() then
+						print("[UVMenu] Error loading icon for tab " .. tostring(i) .. ": " .. tostring(tab.Icon))
+				        mat = Material("unitvehicles/icons_settings/pnotes/pnotesplaceholder.png", "smooth")
+				    end
+
                     local iconSize = UV.ScaleW(40)
                     local iconX = TAB_SIDE_PADDING + 2
                     local iconY = (h - iconSize) / 2

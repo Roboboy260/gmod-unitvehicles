@@ -20,6 +20,54 @@ local checkpointTable = {}
 local pos1, selectedCP
 local secondClick = false
 
+function TOOL:MakeGhostEntity(model, pos, angle)
+	if CLIENT then
+		if IsValid(self.GhostEntity) then return end
+
+		self.GhostEntity = ClientsideModel(model, RENDERGROUP_OPAQUE)
+		if not IsValid(self.GhostEntity) then return end
+
+		self.GhostEntity:SetModel(model)
+		self.GhostEntity:SetPos(pos)
+		self.GhostEntity:SetAngles(angle)
+		self.GhostEntity:Spawn()
+		self.GhostEntity:SetRenderMode(RENDERMODE_TRANSCOLOR)
+		self.GhostEntity:SetColor(Color(255, 255, 255, 180))
+	end
+end
+
+function TOOL:UpdateGhostEntity(ent, ply)
+	if not IsValid(ent) then return end
+
+	local tr = util.GetPlayerTrace(ply)
+	local trace = util.TraceLine(tr)
+
+	if not trace.Hit or (IsValid(trace.Entity) and trace.Entity:IsPlayer()) then
+		ent:SetNoDraw(true)
+		return
+	end
+
+	ent:SetAngles(Angle(0, ply:EyeAngles().y, 0))
+	ent:SetPos(trace.HitPos)
+	ent:SetNoDraw(false)
+end
+
+function TOOL:Think()
+	if CLIENT then
+		if self.ToolMode == MODE_GRID then
+			if not IsValid(self.GhostEntity) then
+				self:MakeGhostEntity("models/unitvehiclesprops/uvarrow/uvarrow2.mdl", Vector(0, 0, 0), Angle(0, 0, 0))
+			end
+			self:UpdateGhostEntity(self.GhostEntity, self:GetOwner())
+		else
+			if IsValid(self.GhostEntity) then
+				self.GhostEntity:Remove()
+				self.GhostEntity = nil
+			end
+		end
+	end
+end
+
 if SERVER then
 	UVRace_NextNodeID = UVRace_NextNodeID or 0
 	TOOL.LastPlacedNode = nil
@@ -649,6 +697,30 @@ elseif CLIENT then
 		local ply = self:GetOwner()
 		if not IsValid(ply) then return end
 
+		local mode = self.ToolMode or MODE_CHECKPOINT
+
+		if mode == MODE_GRID then
+			local spawns = ents.FindByClass("uvrace_spawn")
+
+			for i, ent in ipairs(spawns) do
+				if IsValid(ent) then
+					local slotNum = (ent.GetGridSlot and ent:GetGridSlot() > 0) and ent:GetGridSlot() or i
+					local scr = (ent:GetPos() + Vector(0, 0, 25)):ToScreen()
+					if scr.visible then
+						draw.SimpleTextOutlined(tostring(slotNum), "UVFont5Shadow", scr.x, scr.y, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 2, color_black)
+					end
+				end
+			end
+
+			if IsValid(self.GhostEntity) and not self.GhostEntity:GetNoDraw() then
+				local ghostNum = #spawns + 1
+				local scr = (self.GhostEntity:GetPos() + Vector(0, 0, 25)):ToScreen()
+				if scr.visible then
+					draw.SimpleTextOutlined(tostring(ghostNum), "UVFont5Shadow", scr.x, scr.y, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 2, color_black)
+				end
+			end
+		end
+
 		local lpChunk = InfMap and LocalPlayer().CHUNK_OFFSET
 		HoverNode = PickNodeFromView(4096 * 2, lpChunk)
 
@@ -933,6 +1005,17 @@ function TOOL:Holster()
 	self.secondClick = false
 	self:SetStage(0)
 	SelectedNode = nil
+	if CLIENT and IsValid(self.GhostEntity) then
+		self.GhostEntity:Remove()
+		self.GhostEntity = nil
+	end
+end
+
+function TOOL:OnRemove()
+	if CLIENT and IsValid(self.GhostEntity) then
+		self.GhostEntity:Remove()
+		self.GhostEntity = nil
+	end
 end
 
 function TOOL:LeftClick(trace)
@@ -943,6 +1026,8 @@ function TOOL:LeftClick(trace)
 	if not ply:IsSuperAdmin() then return end
 
 	if self.ToolMode == MODE_GRID then
+		local nextSlot = #ents.FindByClass("uvrace_spawn") + 1
+
 		local spawn = ents.Create("uvrace_spawn")
 		if not IsValid(spawn) then return end
 		
@@ -950,6 +1035,11 @@ function TOOL:LeftClick(trace)
 
 		spawn:SetAngles(Angle(0, ply:EyeAngles().y, 0))
 		spawn:SetPos(trace.HitPos)
+		
+		if spawn.SetGridSlot then
+			spawn:SetGridSlot(nextSlot)
+		end
+
 		spawn:Spawn()
 
 		undo.Create("UVRaceEnt")

@@ -1,0 +1,227 @@
+#------ commander1 (talon)
+uvsub.default.commander1.acknowledgegeneral.1=Copy that.
+uvsub.default.commander1.acknowledgegeneral.2=Roger that. I copy.
+uvsub.default.commander1.acknowledgegeneral.3=10-4. Copy that.
+uvsub.default.commander1.acknowledgegeneral.4=10-4.
+
+uvsub.default.commander1.aggressive.aggressive1=Alright, listen up everyone. Let's form up a block, and don't let them get around ya.
+uvsub.default.commander1.aggressive.aggressive2=Listen up everyone, I want you to get aggressive on this guy. Take him down!
+uvsub.default.commander1.aggressive.aggressive3=Whoever take him down, gets a promotion - so GET IT OVER WITH!
+uvsub.default.commander1.aggressive.aggressive4=Out of my way! Coming through!
+uvsub.default.commander1.aggressive.aggressive5=Hold on! I'm gonna try and nail this guy!
+uvsub.default.commander1.aggressive.aggressive6=We're gonna need to take this guy as soon as possible.
+uvsub.default.commander1.aggressive.aggressive7=All Units, let's perform a rolling block on this guy.
+uvsub.default.commander1.aggressive.aggressive8=Heads up! We're gonna take him out.
+
+uvsub.default.commander1.airdown.airdown1=Dispatch, Air cover is down - I repeat, Air cover is down! Send EMS!
+uvsub.default.commander1.airdown.airdown2=Air cover is down - I repeat, Air cover is down!
+uvsub.default.commander1.airdown.airdown3=Dispatch, we lost a chopper here! We need EMS immediately!
+uvsub.default.commander1.airdown.airdown4=Fast Air is down! I repeat, Fast Air is down!
+
+uvsub.default.commander1.arrest.arrest1=Suspect in custody. We got him.
+uvsub.default.commander1.arrest.arrest2=Suspect under arrest. Code 4.
+uvsub.default.commander1.arrest.arrest3=Got the Code 6. Bring him to the PD.
+uvsub.default.commander1.arrest.arrest4=Code 4. We got him.
+uvsub.default.commander1.arrest.arrest5=Dispatch, Code 6 is under arrest. Bring him in.
+uvsub.default.commander1.arrest.arrest6=Vehicle stopped. Let's pull him out.
+uvsub.default.commander1.arrest.arrest7=Vehicle stopped! Code 4.
+
+uvsub.default.commander1.bullhorn.arrest.arrest1=Out of the vehicle with your hands up!
+uvsub.default.commander1.bullhorn.arrest.arrest2=It's over! Get out of the car now!
+uvsub.default.commander1.bullhorn.arrest.arrest3=Police! You are under arrest!
+uvsub.default.commander1.bullhorn.arrest.arrest4=Out of the car now! With your hands up!
+
+uvsub.default.commander1.bullhorn.closetoenemy.bullhorn1=Pull your fucking car over!
+uvsub.default.commander1.bullhorn.closetoenemy.bullhorn2=This is the police, stop your car now!
+uvsub.default.commander1.bullhorn.closetoenemy.bullhorn3=Police, stop your car now!
+uvsub.default.commander1.bullhorn.closetoenemy.bullhorn4=Slow down! You're gonna kill someone!
+uvsub.default.commander1.bullhorn.closetoenemy.bullhorn5=This is the police! Slow down your car, you're under arrest!
+
+uvsub.default.commander1.bustevaded.evade1=Negative on the stop, suspect is still mobile.
+uvsub.default.commander1.bustevaded.evade2=Code 6 slipped through, he's still mobile.
+uvsub.default.commander1.bustevaded.evade3=What's wrong with you people?! Get on him now!
+uvsub.default.commander1.bustevaded.evade4=Ah shit! Suspect got away! He's still mobile.
+uvsub.default.commander1.bustevaded.evade5=10-65 failed, suspect got away.
+uvsub.default.commander1.bustevaded.evade6=Arrest is 10-10, he's still mobile.
+
+uvsub.default.commander1.busting.busting1=Hold on! Hold on! We're getting on him!
+uvsub.default.commander1.busting.busting2=Box him in! Box him in!
+uvsub.default.commander1.busting.busting3=Hold on! Hold on! Keep on him!
+uvsub.default.commander1.busting.busting4=Box him in! Box him in guys!
+uvsub.default.commander1.busting.busting5=Go go go! Box him in!
+uvsub.default.commander1.busting.busting6=Keep pressure on this guy! Come on!
+uvsub.default.commander1.busting.busting7=Stop his car! We can do this!
+
+uvsub.default.commander1.callrequestdescription.detail1=Got any more details on the target?
+uvsub.default.commander1.callrequestdescription.detail2=Dispatch, I might need more details on the target.
+uvsub.default.commander1.callrequestdescription.detail3=Dispatch, any more info on our driver?
+uvsub.default.commander1.callrequestdescription.detail4=Any more details we should know about him?
+uvsub.default.commander1.callrequestdescription.detail5=Got any details on that driver?
+
+uvsub.default.commander1.callresponding.call1=I'm in the area. I'll take that call.
+uvsub.default.commander1.callresponding.call2=I'm close by. I'll take a look.
+uvsub.default.commander1.callresponding.call3=I just cleared a call. I'll be there momentarily.
+uvsub.default.commander1.callresponding.call4=I can take that call. I'll be there shortly.
+uvsub.default.commander1.callresponding.call5=I'm close by. I can check it out.
+
+uvsub.default.commander1.closetoenemy.close1=Closing in on him.
+uvsub.default.commander1.closetoenemy.close2=Get on his point, go go go!
+uvsub.default.commander1.closetoenemy.close3=Take the back! Get on his 6!
+uvsub.default.commander1.closetoenemy.close4=Let's close on this guy.
+uvsub.default.commander1.closetoenemy.close5=Hold on, let's close on him.
+uvsub.default.commander1.closetoenemy.close6=Let's close on the suspect.
+
+uvsub.default.commander1.damaged.damaged-01=Nah, don't worry about me. I'm good.
+uvsub.default.commander1.damaged.damaged-02=I'm good. Don't worry about me.
+uvsub.default.commander1.damaged.damaged-03=My vehicle's slightly damaged but... I'm ok.
+uvsub.default.commander1.damaged.damaged-04=Engine is slightly damaged but I dont care. I'll keep pushing!
+
+uvsub.default.commander1.damagedcheckin.1=Sound off, boy - you good? I saw you took a hit.
+uvsub.default.commander1.damagedcheckin.2=Hey! Sound off, kid. You good? I saw you took a hard hit.
+uvsub.default.commander1.damagedcheckin.3=Hey, sound off! You good buddy? I saw you took a hard hit.
+uvsub.default.commander1.damagedcheckin.4=MVA noted. Please update your status.
+uvsub.default.commander1.damagedcheckin.5=Hey, what's your status? Are you okay? You took a hard hit there.
+
+uvsub.default.commander1.donotdisengage.deny1=No! No! Do not fall back! Keep on him!
+uvsub.default.commander1.donotdisengage.deny2=Negative on the disengage. Do not fall back - I repeat, do not fall back. Maintain pursuit.
+uvsub.default.commander1.donotdisengage.deny3=Negative on the disengage. Maintain pursuit.
+uvsub.default.commander1.donotdisengage.deny4=No, negative! No one's gonna leave until this thing is over.
+uvsub.default.commander1.donotdisengage.deny5=No, negative! Do not fall back! Keep up with the pursuit.
+uvsub.default.commander1.donotdisengage.deny6=10-10 on the disengage. Maintain pursuit.
+
+uvsub.default.commander1.enemycrashed.mva1=Suspect MVA! I repeat, suspect MVA! Get on him!
+uvsub.default.commander1.enemycrashed.mva2=Target crashed! Get on him!
+uvsub.default.commander1.enemycrashed.mva3=Vehicle crashed! He's taking damage.
+uvsub.default.commander1.enemycrashed.mva4=Code 6 crashed! He's taking damgage!
+uvsub.default.commander1.enemycrashed.mva5=Suspect crashed! Watch out for debris from his vehicle.
+uvsub.default.commander1.enemycrashed.mva6=Code 6 MVA! Watch for body parts on the road.
+
+uvsub.default.commander1.foundenemy.found-01=Got view of the suspect, Code 3.
+uvsub.default.commander1.foundenemy.found-02=Dispatch, I just located the suspect. Code 3.
+uvsub.default.commander1.foundenemy.found-03=Cancel all cover, I see him.
+uvsub.default.commander1.foundenemy.found-04=Code 6 back on view. I'm on him.
+uvsub.default.commander1.foundenemy.found-05=I got visual of this scumbag's 6. Code 3.
+uvsub.default.commander1.foundenemy.found-06=Cancel my VCB. I see him.
+uvsub.default.commander1.foundenemy.found-07=It's scumbag's 6! I got visual on him.
+
+uvsub.default.commander1.heat5acknowledge.fallback-01=Copy that Dispatch, we're gonna fall back.
+uvsub.default.commander1.heat5acknowledge.fallback-02=10-4 Dispatch. We're gonna fall back.
+uvsub.default.commander1.heat5acknowledge.fallback-03=Copy that Dispatch. All pursuit Units, let's fall back. We gotta let the federal Units take care of this.
+uvsub.default.commander1.heat5acknowledge.fallback-04=Copy that, Dispatch. All Units, let's fall back. Federal Units are taking over.
+
+uvsub.default.commander1.heat5argue.argue-01=No, negative Dispatch! We don't need federal Units; they're gonna make things worse!
+uvsub.default.commander1.heat5argue.argue-02=Dispatch, no need for federal Units! We can take care of it.
+uvsub.default.commander1.heat5argue.argue-03=10-10 on disengage, Dispatch. Tell federal control to cancel the cover.
+uvsub.default.commander1.heat5argue.argue-04=That's a negative, Dispatch. We don't need federal Units here. We can take care of this.
+
+uvsub.default.commander1.identify.identify-01=Commander Unit...
+uvsub.default.commander1.identify.identify-02=Commander 5...
+uvsub.default.commander1.identify.identify-03=Commander 8...
+uvsub.default.commander1.identify.identify-04=Sergeant Armstrong...
+
+uvsub.default.commander1.leftpursuit.left1=Aborting pursuit.
+uvsub.default.commander1.leftpursuit.left2=I'm gonna have to abort the pursuit.
+uvsub.default.commander1.leftpursuit.left3=I'm leaving the pursuit.
+uvsub.default.commander1.leftpursuit.left4=Gonna have to disengage here.
+uvsub.default.commander1.leftpursuit.left5=I'm falling back.
+
+uvsub.default.commander1.losing.losing-01=VCB on suspect. Look around, find him.
+uvsub.default.commander1.losing.losing-02=VCB on target, gonna investigate.
+uvsub.default.commander1.losing.losing-03=VCB on suspect, going to his last location.
+uvsub.default.commander1.losing.losing-04=Visual contact broken. Suspect is getting away.
+uvsub.default.commander1.losing.losing-05=10-10 on the visual. I'm trying to reestablish contact.
+uvsub.default.commander1.losing.losing-06=Status update: No visual on target.
+uvsub.default.commander1.losing.losing-07=Status update: Visual contact broken on target.
+uvsub.default.commander1.losing.losing-08=Where the hell is he?! Fucker has to be around here.
+
+uvsub.default.commander1.lost.lost1=Dispatch, target has been long gone. I think we should call off the search.
+uvsub.default.commander1.lost.lost2=Target has been lost... would've found him by now. Uh, think we should call off the search now.
+uvsub.default.commander1.lost.lost3=Dispatch, how long does IC wants us out here? Uh, nothing is going on. We haven't found the suspect yet. Maybe we should call off the search.
+uvsub.default.commander1.lost.lost4=How long does IC wants us out here? Um... we haven't really found the target yet. He's... probably long gone, hiding somewhere now. Maybe we should call off the search.
+uvsub.default.commander1.lost.lost5=How long does IC wants us out here? We've been looking for... quite sometime now. Uh, maybe we should call off the search.
+
+uvsub.default.commander1.multipleunitsdown.multipleunitsdown-01=Dispatch, we got multiple Units down! Send EMS at my location now!
+uvsub.default.commander1.multipleunitsdown.multipleunitsdown-02=Shit! Dispatch, we got a lot of casualties here. We need EMS immediately.
+uvsub.default.commander1.multipleunitsdown.multipleunitsdown-03=We got multiple Units down! I repeat, multiple Units down! We need EMS here immediately.
+uvsub.default.commander1.multipleunitsdown.multipleunitsdown-04=Dispatch, we got multiple Units down! Requesting 10-70 and EMS.
+uvsub.default.commander1.multipleunitsdown.multipleunitsdown-05=Dispatch, we got a Unit down... correction, we got multiple Units down! Send EMS!
+uvsub.default.commander1.multipleunitsdown.multipleunitsdown-06=Dispatch, we got Units down! Requesting 10-70 and EMS.
+
+uvsub.default.commander1.onscene.onscene1=We're on scene.
+uvsub.default.commander1.onscene.onscene2=10-23. I'm taking over this pursuit.
+uvsub.default.commander1.onscene.onscene3=I'm taking over this pursuit.
+
+uvsub.default.commander1.passive.passive-01=Any EMP Units? Will be a perfect moment to use it right now.
+uvsub.default.commander1.passive.passive-02=Anyone got any weapons on him? Would be a perfect moment to use it.
+uvsub.default.commander1.passive.passive-03=Alright everyone, I want you to stay close to the suspect. I'll be waiting for more Units to arrive.
+uvsub.default.commander1.passive.passive-04=Alright everyone, I want you to push the suspect off the road. I don't him to crash into a civilian, so get ready.
+uvsub.default.commander1.passive.passive-05=Pursuit, listen up. I want you to perform a 10-65 - I repeat, 10-65. Get ready on my call.
+uvsub.default.commander1.passive.passive-06=Pursuit, listen up. 10-63 - I repeat, 10-63. I don't want him to see this coming.
+uvsub.default.commander1.passive.passive-07=Alright everyone, listen up. I want you to leave space for this guy. I don't want him to see this coming.
+uvsub.default.commander1.passive.passive-08=Alright everyone, I want you to perform a spearhead pattern. Wait for my call.
+
+uvsub.default.commander1.pursuitbreaker.pb-01=Oh shit! Watch out for structure! It's going down!
+uvsub.default.commander1.pursuitbreaker.pb-02=Shit! We got a structure down! Uh, watch out for debris!
+uvsub.default.commander1.pursuitbreaker.pb-03=Structure down! Watch out for debris!
+uvsub.default.commander1.pursuitbreaker.pb-04=Watch out, everyone! We got debris all over the road!
+uvsub.default.commander1.pursuitbreaker.pb-05=Watch your speed, guys! We got a structure down.
+
+uvsub.default.commander1.rammed.rammed1=I got rammed! I got rammed!
+uvsub.default.commander1.rammed.rammed2=Dispatch! Suspect just rammed my vehicle!
+uvsub.default.commander1.rammed.rammed3=MVA! MVA! This guy just hit me!
+uvsub.default.commander1.rammed.rammed4=Dispatch! MVA! I got hit! I repeat, MVA!
+uvsub.default.commander1.rammed.rammed5=I got rammed! Dispatch, I got rammed!
+uvsub.default.commander1.rammed.rammed6=Dispatch, I just got rammed. MVA.
+uvsub.default.commander1.rammed.rammed7=Dispatch... Dispatch, I got MVA here.
+
+uvsub.default.commander1.requestbackup.backup1=Dispatch, what's the status of my backup? Half of my cover is gone and the Code 6 is gonna get away. We need them here ASAP.
+uvsub.default.commander1.requestbackup.backup2=Dispatch, get me more Units on my 20. We need them here ASAP or else this scumbag is gonna get away!
+uvsub.default.commander1.requestbackup.backup3=Dispatch, I could use some goddamn reinforcements here!
+uvsub.default.commander1.requestbackup.backup4=What the fuck... where'd everyone go?! Dispatch, I could use some more reinforcements here.
+uvsub.default.commander1.requestbackup.backup5=Dispatch, get every Unit there is! This is a priority chase! I dont care what they're doing. We need them here ASAP.
+
+uvsub.default.commander1.requestdisengage.disengage1=It's getting pretty intense here - better drop back.
+uvsub.default.commander1.requestdisengage.disengage2=Things are getting out of control - we should fall back.
+uvsub.default.commander1.requestdisengage.disengage3=I think we should fall back, this guy's not gonna stop.
+uvsub.default.commander1.requestdisengage.disengage4=Let's slow this thing down. There's too much going on.
+uvsub.default.commander1.requestdisengage.disengage5=Someone's gonna get seriously hurt if we keep this up. Let's fall back and give him some space.
+
+uvsub.default.commander1.responding.responding-01=This is Commander Unit, I am closing in. Scumbag's 6 better be in handcuffs by the time I arrive.
+uvsub.default.commander1.responding.responding-02=You guys can't do it with the Commander Unit? I'll be 10-23 in a bit.
+uvsub.default.commander1.responding.responding-03=This is Commander Unit, I'm closing in. You guys can't do anything without me.
+uvsub.default.commander1.responding.responding-04=Do any of you even know how to drive? I'm on my way.
+uvsub.default.commander1.responding.responding-05=This is Commander Unit, I am closing in to the pursuit. You guys can't do anything without me.
+
+uvsub.default.commander1.rhinohit.hit1=This is Rhino Unit, we just got a successful ram on the suspect!
+uvsub.default.commander1.rhinohit.hit2=This is Rhino Unit, reporting a successful hit on the target.
+uvsub.default.commander1.rhinohit.hit3=This is Rhino Unit, target is hit! I repeat, target is hit!
+uvsub.default.commander1.rhinohit.hit4=This is Rhino Unit, we just hit the suspect. Get on him now!
+uvsub.default.commander1.rhinohit.hit5=Dispatch, this is Rhino Unit. We're reporting a successful ram on the suspect.
+
+uvsub.default.commander1.rhinomiss.miss1=We missed the target!
+uvsub.default.commander1.rhinomiss.miss2=We missed him.
+uvsub.default.commander1.rhinomiss.miss3=We missed our target!
+uvsub.default.commander1.rhinomiss.miss4=This is Rhino Unit, we just missed the target.
+uvsub.default.commander1.rhinomiss.miss5=Target avoided our Rhino.
+uvsub.default.commander1.rhinomiss.miss6=Target is missed. Get back on him! Get back on him!
+uvsub.default.commander1.rhinomiss.miss7=Target missed! Get another Rhino going!
+uvsub.default.commander1.rhinomiss.miss8=This is Rhino Unit, target missed our vehicle.
+
+uvsub.default.commander1.sitrep.sitrep1=Code 6 is all over the road. We have to stop this guy immediately.
+uvsub.default.commander1.sitrep.sitrep2=He's causing a lot of damage here. This guy is all over the road. We'll have to stop him immediately.
+uvsub.default.commander1.sitrep.sitrep3=Driver's all over the road. This guy is not stopping, he's ignoring everything I throw at him. Um... clear us more backup here.
+uvsub.default.commander1.sitrep.sitrep4=This guy's behavior is becoming very unpredictable. I don't think he has any idea where he's going.
+uvsub.default.commander1.sitrep.sitrep5=Condition's still the same. Nothing has changed.
+uvsub.default.commander1.sitrep.sitrep6=Situation is still the same. Nothing has changed.
+uvsub.default.commander1.sitrep.sitrep7=Having hard time keeping up with this guy - might have to clear more Units on this guy.
+
+uvsub.default.commander1.trafficstopspeeding.trafficstop-01=Dispatch, I'm pulling over a vehicle here. Stand by.
+uvsub.default.commander1.trafficstopspeeding.trafficstop-02=Dispatch, I'm pulling over a possible Code 6. Stand by for more details.
+uvsub.default.commander1.trafficstopspeeding.trafficstop-03=Dispatch, a speeding vehicle just went past me. I'm gonna try and pull him over.
+uvsub.default.commander1.trafficstopspeeding.trafficstop-04=Got visual of a possible Code 6 here. Stand by for details.
+
+uvsub.default.commander1.wreck.wrecked-01=This is Commander Unit reporting, my vehicle's KIA. I'm dropping out of this pursuit.
+uvsub.default.commander1.wreck.wrecked-02=Dispatch, this is Commander Unit. I just lost my vehicle. I'm out of this pursuit.
+uvsub.default.commander1.wreck.wrecked-03=This is Commander Unit, my vehicle's taken out. I can't continue pursuit.
+uvsub.default.commander1.wreck.wrecked-04=This is Commander Unit reporting, my vehicle's KIA - can't continue pursuit.
+uvsub.default.commander1.wreck.wrecked-05=This is Commander Unit, my vehicle's flatlined. I can't continue pursuit - dropping out.

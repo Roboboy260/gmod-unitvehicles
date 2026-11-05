@@ -301,6 +301,11 @@ function UV_GetCopAllInCooldown()
 	return cooldownCount == inPursuitCount
 end
 
+function UV_IsInCooldown( target )
+	local scope = UVGetScope( target )
+	return UVEnemyEscaping or ( scope and scope.InCooldown )
+end
+
 function UV_InitiatePursuit( target )
 	local scope = UVGetScope( target )
 	if not scope or scope.InPursuit then return end
@@ -822,6 +827,16 @@ function UVSoundEscaped(heatlevel)
 end
  
 if CLIENT then
+	net.Receive("UVVehicleSpawnChance", function()
+		local key = net.ReadString()
+
+		if key == "__all" then
+			UVVehicleSpawnChances = net.ReadTable() or {}
+		else
+			local chance = net.ReadUInt(7)
+			UVVehicleSpawnChances[key] = math.Clamp(chance, 0, 100)
+		end
+	end)
 	cvars.RemoveChangeCallback("unitvehicle_pursuitthemevolume", "UV_PursuitVolumeChanged")
 	cvars.AddChangeCallback("unitvehicle_pursuitthemevolume", function(convar, old, new)
 		local vol = tonumber(new)
@@ -914,14 +929,17 @@ end
 
 function UVDisplayTime(time)
 	time = time or 0
-	local formattedtime
-	local hours = math.floor( time / 3600 )
+	local totalSeconds = math.floor(time)
+	local hours = math.floor(totalSeconds / 3600)
+	local minutes = math.floor(totalSeconds / 60) % 60
+	local seconds = totalSeconds % 60
+	local centiseconds = math.floor(time * 100) % 100
+
 	if hours < 1 then
-		formattedtime = string.FormattedTime( time, "%02i:%02i.%02i" )
+		return string.format("%02d:%02d.%02d", minutes, seconds, centiseconds)
 	else --1 hour pursuit challenge completed
-		formattedtime = hours..":"..string.FormattedTime( time, "%02i:%02i.%02i" )
+		return string.format("%d:%02d:%02d.%02d", hours, minutes, seconds, centiseconds)
 	end
-	return formattedtime
 end
 
 HEAT_SETTINGS = {
@@ -934,7 +952,10 @@ HEAT_SETTINGS = {
 	'backuptimer',
 	'cooldowntimer',
 	'roadblocks',
+	'roadblocks_chance',
 	'helicopters',
+	'helicopters_chance',
+	'helicopters_limit'
 }
 
 HEAT_DEFAULTS = {
@@ -944,7 +965,11 @@ HEAT_DEFAULTS = {
 		['3'] = 6,
 		['4'] = 8,
 		['5'] = 10,
-		['6'] = 10
+		['6'] = 10,
+		['7'] = 10,
+		['8'] = 10,
+		['9'] = 10,
+		['10'] = 10
 	},
 	['bountytime'] = {
 		['1'] = 1000,
@@ -952,7 +977,11 @@ HEAT_DEFAULTS = {
 		['3'] = 10000,
 		['4'] = 50000,
 		['5'] = 100000,
-		['6'] = 500000
+		['6'] = 500000,
+		['7'] = 1000000,
+		['8'] = 5000000,
+		['9'] = 10000000,
+		['10'] = 50000000
 	},
 	['timetillnextheat'] = {
 		['Enabled'] = 0,
@@ -960,15 +989,23 @@ HEAT_DEFAULTS = {
 		['2'] = 120,
 		['3'] = 180,
 		['4'] = 180,
-		['5'] = 240
+		['5'] = 240,
+		['6'] = 240,
+		['7'] = 300,
+		['8'] = 300,
+		['9'] = 360,
 	},
 	['heatminimumbounty'] = {
 		['1'] = 1000,
-		['2'] = 10000,
+		['2'] = 5000,
 		['3'] = 50000,
 		['4'] = 250000,
 		['5'] = 1000000,
 		['6'] = 5000000,
+		['7'] = 7500000,
+		['8'] = 10000000,
+		['9'] = 25000000,
+		['10'] = 50000000
 	},
 	['unitsavailable'] = {
 		['1'] = 10,
@@ -977,6 +1014,10 @@ HEAT_DEFAULTS = {
 		['4'] = 40,
 		['5'] = 50,
 		['6'] = 60,
+		['7'] = 70,
+		['8'] = 80,
+		['9'] = 90,
+		['10'] = 100
 	},
 	['bustspeed'] = {
 		['1'] = 10,
@@ -985,14 +1026,22 @@ HEAT_DEFAULTS = {
 		['4'] = 15,
 		['5'] = 20,
 		['6'] = 20,
+		['7'] = 20,
+		['8'] = 20,
+		['9'] = 20,
+		['10'] = 20
 	},
 	['backuptimer'] = {
 		['1'] = 120,
-		['2'] = 120,
+		['2'] = 105,
 		['3'] = 90,
-		['4'] = 90,
+		['4'] = 75,
 		['5'] = 60,
 		['6'] = 60,
+		['7'] = 60,
+		['8'] = 60,
+		['9'] = 60,
+		['10'] = 60
 	},
 	['cooldowntimer'] = {
 		['1'] = 20,
@@ -1001,6 +1050,10 @@ HEAT_DEFAULTS = {
 		['4'] = 80,
 		['5'] = 100,
 		['6'] = 120,
+		['7'] = 140,
+		['8'] = 160,
+		['9'] = 180,
+		['10'] = 200
 	},
 	['roadblocks'] = {
 		['1'] = 0,
@@ -1009,6 +1062,22 @@ HEAT_DEFAULTS = {
 		['4'] = 1,
 		['5'] = 1,
 		['6'] = 1,
+		['7'] = 1,
+		['8'] = 1,
+		['9'] = 1,
+		['10'] = 1
+	},
+	['roadblocks_chance'] = {
+		['1'] = 0,
+		['2'] = 10,
+		['3'] = 20,
+		['4'] = 30,
+		['5'] = 40,
+		['6'] = 50,
+		['7'] = 60,
+		['8'] = 70,
+		['9'] = 80,
+		['10'] = 90
 	},
 	['helicopters'] = {
 		['1'] = 0,
@@ -1017,6 +1086,34 @@ HEAT_DEFAULTS = {
 		['4'] = 1,
 		['5'] = 1,
 		['6'] = 1,
+		['7'] = 1,
+		['8'] = 1,
+		['9'] = 1,
+		['10'] = 1
+	},
+	['helicopters_chance'] = {
+		['1'] = 0,
+		['2'] = 0,
+		['3'] = 0,
+		['4'] = 10,
+		['5'] = 20,
+		['6'] = 30,
+		['7'] = 40,
+		['8'] = 50,
+		['9'] = 60,
+		['10'] = 70
+	},
+	['helicopters_limit'] = {
+		['1'] = 0,
+		['2'] = 0,
+		['3'] = 0,
+		['4'] = 1,
+		['5'] = 1,
+		['6'] = 2,
+		['7'] = 2,
+		['8'] = 2,
+		['9'] = 2,
+		['10'] = 2
 	}
 }
 
@@ -1038,12 +1135,16 @@ UVUnitsConVars = conVarList
 conVarList["selected_heat"] = 1
 
 conVarList["vehiclebase"] = 3
-conVarList["commanderrepair"] = 1
+conVarList["commanderrepair"] = 0
 conVarList["onecommanderhealth"] = 5000
 conVarList["helicoptermodel"] = "Default"
 conVarList["helicopterbarrels"] = 1
 conVarList["helicopterspikestrip"] = 1
+conVarList["helicopterskyhammer"] = 1
 conVarList["helicopterbusting"] = 1
+conVarList["helicopterminfuel"] = 60
+conVarList["helicoptermaxfuel"] = 180
+conVarList["helicoptercooldown"] = 180
 
 conVarList["pursuittech"] = 1
 conVarList["pursuittech_esf"] = 1
@@ -1067,15 +1168,25 @@ conVarList["bountyspecial"] = 25000
 conVarList["bountycommander"] = 100000
 conVarList["bountyrhino"] = 50000
 
+local defaultdrivermodeltable = {
+	"police.json policefem.json", --Patrol
+	"police.json policefem.json", --Support
+	"police.json policefem.json", --Pursuit
+	"police.json policefem.json", --Interceptor
+	"combine.json", --Special
+	"combineelite.json", --Commander
+	"combineprison.json", --Rhino
+}
+
 local defaultvoicetable = {
-	"cop1, cop2, cop3, cop4, cop5", --Patrol
-	"cop1, cop2, cop3, cop4, cop5", --Support
-	"cop1, cop2, cop3, cop4, cop5", --Pursuit
-	"cop1, cop2, cop3, cop4, cop5", --Interceptor
-	"cop1, cop2, cop3, cop4, cop5", --Special
+	"patrol1,patrol2", --Patrol
+	"support1,support2", --Support
+	"pursuit1,pursuit2,pursuit3,pursuit4", --Pursuit
+	"federal1,federal2", --Interceptor
+	"swat1,swat2", --Special
 	"commander1", --Commander
-	"rhino1", --Rhino
-	"air", --Air
+	"swat1,swat2", --Rhino
+	"air1", --Air
 }
 
 for index, v in pairs( {'Patrol', 'Support', 'Pursuit', 'Interceptor', 'Special', 'Commander', 'Rhino', 'Air'} ) do
@@ -1092,8 +1203,14 @@ for _, v in pairs( {'Misc', 'Dispatch'} ) do
 	conVarList[conVarKey] = "default"
 end
 
+for index, v in pairs( {'Patrol', 'Support', 'Pursuit', 'Interceptor', 'Special', 'Commander', 'Rhino'} ) do
+	local lowercaseUnit = string.lower( v )
+	local conVarKey = string.format( '%s_drivermodel', lowercaseUnit )
+	conVarList[conVarKey] = defaultdrivermodeltable[index]
+end
+
 local unitsheat1 = {
-	"default_crownvic.json", --Patrol
+	"default_crownvicuc.json default_crownvic.json default_crownvicst.json", --Patrol
 	"", --Support
 	"", --Pursuit
 	"", --Interceptor
@@ -1103,8 +1220,8 @@ local unitsheat1 = {
 }
 
 local unitsheat2 = {
-	"default_crownvic.json", --Patrol
-	"default_explorer.json", --Support
+	"default_crownvicuc.json default_crownvic.json default_crownvicst.json", --Patrol
+	"default_explorer.json default_exploreruc.json default_explorerst.json", --Support
 	"", --Pursuit
 	"", --Interceptor
 	"", --Special
@@ -1113,9 +1230,9 @@ local unitsheat2 = {
 }
 
 local unitsheat3 = {
-	"default_crownvic.json", --Patrol
-	"default_explorer.json", --Support
-	"default_chargerbee.json", --Pursuit
+	"default_crownvicuc.json default_crownvic.json default_crownvicst.json", --Patrol
+	"default_explorer.json default_exploreruc.json default_explorerst.json", --Support
+	"default_chargerbeest.json default_chargerbee.json default_chargerbeeuc.json", --Pursuit
 	"", --Interceptor
 	"", --Special
 	"", --Commander
@@ -1124,9 +1241,9 @@ local unitsheat3 = {
 
 local unitsheat4 = {
 	"", --Patrol
-	"default_explorer.json", --Support
-	"default_chargerbee.json", --Pursuit
-	"default_corvettec7.json", --Interceptor
+	"default_explorer.json default_exploreruc.json default_explorerst.json", --Support
+	"default_chargerbeeuc.json default_chargerbee.json default_chargerbeest.json", --Pursuit
+	"default_corvettec7uc.json default_corvettec7.json default_corvettec7st.json", --Interceptor
 	"", --Special
 	"", --Commander
 	"" --Rhino
@@ -1135,10 +1252,10 @@ local unitsheat4 = {
 local unitsheat5 = {
 	"", --Patrol
 	"", --Support
-	"default_chargerbee.json", --Pursuit
-	"default_corvettec7.json", --Interceptor
-	"default_coloradozr2.json", --Special
-	"default_viperelite.json", --Commander
+	"default_chargerbeeuc.json default_chargerbee.json default_chargerbeest.json", --Pursuit
+	"default_corvettec7uc.json default_corvettec7.json default_corvettec7st.json", --Interceptor
+	"default_coloradozr2st.json default_coloradozr2.json default_coloradozr2uc.json", --Special
+	"", --Commander
 	"default_rhinotruck.json" --Rhino
 }
 
@@ -1146,9 +1263,9 @@ local unitsheat6 = {
 	"", --Patrol
 	"", --Support
 	"", --Pursuit
-	"default_corvettec7.json", --Interceptor
-	"default_coloradozr2.json", --Special
-	"default_viperelite.json", --Commander
+	"default_corvettec7uc.json default_corvettec7.json default_corvettec7st.json", --Interceptor
+	"default_coloradozr2st.json default_coloradozr2.json default_coloradozr2uc.json", --Special
+	"default_r35nismo.json", --Commander
 	"default_rhinotruck.json" --Rhino
 }
 
@@ -1181,7 +1298,7 @@ for i = 1, MAX_HEAT_LEVEL do
 		end
 		
 		conVarList[chanceConVarKey] = 100
-		conVarList[limitConVarKey] = 0
+		conVarList[limitConVarKey] = lowercaseUnit == "rhino" and i >= 5 and i <= 6 and 2 or 0
 	end
 	
 	for _, conVar in pairs( HEAT_SETTINGS ) do
@@ -1221,6 +1338,7 @@ UVPTPTDuration = CreateConVar("uvpursuittech_ptduration", 60, {FCVAR_ARCHIVE, FC
 
 -- ESF
 UVPTESFDuration = CreateConVar("uvpursuittech_esf_duration", 10, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+UVPTESFDisableDuration = CreateConVar("uvpursuittech_esf_disableduration", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTESFPower = CreateConVar("uvpursuittech_esf_power", 1000000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTESFDamage = CreateConVar("uvpursuittech_esf_damage", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTESFCommanderDamage = CreateConVar("uvpursuittech_esf_damagecommander", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
@@ -1250,6 +1368,7 @@ UVPTSpikeStripCooldown = CreateConVar("uvpursuittech_spikestrip_cooldown", 30, {
 UVPTStunMinePower = CreateConVar("uvpursuittech_stunmine_power", 1000000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTStunMineDamage = CreateConVar("uvpursuittech_stunmine_damage", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTStunMineCommanderDamage = CreateConVar("uvpursuittech_stunmine_damagecommander", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+UVPTStunMineDisableDuration = CreateConVar("uvpursuittech_stunmine_disableduration", 1.5, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTStunMineMaxAmmo = CreateConVar("uvpursuittech_stunmine_maxammo", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Pursuit Tech Max Ammo")
 UVPTStunMineCooldown = CreateConVar("uvpursuittech_stunmine_cooldown", 30, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Pursuit Tech Cooldown")
 
@@ -1257,6 +1376,7 @@ UVPTStunMineCooldown = CreateConVar("uvpursuittech_stunmine_cooldown", 30, {FCVA
 UVPTEMPDamage = CreateConVar("uvpursuittech_emp_damage", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTEMPCommanderDamage = CreateConVar("uvpursuittech_emp_damagecommander", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTEMPForce = CreateConVar("uvpursuittech_emp_force", 100, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+UVPTEMPDisableDuration = CreateConVar("uvpursuittech_emp_disableduration", 2, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVPTEMPMaxAmmo = CreateConVar("uvpursuittech_emp_maxammo", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Pursuit Tech Max Ammo")
 UVPTEMPCooldown = CreateConVar("uvpursuittech_emp_cooldown", 30, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Pursuit Tech Cooldown")
 UVPTEMPMaxDistance = CreateConVar("uvpursuittech_emp_maxdistance", 1000, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Pursuit Tech Max Distance")
@@ -1287,6 +1407,7 @@ UVUnitPTDuration = CreateConVar("uvpursuittech_ptduration_unit", 20, {FCVAR_ARCH
 
 -- ESF
 UVUnitPTESFDuration = CreateConVar("uvpursuittech_esf_duration_unit", 10, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+UVUnitPTESFDisableDuration = CreateConVar("uvpursuittech_esf_disableduration_unit", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTESFPower = CreateConVar("uvpursuittech_esf_power_unit", 1000000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTESFDamage = CreateConVar("uvpursuittech_esf_damage_unit", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTESFMaxAmmo = CreateConVar("uvpursuittech_esf_maxammo_unit", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Pursuit Tech Max Ammo")
@@ -1301,13 +1422,14 @@ UVUnitPTSpikeStripRoadblockFriendlyFire = CreateConVar("unitvehicle_spikestripro
 
 -- KillSwitch
 UVUnitPTKillSwitchLockOnTime = CreateConVar("uvpursuittech_killswitch_lockontime_unit", 3, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
-UVUnitPTKillSwitchDisableDuration = CreateConVar("uvpursuittech_killswitch_disableduration_unit", 2.5, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+UVUnitPTKillSwitchDisableDuration = CreateConVar("uvpursuittech_killswitch_disableduration_unit", 3, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTKillSwitchMaxAmmo = CreateConVar("uvpursuittech_killswitch_maxammo_unit", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTKillSwitchCooldown = CreateConVar("uvpursuittech_killswitch_cooldown_unit", 30, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 
 -- EMP
 UVUnitPTEMPDamage = CreateConVar("uvpursuittech_emp_damage_unit", 0.1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTEMPForce = CreateConVar("uvpursuittech_emp_force_unit", 100, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+UVUnitPTEMPDisableDuration = CreateConVar("uvpursuittech_emp_disableduration_unit", 2, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTEMPMaxAmmo = CreateConVar("uvpursuittech_emp_maxammo_unit", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTEMPCooldown = CreateConVar("uvpursuittech_emp_cooldown_unit", 30, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUnitPTEMPMaxDistance = CreateConVar("uvpursuittech_emp_maxdistance_unit", 1000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
@@ -1368,16 +1490,31 @@ RacerPursuitTech = CreateConVar("unitvehicle_racerpursuittech", 1, {FCVAR_ARCHIV
 RacerFriendlyFire = CreateConVar("unitvehicle_racerfriendlyfire", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, Racers will be able to attack eachother with Pursuit Tech.")
 OptimizeRespawn = CreateConVar("unitvehicle_optimizerespawn", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, Units will be teleported ahead of the suspect instead of despawning (does not work with simfphys).")
 TrafficStreaming = CreateConVar("unitvehicle_trafficstreaming", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, Traffic and patrolling Units will despawn when they are too far away from the player, thus allowing new ones to spawn.")
-SpottedFreezeCam = CreateConVar("unitvehicle_spottedfreezecam", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the game will freeze and the camera will point to the closest Unit when starting a pursuit (single-player only).")
 RandomPlayerUnits = CreateConVar("unitvehicle_randomplayerunits", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, player-controlled Units will be chosen randomly from the available units.")
 TractionControl = CreateConVar("unitvehicle_tractioncontrol", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, Units and Racer Vehicles will apply reduced throttle when wheel spinning.")
 DisengageOnHeatChange = CreateConVar("unitvehicle_disengageonheatchange", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, AI Units will fall back if their vehicle does not match any assigned vehicles when Heat Level changes.")
 CanExitVehicle = CreateConVar("unitvehicle_canexitvehicle", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, players can exit their vehicle during pursuits or races.")
 UnitDifficulty = CreateConVar( "unitvehicle_unitdifficulty", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Increases Unit AI difficulty." )
 UnitCatchup = CreateConVar( "unitvehicle_unitcatchup", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit AI catch-up." )
+DriverModel = CreateConVar( "unitvehicle_drivermodel", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, driver models will spawn depending on the NPC class." )
 
-UVUOneCommanderHealth = CreateConVar("unitvehicle_unit_onecommanderhealth", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
-UVUCommanderRepair = CreateConVar("unitvehicle_unit_commanderrepair", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED},"Unit Vehicles: If set to 1, Commander Units can utilize the Repair Shop to repair themselves.")
+ActionCam = CreateConVar("unitvehicle_actioncam", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show dramatic angles during certain events. Gameplay may slow down.")
+ActionCamWrecked = CreateConVar("unitvehicle_actioncam_wrecked", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you get wrecked, busted or killed.")
+ActionCamRaceStart = CreateConVar("unitvehicle_actioncam_racestart", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you start a race.")
+ActionCamRaceFinish = CreateConVar("unitvehicle_actioncam_racefinish", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you finish a race. Your vehicle will be taken over by an AI temporarily.")
+ActionCamCrash = CreateClientConVar("unitvehicle_actioncam_crash", 1, true, false, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you crash your vehicle.")
+ActionCamCrashThreshold = CreateClientConVar("unitvehicle_actioncam_crashthreshold", 500, true, false, "Unit Vehicles: Damage to trigger.")
+ActionCamJump = CreateConVar("unitvehicle_actioncam_jump", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit a jump.")
+ActionCamJumpThreshold = CreateConVar("unitvehicle_actioncam_jumpthreshold", 200, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: Height to trigger.")
+ActionCamSpotted = CreateConVar("unitvehicle_actioncam_spotted", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the game will slow down and the camera will point to the closest Unit when starting a pursuit.")
+ActionCamRoadblock = CreateConVar("unitvehicle_actioncam_roadblock", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit roadblocks.")
+ActionCamRoadblockThreshold = CreateConVar("unitvehicle_actioncam_roadblockthreshold", 1000, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: Speed to trigger.")
+ActionCamTakedown = CreateConVar("unitvehicle_actioncam_takedown", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you take down Racers or Units.")
+ActionCamTakedownThreshold = CreateConVar("unitvehicle_actioncam_takedownthreshold", 1000, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: Distance to trigger.")
+ActionCamPursuitBreaker = CreateConVar("unitvehicle_actioncam_pursuitbreaker", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, the camera will show a dramatic angle when you hit Pursuit Breakers. Your vehicle will be taken over by an AI temporarily.")
+
+UVUOneCommanderHealth = CreateConVar("unitvehicle_unit_onecommanderhealth", 5000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+UVUCommanderRepair = CreateConVar("unitvehicle_unit_commanderrepair", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED},"Unit Vehicles: If set to 1, Commander Units can utilize the Repair Shop to repair themselves.")
 
 UVUTimeTillNextHeatEnabled = CreateConVar("unitvehicle_unit_timetillnextheatenabled", 0, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, Heat Levels will progress automatically based on the time until the next heat level.")
 
@@ -1386,6 +1523,7 @@ UVTAssignTraffic = CreateConVar("unitvehicle_traffic_assigntraffic", 0, {FCVAR_A
 UVTSpawnCondition = CreateConVar("unitvehicle_traffic_spawncondition", 2, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "\n1) Never \n2) When driving \n3) Always")
 UVTMaxTraffic = CreateConVar("unitvehicle_traffic_maxtraffic", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Max amount of Traffic Vehicles roaming.")
 UVTTrafficVehicles = CreateConVar("unitvehicle_traffic_vehicles", "", {ShouldArchive}, "Assigned Traffic Vehicles (for override mode)")
+UVTDriverModels = CreateConVar("unitvehicle_traffic_drivermodel", "", {ShouldArchive}, "Assigned Traffic Driver Models")
 
 --racer convars
 UVRVehicleBase = CreateConVar("unitvehicle_racer_vehiclebase", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "\n1 = Default Vehicle Base (prop_vehicle_jeep)\n2 = simfphys\n3 = Glide")
@@ -1393,9 +1531,10 @@ UVRAssignRacers = CreateConVar("unitvehicle_racer_assignracers", 0, {FCVAR_ARCHI
 UVRRacers = CreateConVar("unitvehicle_racer_racers", "", {ShouldArchive}, "Assigned Racer Vehicles")
 UVRSpawnCondition = CreateConVar("unitvehicle_racer_spawncondition", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "\n1) Never \n2) When driving \n3) Always")
 UVRMaxRacer = CreateConVar("unitvehicle_racer_maxracer", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Max amount of Racer Vehicles roaming.")
+UVRDriverModels = CreateConVar("unitvehicle_racer_drivermodel", "", {ShouldArchive}, "Assigned Racer Driver Models")
 
 --unit convars
-UVUVehicleBase = CreateConVar("unitvehicle_unit_vehiclebase", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "\n1 = Default Vehicle Base (prop_vehicle_jeep)\n2 = simfphys\n3 = Glide")
+UVUVehicleBase = CreateConVar("unitvehicle_unit_vehiclebase", 3, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "\n1 = Default Vehicle Base (prop_vehicle_jeep)\n2 = simfphys\n3 = Glide")
 
 UVUPursuitTech = CreateConVar("unitvehicle_unit_pursuittech", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, AI and player-controlled Unit Vehicles can use weapons (spike strips, ESF, EMP, etc.).")
 UVUPursuitTech_ESF = CreateConVar("unitvehicle_unit_pursuittech_esf", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: If set to 1, AI and player-controlled Unit Vehicles can spawn with ESF.")
@@ -1410,7 +1549,11 @@ UVUPursuitTech_Grappler = CreateConVar("unitvehicle_unit_pursuittech_grappler", 
 UVUHelicopterModel = CreateConVar("unitvehicle_unit_helicoptermodel", "Default", {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Unit Vehicles: Helicopter model to use with Air Unit.")
 UVUHelicopterBarrels = CreateConVar("unitvehicle_unit_helicopterbarrels", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "1 = Barrels\n0 = No Barrels")
 UVUHelicopterSpikeStrip = CreateConVar("unitvehicle_unit_helicopterspikestrip", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "1 = Spike Strips\n0 = No Spike Strips")
+UVUHelicopterSkyhammer = CreateConVar("unitvehicle_unit_helicopterskyhammer", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "1 = Skyhammer\n0 = No Skyhammer")
 UVUHelicopterBusting = CreateConVar("unitvehicle_unit_helicopterbusting", 1, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "1 = Helicopter can bust racers\n0 = Helicopter cannot bust racers")
+UVUHelicopterMinFuel = CreateConVar("unitvehicle_unit_helicopterminfuel", 60, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Minimum Fuel Time before the Air Unit runs out of fuel and leaves the pursuit.")
+UVUHelicopterMaxFuel = CreateConVar("unitvehicle_unit_helicoptermaxfuel", 180, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Maximum Fuel Time before the Air Unit runs out of fuel and leaves the pursuit.")
+UVUHelicopterCooldown = CreateConVar("unitvehicle_unit_helicoptercooldown", 180, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "Cooldown before an Air Unit can respawn after being removed.")
 
 UVUBountyPatrol = CreateConVar("unitvehicle_unit_bountypatrol", 1000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUBountySupport = CreateConVar("unitvehicle_unit_bountysupport", 5000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
@@ -1420,21 +1563,13 @@ UVUBountyAir = CreateConVar("unitvehicle_unit_bountyair", 75000, {FCVAR_ARCHIVE,
 UVUBountySpecial = CreateConVar("unitvehicle_unit_bountyspecial", 25000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUBountyCommander = CreateConVar("unitvehicle_unit_bountycommander", 100000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 UVUBountyRhino = CreateConVar("unitvehicle_unit_bountyrhino", 50000, {FCVAR_ARCHIVE, FCVAR_REPLICATED})
-	
-local defaultvoicetable = {
-	"cop1, cop2, cop3, cop4, cop5", --Patrol
-	"cop1, cop2, cop3, cop4, cop5", --Support
-	"cop1, cop2, cop3, cop4, cop5", --Pursuit
-	"cop1, cop2, cop3, cop4, cop5", --Interceptor
-	"cop1, cop2, cop3, cop4, cop5", --Special
-	"commander1", --Commander
-	"rhino1", --Rhino
-	"air", --Air
-}
 
 local ReplicatedVars = {
 	["unitvehicle_racer_racers"] = true,
 	["unitvehicle_traffic_vehicles"] = true,
+
+	["unitvehicle_racer_drivermodel"] = true,
+	["unitvehicle_traffic_drivermodel"] = true,
 }
 
 for index, v in pairs( {'Patrol', 'Support', 'Pursuit', 'Interceptor', 'Special', 'Commander', 'Rhino', 'Air'} ) do
@@ -1445,11 +1580,17 @@ for index, v in pairs( {'Patrol', 'Support', 'Pursuit', 'Interceptor', 'Special'
 
 	CreateConVar( "unitvehicle_unit_" .. lowercaseUnit .. "_voice", defaultvoicetable[index], {ShouldArchive})
 	CreateConVar( "unitvehicle_unit_" .. lowercaseUnit .. "_voiceprofile", "default", {ShouldArchive})
+
+	if lowercaseUnit ~= 'air' then
+		ReplicatedVars["unitvehicle_unit_" .. lowercaseUnit .. "_drivermodel"] = true
+		
+		CreateConVar( "unitvehicle_unit_" .. lowercaseUnit .. "_drivermodel", defaultdrivermodeltable[index], {ShouldArchive})
+	end
 end
 
 for _, v in pairs( {'Misc', 'Dispatch'} ) do
 	local lowercaseType = string.lower( v )
-	CreateConVar( "unitvehicle_unit_" .. lowercaseType .. "_voiceprofile", "", {FCVAR_ARCHIVE, FCVAR_REPLICATED})
+	CreateConVar( "unitvehicle_unit_" .. lowercaseType .. "_voiceprofile", "default", {FCVAR_ARCHIVE, FCVAR_REPLICATED})
 end
 
 for i = 1, MAX_HEAT_LEVEL do
@@ -1465,9 +1606,9 @@ for i = 1, MAX_HEAT_LEVEL do
 
 		ReplicatedVars["unitvehicle_unit_" .. conVarKey] = true
 
-		CreateConVar( "unitvehicle_unit_" .. conVarKey, "", {ShouldArchive})
-		CreateConVar( "unitvehicle_unit_" .. conVarKey .. "_chance", 100, {FCVAR_REPLICATED, FCVAR_ARCHIVE})
-		CreateConVar( "unitvehicle_unit_" .. conVarKey .. "_limit", 0, {FCVAR_REPLICATED, FCVAR_ARCHIVE})
+		CreateConVar( "unitvehicle_unit_" .. conVarKey, conVarList[conVarKey], {ShouldArchive})
+		CreateConVar( "unitvehicle_unit_" .. conVarKey .. "_chance", conVarList[conVarKey .. "_chance"], {FCVAR_REPLICATED, FCVAR_ARCHIVE})
+		CreateConVar( "unitvehicle_unit_" .. conVarKey .. "_limit", conVarList[conVarKey .. "_limit"], {FCVAR_REPLICATED, FCVAR_ARCHIVE})
 	end
 
 	for _, conVar in pairs( HEAT_SETTINGS ) do
@@ -1498,12 +1639,49 @@ UnitVehicles = true
 
 ]]
 UVPresets = {}
+UVVehicleSpawnChances = UVVehicleSpawnChances or {}
+
+function UVVehicleSpawnChanceKey(heat, unit, vehicleBase, filename)
+	if not heat or not unit or not vehicleBase or not filename then return nil end
+	return string.format("%s|%s|%s|%s", heat, string.lower(unit), vehicleBase, filename)
+end
+
+function UVGetVehicleSpawnChance(heat, unit, vehicleBase, filename)
+	local chance = UVVehicleSpawnChances[UVVehicleSpawnChanceKey(heat, unit, vehicleBase, filename)]
+	return math.Clamp(tonumber(chance) or 100, 0, 100)
+end
 
 if SERVER then
+	local VEHICLE_SPAWN_CHANCES_FILE = "unitvehicles/last_session/vehicle_spawn_chances.json"
 	local PRESET_TYPES = {
 		["uvunitmanager"] = true,
 		["uvpursuittech"] = true,
 	}
+
+	local function SaveVehicleSpawnChances()
+		if not file.IsDir("unitvehicles/last_session", "DATA") then
+			file.CreateDir("unitvehicles/last_session")
+		end
+		file.Write(VEHICLE_SPAWN_CHANCES_FILE, util.TableToJSON(UVVehicleSpawnChances))
+	end
+
+	local function LoadVehicleSpawnChances()
+		local data = file.Read(VEHICLE_SPAWN_CHANCES_FILE, "DATA")
+		if not data then return end
+
+		local chances = util.JSONToTable(data)
+		if type(chances) ~= "table" then
+			ErrorNoHalt("[Unit Vehicles] Could not load vehicle spawn chances: invalid data\n")
+			return
+		end
+
+		UVVehicleSpawnChances = {}
+		for key, chance in pairs(chances) do
+			if isstring(key) then
+				UVVehicleSpawnChances[key] = math.Clamp(tonumber(chance) or 100, 0, 100)
+			end
+		end
+	end
 
 	function UV_AddPreset( type, fileName, data )
 		if not UVPresets[type] then UVPresets[type] = {} end
@@ -1561,6 +1739,11 @@ if SERVER then
 				if convar then
 					data[newKey] = convar:GetString()
 				end
+
+			end
+
+			if type == "uvunitmanager" then
+				data.__vehicle_spawn_chances = table.Copy(UVVehicleSpawnChances)
 			end
 		end
 
@@ -1602,9 +1785,16 @@ if SERVER then
 		net.WriteUInt(#compressedData, 16)
 		net.WriteData(compressedData, #compressedData)
 		net.Send(ply)
+
+		net.Start("UVVehicleSpawnChance")
+			net.WriteString("__all")
+			net.WriteTable(UVVehicleSpawnChances)
+		net.Send(ply)
 	end
 
 	function UV_PopulatePresets()
+		LoadVehicleSpawnChances()
+
 		for type, _ in pairs( PRESET_TYPES ) do
 			UVPresets[type] = {}
 			local networkData = {}
@@ -1667,6 +1857,21 @@ if SERVER then
 		UV_AddPreset(type, string.lower(name) .. '.json', data)
 	end)
 
+	net.Receive("UVVehicleSpawnChance", function(_, ply)
+		if ply and not ply:IsSuperAdmin() then return end
+
+		local key = net.ReadString()
+		local chance = math.Clamp(net.ReadUInt(7), 0, 100)
+		if not string.match(key, "^%d+|[%w_]+|%d+|.+$") then return end
+
+		UVVehicleSpawnChances[key] = chance
+		SaveVehicleSpawnChances()
+		net.Start("UVVehicleSpawnChance")
+			net.WriteString(key)
+			net.WriteUInt(chance, 7)
+		net.Broadcast()
+	end)
+
 	local function _setConVar( cvar, value )
 		UV_UpdateSettings({ ["unitvehicle_unit_" .. cvar] = value })
 		-- net.Start("UVUpdateSettings")
@@ -1678,6 +1883,22 @@ if SERVER then
 		- data is a table of convar names and values
 	]]
 	function UVUnitLoadPreset( data )
+		UVVehicleSpawnChances = {}
+		if type(data.__vehicle_spawn_chances) == "table" then
+			for key, chance in pairs(data.__vehicle_spawn_chances) do
+				if isstring(key) then
+					UVVehicleSpawnChances[key] = math.Clamp(tonumber(chance) or 100, 0, 100)
+				end
+			end
+
+		end
+		SaveVehicleSpawnChances()
+
+		net.Start("UVVehicleSpawnChance")
+			net.WriteString("__all")
+			net.WriteTable(UVVehicleSpawnChances)
+		net.Broadcast()
+
 		local warned = false
 		local count = 0
 		local count1 = 0
@@ -1697,6 +1918,11 @@ if SERVER then
 				cont = true 
 			end
 
+			if string.match(key, "helicopters_limit") and not incomingData then
+				_setConVar( key, 1 )
+				cont = true 
+			end
+
 			if cont then
 				cont = nil
 				continue
@@ -1708,7 +1934,9 @@ if SERVER then
 		end
 
 		for incomingCV, incomingValue in pairs(data) do
-			-- local isOldFormat = string.match( incomingCV, "uvunitmanager_" )
+			if incomingCV == "__vehicle_spawn_chances" then continue end
+
+			-- local isOldFormat = string.match(incomingCV, "uvunitmanager_" )
 			-- incomingCV = isOldFormat and string.Split( incomingCV, "uvunitmanager_" )[2] or incomingCV
 			local variable = string.Split( incomingCV, "unitvehicle_unit_" )[2] or string.Split( incomingCV, "uvunitmanager_" )[2]
 
@@ -1776,12 +2004,9 @@ if SERVER then
 	hook.Add("PostCleanupMap", "UVCleanup", function()
 		UVTargeting = nil
 		UVResetStats()
-		UVPresenceMode = false
+		UVHeatZone = false
 		UVCallLocation = nil
-		uvcallexists = nil
 		UVHiding = nil
-		UVCommanderLastHealth = nil
-		UVCommanderLastEngineHealth = nil
 		UVCommanders = {}
 		UVWantedTableDriver = {}
 		UVPlayerUnitTablePlayers = {}
@@ -2061,6 +2286,9 @@ if SERVER then
 						scope.InCooldown = true
 						scope.IsEvading = true
 						scope.CooldownProgressTimeout = now
+
+						local v = Entity(scope.EntIndex)
+						if IsValid(v) and scope.InPursuit then UVAddInfraction(v, 'resist', true) end
 					end
 
 					if scope.EnemyEscaping then
@@ -2360,7 +2588,6 @@ if SERVER then
 		return cops
 	end
 
-	UVHeliCooldown = -math.huge
 	UVBustSpeed = 10
 	UVCooldownTimer = 20
 	UVCooldownTimerProgress = 0
@@ -2389,7 +2616,6 @@ if SERVER then
 	UVWantedTableDriver = {}
 	UVPotentialSuspects = {}
 	UVMaxUnits = 3
-	UVTacticFormationNo = 1
 	UVVehicleInitializing = {}
 	UVPlayerUnitTablePlayers = {}
 	UVCommanders = {}
@@ -2402,6 +2628,7 @@ if SERVER then
 	UVLoadedRoadblocksLoc = {}
 	UVWreckedVehicles = {}
 	UVUnitVehicles = {}
+	UVPlayersInActionCam = {}
 
 	hook.Add('UV_Event', 'onPursuitEvent', function( type, result )
 		if type == 'onPursuitEnd' then
@@ -2424,14 +2651,46 @@ if SERVER then
 
 	--Think
 	hook.Add("Think", "UVServerThink", function()
+		for _, ply in pairs(UVPlayersInActionCam) do
+			if not IsValid(ply) then
+				table.RemoveByValue(UVPlayersInActionCam, ply)
+				continue
+			end
+
+			if ply.ActionCam and RealTime() >= ply.ActionCamTime then
+				table.RemoveByValue(UVPlayersInActionCam, ply)
+
+				ply.ActionCamAIControl = nil
+
+				local vehicle = UVGetVehicle(ply)
+				if IsValid(vehicle) then
+					vehicle.aicontrolled = nil
+
+					if not vehicle.ghoston and vehicle:GetCollisionGroup() == 20 then
+						vehicle:SetCollisionGroup(0)
+					end
+
+					if vehicle.RacerVehicle then
+						vehicle.RacerVehicle:Remove()
+					end
+				end
+
+				net.Start("UVActionCamStop")
+				net.Send(ply)
+
+				ply.ActionCam = nil
+
+				game.SetTimeScale(1.0)
+				CF_CanSetTimeScale = true
+			end
+		end
+
 		UVScopeThink()
 
 		--One Commander Active
 		if UVOneCommanderActive then
-			if not UVCommanderRespawning and next(UVCommanders) == nil then
+			if next(UVCommanders) == nil then
 				UVOneCommanderActive = nil
-				UVCommanderLastHealth = nil
-				UVCommanderLastEngineHealth = nil
 				net.Start( "UVHUDStopOneCommander" )
 				net.Broadcast()
 			end
@@ -2456,13 +2715,6 @@ if SERVER then
 					UVOneCommanderDeployed = nil
 				end
 			end
-			if UVCommanderRespawning then
-				UVCommanderRespawning = nil
-			end
-			if UVCommanderLastHealth then
-				UVCommanderLastHealth = nil
-				UVCommanderLastEngineHealth = nil
-			end
 		end
 
 		--Wrecked vehicles
@@ -2473,8 +2725,14 @@ if SERVER then
 			end
 		end
 
-		--Idle presence
-		if not UVTargeting and (UVPresenceMode) and uvIdleSpawning - CurTime() + 5 <= 0 then
+		--Heat Zone covers the entire map, duration is dependent on the Heat Level
+		if not UVTargeting and (UVHeatZone) and (uvIdleSpawning or 0) - CurTime() + 5 <= 0 then
+			local duration = 300 * (UVHeatLevel / MaxHeatLevel:GetInt())
+
+			if uvHeatZoneStart - CurTime() + duration <= 0 then
+				UVEndHeatZone()
+			end
+
 			HandleVehicleSpawning(true)
 			uvIdleSpawning = CurTime()
 		end
@@ -2491,10 +2749,7 @@ if SERVER then
 				if HeatLevels:GetBool() then
 					UVUpdateHeatLevel()
 				end
-				if #UVUnitsChasing < 2 then
-					UVTacticFormationNo = math.random(0,6)
-				end
-				UVChangeTactics(UVTacticFormationNo)
+				UVUpdateGlobalStrategy()
 				UVBackupTimer = CurTime()
 			end
 		end
@@ -2591,7 +2846,7 @@ if SERVER then
 			for k, car in pairs(UVVehicleInitializing) do
 				if IsValid(car) and ((isfunction(car.IsInitialized) and car:IsInitialized()) or car.IsGlideVehicle or (car.LVS and car:IsInitialized()) or car:GetClass() == "prop_vehicle_jeep") then
 					if car.uvclasstospawnon == "npc_uvcommander" then
-						local health = car.uvlasthealth or UVUOneCommanderHealth:GetInt()
+						local health = UVUOneCommanderHealth:GetInt()
 						local enginehealth = car.uvlastenginehealth or 1.0
 						if car.IsSimfphyscar then
 							car:SetCurHealth(health)
@@ -2609,7 +2864,6 @@ if SERVER then
 								car:SetHealth(health)
 							end
 						end
-						UVCommanderRespawning = nil
 					else
 						if car:GetClass() == "prop_vehicle_jeep" and not vcmod_main then
 							local mass = car:GetPhysicsObject():GetMass()
@@ -2647,7 +2901,7 @@ if SERVER then
 						net.Start("UVHUDAddUV")
 						net.WriteInt(car:EntIndex(), 32)
 						net.WriteInt(car:GetCreationID(), 32)
-						net.WriteString("unit")
+						net.WriteString(car.undercover and "undercover" or "unit")
 						net.Broadcast()
 
 						UVUnitVehicles[car] = car
@@ -2662,9 +2916,20 @@ if SERVER then
 		
 		for unit, _ in pairs(UVUnitVehicles) do
 			if not IsValid(unit) or not unit.UnitVehicle or unit.wrecked then
+				if IsValid(unit) then
+					unit:SetNWFloat("UVDetectionMeter", 0)
+				end
+
 				UVUnitVehicles[unit] = nil
 				continue
 			end
+
+			local decayRate = 25
+			if unit.lastdetected and CurTime() - unit.lastdetected > 1 and unit.DetectionMeter and unit.DetectionMeter > 0 then
+				unit.DetectionMeter = math.max(0, unit.DetectionMeter - (decayRate * FrameTime()))
+			end
+
+			unit:SetNWFloat("UVDetectionMeter", unit.DetectionMeter or 0)
 
 			if unit.uvkillswitching then
 				UVKillSwitchCheck(unit)
@@ -2677,6 +2942,20 @@ if SERVER then
 			end
 		end
 
+		for _, unit in pairs(ents.FindByClass("uvair")) do
+			if unit.Downed or unit.disengaging or unit.crashing then
+				unit:SetNWFloat("UVDetectionMeter", 0)
+				continue
+			end
+
+			local decayRate = 25
+			if unit.lastdetected and CurTime() - unit.lastdetected > 1 and unit.DetectionMeter and unit.DetectionMeter > 0 then
+				unit.DetectionMeter = math.max(0, unit.DetectionMeter - (decayRate * FrameTime()))
+			end
+
+			unit:SetNWFloat("UVDetectionMeter", unit.DetectionMeter or 0)
+		end
+
 		UVUnitsHavePlayers = next(UVGetPlayerCops()) ~= nil
 		
 		for _, v in pairs(UVWantedTableVehicle) do
@@ -2684,7 +2963,8 @@ if SERVER then
 			
 			local vScope = UVGetScope(v)
 			if not vScope then continue end
-			local visualrange = vScope.Hiding and 1000000 or 25000000
+			local visualrange = (vScope.Hiding or (not vScope.InPursuit and UVCheckIfHiding(v))) and 6250000 or 25000000
+			local visualrangechopper = (vScope.Hiding or (not vScope.InPursuit and UVCheckIfHiding(v))) and 25000000 or 100000000
 			vScope.UnitsChasing = 0
 			
 			v.closestunit = nil
@@ -2694,10 +2974,11 @@ if SERVER then
 			
 			-- Visibility check for helicopter, should they have busting enabled.
 			for _, j in pairs(ents.FindByClass("uvair")) do
-				if (not (j.Downed and j.disengaging and j.crashing)) and j:GetTarget() == v then
-					local isInRange = j:DistIgnoreZ( v:GetPos() ) <= ( vScope.Hiding and 2000 or 10000 )
+				if (not (j.Downed and j.disengaging and j.crashing)) then
+					local dist = j:GetPos():DistToSqr(v:GetPos())
+					local isInRange = dist < visualrangechopper
 					
-					if isInRange and ( v.inunitview or UVVisualOnTarget( j, v ) ) then
+					if isInRange and ( v.inunitview or UVDetectEnemy(j, v, true) ) then
 						v.inunitview = true
 						vScope.UnitsChasing = vScope.UnitsChasing + 1
 						--check = true
@@ -2719,7 +3000,7 @@ if SERVER then
 				for unit, _ in pairs(UVUnitVehicles) do
 					local dist = unit:GetPos():DistToSqr(v:GetPos())
 					local withinRange = dist < visualrange
-					if withinRange and ( v.inunitview or UVVisualOnTarget( unit, v ) ) then
+					if withinRange and ( v.inunitview or UVDetectEnemy(unit, v, nil) ) then
 						vScope.UnitsChasing = vScope.UnitsChasing + 1
 						v.inunitview = true
 						
@@ -2857,24 +3138,91 @@ if SERVER then
 			if _scope.Hiding then anyHiding = true end
 		end
 
+		for _, v in pairs(UVPotentialSuspects) do
+			local vph = v:GetPhysicsObject()
+			if not vph then return end
 
-		-- --Check if busting/hiding
-		-- if next(UVWantedTableVehicle) ~= nil then
-		-- 	for k, v in pairs(UVWantedTableVehicle) do
-		-- 	end
-		-- 	-- Per-scope hiding computation
-		-- 	local anyHiding = false
-		-- 	for _key, _scope in pairs(UVPursuitScopes) do
-		-- 		local _veh = Entity(_scope.EntIndex)
-		-- 		if IsValid(_veh) and _scope.EnemyEscaping then
-		-- 			_scope.Hiding = UVCheckIfHiding(_veh)
-		-- 		else
-		-- 			_scope.Hiding = false
-		-- 		end
-		-- 		if _scope.Hiding then anyHiding = true end
-		-- 	end
-		-- 	UVHiding = anyHiding
-		-- end
+			local vAngles = vph:GetAngles()
+			local vVelo = vph:GetVelocity()
+			local vAnglesVelo = vph:GetAngleVelocity()
+
+			local scope = UVGetScope(v)
+
+			--Stunt jump
+			if not v.UVStuntJump then
+				local onground = util.QuickTrace(v:WorldSpaceCenter(), -vector_up * ActionCamJumpThreshold:GetInt(), {v})
+				if not onground.Hit and vVelo:LengthSqr() > 30976 then
+					v.UVStuntJump = true
+
+					local driver = UVGetDriver(v)
+					if driver then
+						UVActionCam(driver, "Jump")
+					end
+
+					timer.Simple(10, function()
+						v.UVStuntJump = nil
+					end)
+
+					if not scope.vEscaping and scope.InPursuit then
+						local randomno = math.random(1,2)
+						local units = ents.FindByClass("npc_uv*")
+						local airUnits = ents.FindByClass("uvair")
+						table.Merge(units, airUnits)
+
+						if next(units) ~= nil then
+							local randomUnit = units[math.random(1, #units)]
+							UVChatterStuntJump(randomUnit)
+						end
+					end
+				end
+			end
+
+			--Stunt roll
+			if not v.UVStuntRoll then
+				if vAngles.z > 90 and vAngles.z < 270 and vVelo:LengthSqr() < 10000 then
+					v.UVStuntRoll = true
+
+					timer.Simple(10, function()
+						v.UVStuntRoll = nil
+					end)
+
+					if not scope.vEscaping and scope.InPursuit then
+						local randomno = math.random(1,2)
+						local units = ents.FindByClass("npc_uv*")
+						local airUnits = ents.FindByClass("uvair")
+						table.Merge(units, airUnits)
+
+						if next(units) ~= nil then
+							local randomUnit = units[math.random(1, #units)]
+							UVChatterStuntRoll(randomUnit)
+						end
+					end
+				end
+			end
+
+			--Stunt spin
+			if not v.UVStuntSpin then
+				if vAnglesVelo.z > 180 then
+					v.UVStuntSpin = true
+
+					timer.Simple(10, function()
+						v.UVStuntSpin = nil
+					end)
+
+					if not scope.vEscaping and scope.InPursuit then
+						local randomno = math.random(1,2)
+						local units = ents.FindByClass("npc_uv*")
+						local airUnits = ents.FindByClass("uvair")
+						table.Merge(units, airUnits)
+
+						if next(units) ~= nil then
+							local randomUnit = units[math.random(1, #units)]
+							UVChatterStuntSpin(randomUnit)
+						end
+					end
+				end
+			end
+		end
 
 		--Idle chatter
 		if #ents.FindByClass("npc_uv*") > 0 and not UVTargeting then
@@ -2994,43 +3342,11 @@ if SERVER then
 			end
 		end
 
-		--SPOTTED CAMERA
-		local FREEZE_DURATION = 2.7
-
-		if game.SinglePlayer() and SpottedFreezeCam:GetBool() then
-			local ply = Entity(1)
-
-			if ply.isUVFrozen and RealTime() >= ply.isUVFreezeTime then
-        	    net.Start("UVSpottedUnfreeze")
-        	    net.Send(ply)
-
-        	    ply.isUVFrozen = nil
-				--ply:Freeze(false)
-
-				-- if IsValid(ply.UVLastVehicleDriven) then
-				-- 	if ply.UVLastVehicleDriven.IsSimfphyscar then
-				-- 		ply:EnterVehicle( ply.UVLastVehicleDriven.DriverSeat )
-				-- 	elseif ply.UVLastVehicleDriven.IsGlideVehicle then
-				-- 		local seat = ply.UVLastVehicleDriven.seats[1]
-				-- 		if IsValid(seat) then
-				-- 			ply:EnterVehicle(seat)
-				-- 		end
-				-- 	elseif ply.UVLastVehicleDriven:GetClass() == "prop_vehicle_jeep" then
-				-- 		ply:EnterVehicle(ply.UVLastVehicleDriven)
-				-- 	end
-				-- end
-
-        	    game.SetTimeScale(1.0)
-				CF_CanSetTimeScale = true
-        	end
-		end
-
 		--HUD Triggers
 		if UVTargeting then
 
 			if not UVHUDPursuit then
-				UVRestoreResourcePoints()
-				if game.SinglePlayer() and SpottedFreezeCam:GetBool() then --SPOTTED CAMERA
+				if game.SinglePlayer() and ActionCamSpotted:GetBool() then --SPOTTED CAMERA
 					local ply = Entity(1)
 					local v = UVGetVehicle(ply)
 					local vScope = UVGetScope(v)
@@ -3061,24 +3377,7 @@ if SERVER then
 						end
 	
 						if closestunit then
-							ply.isUVFrozen = true
-							ply.isUVFreezeTime = RealTime() + FREEZE_DURATION
-	
-							-- if IsValid(UVGetVehicle(ply)) then
-							-- 	ply.UVLastVehicleDriven = UVGetVehicle(ply)
-							-- 	ply:ExitVehicle()
-							-- end
-						
-							--ply:Freeze(true)
-							net.Start("UVSpottedFreeze")
-							net.WriteFloat(FREEZE_DURATION)
-							net.WriteEntity(closestunit)
-							net.Send(ply)
-							CF_CanSetTimeScale = false
-							game.SetTimeScale(0.001) --Source dosen't like it if you set it to 0
-	
-	
-							UVRelaySoundToClients("ui/pursuit/spottedfreezecam.wav", false)
+							UVActionCam(ply, "Spotted", closestunit)
 						end	
 					end
 				end
@@ -3434,7 +3733,7 @@ if SERVER then
 			net.Start( "UVHUDAddUV" )
 			net.WriteInt( v:EntIndex(), 32 )
 			net.WriteInt( v:GetCreationID(), 32 )
-			net.WriteString( "unit" )
+			net.WriteString( v.undercover and "undercover" or "unit" )
 			net.Send( ply )
 		end
 
@@ -3518,10 +3817,58 @@ else -- CLIENT Settings | HUD/Options
 	CleanupTask = {}
 
 	local unitBlipColors = {
-		[1] = Color( 0, 0, 255 ),
-		[2] = Color( 150, 0, 0),
-		[3] = Color( 255, 255, 255 )
+	    [1] = Color(0, 0, 255),
+		[2] = color_white,
+	    [3] = Color(150, 0, 0),
+	    [4] = color_white
 	}
+
+	UNIT_BLIPS = UNIT_BLIPS or {}
+
+	local function RegisterUnitBlip(id)
+	    UNIT_BLIPS[id] = id
+	end
+
+	local function UnregisterUnitBlip(id)
+	    UNIT_BLIPS[id] = nil
+	end
+
+	local unitBlipColorsCurrent = 1
+
+	timer.Create("UpdateUnitBlips", 0.035, 0, function()
+	    if table.IsEmpty(UNIT_BLIPS) then return end
+
+	    local currentFlashColor = unitBlipColors[unitBlipColorsCurrent]
+		unitBlipColorsCurrent = unitBlipColorsCurrent % #unitBlipColors + 1
+	
+	    local disabledColor = unitBlipColors[2]
+	    local inactiveColor = unitBlipColors[3]
+
+	    for id, data in pairs(UNIT_BLIPS) do
+	        local blip = GMinimap:FindBlipByID(data)
+
+	        if not blip then
+	            UnregisterUnitBlip(id)
+	            continue
+	        end
+
+	        if blip.disabled then
+	            blip.color = disabledColor
+	        elseif not IsPursuitActive then
+	            blip.color = inactiveColor
+	        else
+	            blip.color = currentFlashColor
+	        end
+
+			if blip.undercover then
+				if not UVHUDCopMode and (not UVHUDDisplayPursuit or UVHUDDisplayCooldown) then
+					blip.alpha = 0
+				else
+					blip.alpha = 255
+				end
+			end
+	    end
+	end)
 
 	PursuitTheme = CreateClientConVar("unitvehicle_pursuittheme", "", true, false, "Unit Vehicles: Pursuit Theme (string).")
 	PursuitSFX = CreateClientConVar("unitvehicle_pursuitsfx", 1, true, false, "Unit Vehicles: If set to 1, Pursuit SFX will play.")
@@ -3552,6 +3899,8 @@ else -- CLIENT Settings | HUD/Options
 
 	UVPoliceScanner = CreateClientConVar("unitvehicle_policescanner", 1, true, false, "Unit Vehicles: If set to 1, the police scanner will be enabled.")
 	UVPoliceScannerVehicle = CreateClientConVar("unitvehicle_policescanner_vehicle", 0, true, false, "Unit Vehicles: If set to 1, the police scanner will use your vehicle as its anchor rather than the camera viewpoint.")
+
+	UVDetection = CreateClientConVar("unitvehicle_detection", 1, true, false, "Unit Vehicles: If set to 1, a visual detection indicator will be displayed.")
 
 	-- for i = 1, MAX_HEAT_LEVEL do
 	-- 	local prevIterator = i - 1
@@ -3714,7 +4063,7 @@ else -- CLIENT Settings | HUD/Options
 		end
 	end)
 
-	local function InitEntity( entIndex, creationId, entType )
+	local function InitEntity( entIndex, creationId, entType, entColor )
 		local entity = Entity( entIndex )
 		if not IsValid( entity ) then return end
 
@@ -3722,6 +4071,11 @@ else -- CLIENT Settings | HUD/Options
 
 		if localCreationId ~= creationId then 
 			return 
+		end
+
+		if entType == "undercover" then
+			entType = "unit"
+			entity.undercover = true
 		end
 
 		if entType == "unit" or entType == "air" then
@@ -3742,34 +4096,12 @@ else -- CLIENT Settings | HUD/Options
 					icon = unitIcon,
 					scale = (entType == "air" and 2) or 1.4,
 					color = Color( 150, 0, 0 ),
-					alpha = 255
+					alpha = (entity.undercover and 0) or 255,
 				})
 
-				entity.flashIterator = 1
+				blip.undercover = entity.undercover
 
-				timer.Create( "unit_blip_" .. id, 0.035, 0, function()
-					if blip.disabled then
-						blip.color = unitBlipColors[3]
-						return
-					end
-
-					if not IsPursuitActive then
-						blip.color = unitBlipColors[2]
-						return
-					end
-
-					-- entity.flashIterator = entity.flashIterator + 1
-					local color = unitBlipColors[entity.flashIterator]
-					entity.flashIterator = entity.flashIterator % #unitBlipColors + 1
-
-					if color then
-						blip.color = color
-					end
-				end)
-
-				entity:CallOnRemove( "uv_entity_" .. entIndex, function()
-					timer.Remove( "unit_blip_" .. id )
-				end)
+				RegisterUnitBlip(id)
 			end
 
 		elseif entType == "roadblock" then
@@ -3804,6 +4136,9 @@ else -- CLIENT Settings | HUD/Options
 
 		elseif entType == "racer" then
 			table.insert( UVHUDWantedSuspects, entity )
+		elseif entType == "drivermodel" then
+			local vecCache = entColor:ToVector()
+			entity.GetPlayerColor = function() return vecCache end
 		end
 
 		return true
@@ -3940,6 +4275,7 @@ else -- CLIENT Settings | HUD/Options
 			car.PursuitTech[slot].Ammo = net.ReadUInt(8)
 			car.PursuitTech[slot].Cooldown = net.ReadUInt(16)
 			car.PursuitTech[slot].LastUsed = net.ReadFloat()
+			car.PursuitTech[slot].Upgraded = net.ReadBool()
 		elseif car.PursuitTech then
 			car.PursuitTech[slot] = nil
 			-- If both slots are now nil, clear the table completely for cleanliness
@@ -4238,6 +4574,7 @@ else -- CLIENT Settings | HUD/Options
 		UVBustingProgress = net.ReadString()
 		UVHUDDisplayBusting = true
 		UVBustedColor = Color( 255, 255, 255, 50 )
+		UVNotificationColor = Color( 255, 0, 0)
 		UVNotification = lang("uv.chase.busting")
 		UVBustingTimeLeft = math.Round((BustedTimer:GetFloat()-UVBustingProgress),3)
 
@@ -4288,7 +4625,7 @@ else -- CLIENT Settings | HUD/Options
 			end)
 		end
 
-		if UVHUDDisplayPursuit and not UVPlayingRace then
+		if UVHUDDisplayPursuit and not UVPlayingRace and not UVActionCam then
 			UVSoundBusted( UVHeatLevel )
 		end
 	end)
@@ -4368,7 +4705,8 @@ else -- CLIENT Settings | HUD/Options
 		table.insert( EntityQueue, {
 			entIndex = entIndex,
 			creationId = creationId,
-			entType = net.ReadString()
+			entType = net.ReadString(),
+			entColor = net.ReadColor()
 		} )
 	end)
 
@@ -4385,8 +4723,8 @@ else -- CLIENT Settings | HUD/Options
 				if not IsValid(entity) then return true end
 				if entity:GetCreationID() ~= creationId then return end
 
-				if ent then
-					table.RemoveByValue( UnitTable, ent )
+				if entity then
+					table.RemoveByValue( UnitTable, entity )
 				end
 
 				if GMinimap then
@@ -4492,7 +4830,7 @@ else -- CLIENT Settings | HUD/Options
 		end
 
 		for i, v in pairs( EntityQueue ) do
-			local ent = InitEntity( v.entIndex, v.creationId, v.entType )
+			local ent = InitEntity( v.entIndex, v.creationId, v.entType, v.entColor )
 			if ent then
 				table.remove( EntityQueue, i )
 			end
@@ -4520,7 +4858,7 @@ else -- CLIENT Settings | HUD/Options
 			end
 		elseif (UVHUDDisplayPursuit or UVHUDDisplayRacing) then
 			--if not RacingMusicPriority:GetBool() then
-			if (UVHUDDisplayRacing and not RacingMusic:GetBool() and not UVHUDDisplayPursuit) or (UVHUDDisplayPursuit and not PlayMusic:GetBool()) then
+			if (UVHUDDisplayRacing and not RacingMusic:GetBool() and not UVHUDDisplayPursuit) or (UVHUDDisplayPursuit and not PlayMusic:GetBool() and not (UVHUDDisplayRacing and RacingMusic:GetBool())) then
 				UVStopSound()
 				if UVSoundLoop then
 					UVSoundLoop:Stop()
@@ -4615,25 +4953,6 @@ else -- CLIENT Settings | HUD/Options
 			end
 		else
 			UVHUDDisplayPursuit = nil
-		end
-
-		if IsUVFrozen then
-			local isInRaceMusic = (not RacingMusicPriority:GetBool()) and RacingMusic:GetBool() and UVHUDDisplayRacing
-			local isOutsideRaceMusic = RacingThemeOutsideRace:GetBool() and RacingMusic:GetBool()
-			
-			if UVPlayingRace then
-				if isInRaceMusic or isOutsideRaceMusic then
-					return
-				end
-			end
-
-			UVStopSound()
-			if UVSoundLoop then
-				UVSoundLoop:Stop()
-				UVSoundLoop = nil
-			end
-
-			return
 		end
 
 		if not UVBustedState then
@@ -4782,52 +5101,52 @@ else -- CLIENT Settings | HUD/Options
 		
 		local devMode = GetConVar("developer"):GetBool()
 		
-		-- if UVSubtitles:GetBool() and UV_CurrentSubtitle and CurTime() < (UV_SubtitleEnd or 0) then
-			-- local text = lang(UV_CurrentSubtitle)
-			-- local textcs = lang(UV_CurrentSubtitleCallsign or " ")
-			-- local font = "UVMostWantedLeaderboardFont"
-			-- local maxWidth = w * 0.4  -- maximum width of the subtitle block
-			-- local bgPadding = 8
-			-- local outlineAlpha = 150
+		if UVSubtitles:GetBool() and UV_CurrentSubtitle and CurTime() < (UV_SubtitleEnd or 0) then
+			local text = lang(UV_CurrentSubtitle)
+			local textcs = lang(UV_CurrentSubtitleCallsign or " ")
+			local font = "UVMostWantedLeaderboardFont"
+			local maxWidth = w * 0.4
+			local bgPadding = 8
+			local outlineAlpha = 150
 
-			-- surface.SetFont(font)
-			-- if text == "" or text == UV_CurrentSubtitle then -- invalid or missing localization; Active for debugging purposes
-			-- else
-				-- local lines = {}
-				-- local currentLine = ""
-				-- for word in text:gmatch("%S+") do
-					-- local testLine = (currentLine == "" and "" or currentLine .. " ") .. word
-					-- local textWidth, _ = surface.GetTextSize(testLine)
-					-- if textWidth > maxWidth then
-						-- if currentLine ~= "" then
-							-- table.insert(lines, currentLine)
-						-- end
-						-- currentLine = word
-					-- else
-						-- currentLine = testLine
-					-- end
-				-- end
-				-- if currentLine ~= "" then
-					-- table.insert(lines, currentLine)
-				-- end
+			surface.SetFont(font)
+			if text == "" or text == UV_CurrentSubtitle then
+			else
+				local lines = {}
+				local currentLine = ""
+				for word in text:gmatch("%S+") do
+					local testLine = (currentLine == "" and "" or currentLine .. " ") .. word
+					local textWidth, _ = surface.GetTextSize(testLine)
+					if textWidth > maxWidth then
+						if currentLine ~= "" then
+							table.insert(lines, currentLine)
+						end
+						currentLine = word
+					else
+						currentLine = testLine
+					end
+				end
+				if currentLine ~= "" then
+					table.insert(lines, currentLine)
+				end
 
-				-- local lineHeight = select(2, surface.GetTextSize("A")) * 1.2
-				-- local totalHeight = #lines * lineHeight + (h * 0.02)
+				local lineHeight = select(2, surface.GetTextSize("A")) * 1.2
+				local totalHeight = #lines * lineHeight + (h * 0.02)
 
-				-- local bgX = w * 0.5 - maxWidth * 0.5 - bgPadding
-				-- local bgY = h * 0.7275 - bgPadding
-				-- local bgW = maxWidth + bgPadding * 2
-				-- local bgH = totalHeight + bgPadding * 2
+				local bgX = w * 0.5 - maxWidth * 0.5 - bgPadding
+				local bgY = h * 0.7275 - bgPadding
+				local bgW = maxWidth + bgPadding * 2
+				local bgH = totalHeight + bgPadding * 2
 
-				-- draw.RoundedBox(12, bgX, bgY, bgW, bgH, Color(0, 0, 0, 150))
+				draw.RoundedBox(12, bgX, bgY, bgW, bgH, Color(0, 0, 0, 150))
 
-				-- for i, line in ipairs(lines) do
+				for i, line in ipairs(lines) do
 									
-					-- draw.SimpleTextOutlined( textcs, font, w * 0.5, h * 0.725, Color(255, 255, 100), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1.25, Color(0, 0, 0, outlineAlpha) )
-					-- draw.SimpleTextOutlined( line, font, w * 0.5, h * 0.755 + (i - 1) * lineHeight, pcol, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1.25, Color(0, 0, 0, outlineAlpha) )
-				-- end
-			-- end
-		-- end
+					draw.SimpleTextOutlined( textcs, font, w * 0.5, h * 0.725, Color(255, 255, 100), TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1.25, Color(0, 0, 0, outlineAlpha) )
+					draw.SimpleTextOutlined( line, font, w * 0.5, h * 0.755 + (i - 1) * lineHeight, pcol, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP, 1.25, Color(0, 0, 0, outlineAlpha) )
+				end
+			end
+		end
 
 		-- if UVHUDCopMode and input.IsKeyDown(var) and not gui.IsGameUIVisible() and vgui.GetKeyboardFocus() == nil then
 		if input.IsKeyDown(var) and not gui.IsGameUIVisible() and vgui.GetKeyboardFocus() == nil then
@@ -4994,7 +5313,7 @@ else -- CLIENT Settings | HUD/Options
 				radius = 30,
 				innerRadius = 14,
 				blipRadius = 8,
-				maxRange = 5000,
+				maxRange = 10000,
 				maxArc = 360,
 				posX = w/2,
 				posY = h/10,
@@ -5023,11 +5342,25 @@ else -- CLIENT Settings | HUD/Options
 			end
 		end
 
+		--Detection
+		if UVDetection:GetBool() and (not UVHUDDisplayPursuit or UVHUDDisplayCooldown) and not UVHUDCopMode and not uvclientjammed and localPlayer:InVehicle() and areUnitsPresent then
+			local detectionHandler
+			if not detectionHandler then detectionHandler = UV_UI.pursuit.general.detection end
+			
+			if detectionHandler then
+				detectionHandler()
+			end
+		end
+
 		if UVEMPLockingTarget then
 			local diff = CurTime() - (UVEMPLockingStart or 0)
 
 			local isUnit = table.HasValue( UnitTable, UVEMPLockingTarget )
 			local maxDistance = math.pow( ( isUnit and UVUnitPTEMPMaxDistance:GetInt() ) or UVPTEMPMaxDistance:GetInt(), 2 )
+
+			if UVEMPLockingUpgraded then
+				maxDistance = maxDistance * 2
+			end
 
 			if diff > 5 then 
 				UVEMPLockingStart = nil
@@ -5565,7 +5898,7 @@ else -- CLIENT Settings | HUD/Options
 
 	net.Receive('UV_Sound', function()
 		local array = net.ReadTable()
-		if not PursuitSFX:GetBool() and not string.match( array.FileName, "spottedfreezecam" ) then return end
+		if not PursuitSFX:GetBool() then return end
 
 		local audio_file = "sound/"..array.FileName
 		local parameters = array.Parameter
@@ -5589,6 +5922,7 @@ else -- CLIENT Settings | HUD/Options
 		local init_time = net.ReadFloat()
 		local audio_file = "sound/"..net.ReadString()
 		local can_skip = net.ReadBool()
+		local param = net.ReadUInt(4)
 		local hasCallsign = net.ReadBool()
 		local callsign = nil 
 		if hasCallsign then
@@ -5617,30 +5951,28 @@ else -- CLIENT Settings | HUD/Options
 					uvchatterplaying:Stop()
 				end
 				uvchatterplaying = source
+				source:SetVolume(param ~= 2 and ChatterVolume:GetFloat() or 0)
 				source:Play()
-				source:SetVolume(ChatterVolume:GetFloat())
 				
 				local excludeSubstrings = {
 					".misc.radioon",
 					".misc.radiooff",
-					".misc.emergency",
-					".dispatch.idletalk",
-					".bullhorn.",
+					".misc.emergency"
 				}
 
-				-- local shouldUpdate = true
-				-- for _, substr in ipairs(excludeSubstrings) do
-					-- if string.find(key, substr, 1, true) then
-						-- shouldUpdate = false
-						-- break
-					-- end
-				-- end
+				local shouldUpdate = true
+				for _, substr in ipairs(excludeSubstrings) do
+					if string.find(key, substr, 1, true) then
+						shouldUpdate = false
+						break
+					end
+				end
 
-				-- if shouldUpdate then
-					-- UV_CurrentSubtitle = key
-					-- UV_SubtitleEnd = CurTime() + source:GetLength()
-					-- UV_CurrentSubtitleCallsign = callsign
-				-- end
+				if shouldUpdate then
+					UV_CurrentSubtitle = key
+					UV_SubtitleEnd = CurTime() + source:GetLength()
+					UV_CurrentSubtitleCallsign = callsign
+				end
 			end
 		end)
 	end)

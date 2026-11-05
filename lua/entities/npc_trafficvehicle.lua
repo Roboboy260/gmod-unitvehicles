@@ -112,6 +112,10 @@ if SERVER then
 			if (self.uvscripted and not self.wrecked) then
 				SafeRemoveEntity(self.v)
 			end
+
+			if not self.wrecked and self.v.DriverModel and IsValid(self.v.DriverModel) then 
+				self.v.DriverModel:Remove() 
+			end
 			
 		end
 		
@@ -141,12 +145,6 @@ if SERVER then
 		self:SetELS(false)
 		self:SetELSSound(false)
 		self:SetHorn(false)
-
-		if self.v.rammed then
-			self:SetHorn(true)
-		else
-			self:SetHorn(false)
-		end
 
 		if self.v.IsScar then
 			self.v:GoNeutral()
@@ -371,25 +369,7 @@ if SERVER then
 				end
 			end --K turn
 
-			local turn = self:ObstaclesNearbySide()
-			if turn then
-				if turn == -1 then
-					if vectdot > 0 then
-						steer = -1
-					else
-						steer = 1
-					end
-				end
-				if turn == 1 then
-					if vectdot > 0 then
-						steer = 1
-					else
-						steer = -1
-					end
-				end
-			end
-
-			if self.v.rammed then
+			if self.v.honkwhenrammed then
 				self:SetHorn(true)
 			else
 				self:SetHorn(false)
@@ -398,7 +378,13 @@ if SERVER then
 			local speedInUnits = self.v:GetVelocity():Length()
 			local arrivalThreshold = math.Clamp(150 + (speedInUnits * 0.5), 150, 600)
 
-			if dist:Length() < arrivalThreshold and UVStraightToWaypoint(self.v:WorldSpaceCenter(), self.waypointPos) then
+			local forceStop = false
+
+			if self.PatrolWaypoint.TrafficLight and IsValid(self.PatrolWaypoint.TrafficLight) and self.PatrolWaypoint.TrafficLight:GetNWInt("DVTL_LightColor") == 3 then
+				forceStop = true
+			end
+
+			if not forceStop and dist:Length() < arrivalThreshold and UVStraightToWaypoint(self.v:WorldSpaceCenter(), self.waypointPos) then
 			    if self.PatrolWaypoint.Neighbors then
 			        local WaypointTable = {}
 			        for k, v in pairs(self.PatrolWaypoint.Neighbors) do
@@ -421,6 +407,55 @@ if SERVER then
 			    end
 			end
 
+			-- === START OF NEW OBSTACLE DETECTION STOP LOGIC ===
+			local carLength = self.v.length or 120
+			local lookDist = carLength + math.max(250, speedInUnits)
+			
+			local traceStart = self.v:WorldSpaceCenter()
+			traceStart.z = traceStart.z + self.v.rideheight
+			-- Project trace slightly ahead of the vehicle to prevent clipping own bumper
+			traceStart = traceStart + (forward * (carLength * 0.5 + 10))
+
+			-- Gather all parts of the vehicle to prevent self-collision in trace
+			local filterTable = {self, self.v}
+			if self.v.UVConstrainedEntities then
+				for _, ent in pairs(self.v.UVConstrainedEntities) do
+					if IsValid(ent) then table.insert(filterTable, ent) end
+				end
+			else
+				local constraints = constraint.GetAllConstrainedEntities(self.v)
+				if constraints then
+					for _, ent in pairs(constraints) do
+						if IsValid(ent) then table.insert(filterTable, ent) end
+					end
+				end
+			end
+
+			local trBlock = util.TraceHull({
+				start = traceStart,
+				endpos = traceStart + (forward * lookDist),
+				mins = Vector(-30, -30, -10),
+				maxs = Vector(30, 30, 50),
+				filter = filterTable
+			})
+
+			if trBlock.Hit and IsValid(trBlock.Entity) then
+				local hitEnt = trBlock.Entity
+				local class = string.lower(hitEnt:GetClass() or "")
+				
+				-- Ignore wheels entirely to prevent phantom stops
+				if not string.find(class, "wheel") then
+					local isPerson = hitEnt:IsPlayer() or hitEnt:IsNPC() or hitEnt:IsNextBot()
+					local isVehicle = hitEnt:IsVehicle() or string.find(class, "simfphys") or string.find(class, "lvs") or string.find(class, "scar") or string.find(class, "vehicle")
+					local isProp = string.find(class, "prop_")
+					
+					if isPerson or isVehicle or isProp then
+						forceStop = true
+					end
+				end
+			end
+			-- === END OF NEW OBSTACLE DETECTION STOP LOGIC ===
+
 			--Emergency Stop
 			if self.emergencystop then
 				if not self.emergencystopcooldown then
@@ -434,35 +469,76 @@ if SERVER then
 				end
 
 				throttle = 0
-				self:UVHandbrakeOn()
+				
+				forceStop = true
 			end
 
-			--Set throttle/steering
+			if forceStop then
+				self.moving = CurTime()
+			end
+
+			--Set throttle/steering based on forced stop values
 			if self.v.IsScar then
-				if throttle > 0 then
-					self.v:GoForward(throttle)
-				else
-					self.v:GoBack(-throttle)
-				end
-				if steer > 0 then
-					self.v:TurnRight(steer)
-				elseif steer < 0 then
-					self.v:TurnLeft(-steer)
-				else
+				if forceStop then
+					self.v:GoForward(0)
+					self.v:GoBack(0)
+					self.v:HandBrakeOn()
 					self.v:NotTurning()
+				else
+					if throttle > 0 then
+						self.v:GoForward(throttle)
+					else
+						self.v:GoBack(-throttle)
+					end
+					if steer > 0 then
+						self.v:TurnRight(steer)
+					elseif steer < 0 then
+						self.v:TurnLeft(-steer)
+					else
+						self.v:NotTurning()
+					end
 				end
 			elseif self.v.IsSimfphyscar then
 				self.v:SetActive(true)
 				self.v:StartEngine()
 				self.v.PressedKeys = self.v.PressedKeys or {}
 				self.v.PressedKeys["Shift"] = false
+				
+				if forceStop then
+					if selfvelocity > 10000 then
+						if self.v:GetGear() >= 3 then
+							throttle = -1
+						else
+							throttle = 1
+						end
+					else
+						throttle = 0
+						self.v.PressedKeys["Space"] = true
+					end
+				end
+
 				self.v.PressedKeys["joystick_throttle"] = throttle
 				self.v.PressedKeys["joystick_brake"] = throttle * -1
+				
 				self.v:PlayerSteerVehicle(self, steer < 0 and -steer or 0, steer > 0 and steer or 0)
 			elseif self.v.IsGlideVehicle then
+				if forceStop then
+					if selfvelocity > 10000 then
+						if self.v:GetGear() >= 1 then
+							throttle = -1
+						else
+							throttle = 1
+						end
+					else
+						throttle = 0
+						self.v:TriggerInput("Handbrake", 1)
+					end
+				end
+
 				self.v:TriggerInput("Throttle", throttle)
 				self.v:TriggerInput("Brake", throttle * -1)
-				steer = steer * 2 --Attempt to make steering more sensitive.
+				
+				steer = steer * 2 
 				self.v:TriggerInput("Steer", steer)
 			elseif isfunction(self.v.SetThrottle) and not self.v.IsGlideVehicle then
 				local lvsReverse = false
@@ -477,6 +553,13 @@ if SERVER then
 
 				if self.v.LVS then self.v:SetReverse( lvsReverse ) end
 				self.v:SetThrottle(throttle)
+				
+				if forceStop then
+					if isfunction(self.v.SetHandbrake) then
+						self.v:SetHandbrake(true)
+					end
+				end
+				
 				if self.v.LVS then
 					self.v:SetSteer(steer * self.v:GetMaxSteerAngle())
 				else
@@ -774,8 +857,24 @@ if SERVER then
 
 		self.v.racer = "Traffic"
 
-		if isfunction(self.v.UVVehicleInitialize) then --For vehicles that has a driver bodygroup
-			self.v:UVVehicleInitialize()
+		if DriverModel:GetBool() then
+			local selectedDriverModel = GetConVar("unitvehicle_traffic_drivermodel"):GetString()
+			local splittedText = string.Explode( " ", selectedDriverModel )
+
+			local ya = {}
+
+			for k, v in pairs( splittedText ) do
+				table.insert( ya, string.Trim( v ) )
+			end
+
+			self._cooldownString = "NavigateCooldown_Entity"..self:EntIndex()
+			self.drivermodel = ya[math.random(1, #ya)]
+
+			self:AttachDriverModel(self.drivermodel)
+		else
+			if isfunction(self.v.UVVehicleInitialize) then
+				self.v:UVVehicleInitialize() --For vehicles that has a driver bodygroup
+			end
 		end
 
 		local deletiontime = 1

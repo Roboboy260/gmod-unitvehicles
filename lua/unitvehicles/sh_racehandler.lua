@@ -313,6 +313,9 @@ if SERVER then
 		local nodeCount = 0
 		local checkpointCount = 0
 		local spawnCount = 0
+		local layout = {}
+		local layoutByID = {}
+		local grid = {}
 	
 		-- for _, line in ipairs(lines) do
 		-- 	if string.match(line, "^%d+%s") then
@@ -342,11 +345,38 @@ if SERVER then
 				local id = tonumber(t[1])
 				if id and #t >= 8 then
 					checkpointCount = checkpointCount + 1
+					local checkpoint = {
+						id = id,
+						x = (tonumber(t[2]) + tonumber(t[5])) / 2,
+						y = (tonumber(t[3]) + tonumber(t[6])) / 2,
+					}
+
+					-- npc_racervehicle overwrites its target for duplicate IDs, so
+					-- the last checkpoint in file order is the branch it follows.
+					layoutByID[id] = checkpoint
 				end
 			elseif string.match(line, "^spawn") then
 				spawnCount = spawnCount + 1
+				local t = string.Explode(" ", line)
+				local slot = tonumber(t[6])
+				local x, y = tonumber(t[2]), tonumber(t[3])
+				if slot and x and y then
+					table.insert(grid, {
+						slot = slot,
+						x = x,
+						y = y,
+					})
+				end
 			end
 		end
+
+		for _, checkpoint in pairs(layoutByID) do
+			table.insert(layout, checkpoint)
+		end
+
+		table.sort(layout, function(a, b)
+			return a.id < b.id
+		end)
 		
 		local jsonContent = UV_LoadFile( path, string.Replace( fileName, ".txt", ".json" ) )
 		if jsonContent then
@@ -379,6 +409,8 @@ if SERVER then
 			spawns = spawnCount,
 			props = propCount,
 			nodes = nodeCount,
+			layout = layout,
+			grid = grid,
 		}
 	end
 
@@ -759,8 +791,6 @@ if SERVER then
 			return 
 		end
 
-		RunConsoleCommand("ai_ignoreplayers", "0") --AI Racers don't move when this is enabled
-
 		table.Empty(UVRaceTable)
 
 		UVCounterActive = true
@@ -801,6 +831,7 @@ if SERVER then
 				net.Start( "uvrace_start" )
 				net.WriteInt( starttimer, 11 )
 				net.Send( driver )
+				UVActionCam(driver, "RaceStart")
 			end
 
 			UVSetVehicleActive( vehicle, true )
@@ -832,6 +863,7 @@ if SERVER then
 		--Unfreeze all participants
 		for _, vehicle in pairs( UVRaceCurrentParticipants ) do
 			vehicle:GetPhysicsObject():EnableMotion( true )
+			vehicle:PhysWake()
 			if vehicle.PursuitTech then
 				for i, v in pairs(vehicle.PursuitTech) do
 					v.LastUsed = CurTime()
@@ -1382,6 +1414,12 @@ if SERVER then
 
 		
 		for v, _ in pairs( UVUnitVehicles ) do
+			if IsValid(v) then
+				v:Remove()
+			end
+		end
+
+		for _, v in pairs( ents.FindByClass("npc_trafficvehicle") ) do
 			if IsValid(v) then
 				v:Remove()
 			end
@@ -3275,7 +3313,7 @@ else -- CLIENT stuff
 	hook.Add("HUDPaint", "UVRace_DisplayTrackInfo", function()
 		if not IsValid(LocalPlayer()) then return end -- Am I invalid? Tough shit
 		if not UVRace_CurrentTrackName then return end -- No track
-		if not UVRace_RacerList then return false end -- No invite, no accepted invite, not host
+		if not UVRace_RacerList then return end -- No invite, no accepted invite, not host
 		if UVRaceStarting then return end -- Race is starting; hide it
 
 		local function ShouldShowRacerHUD()
@@ -3428,7 +3466,7 @@ else -- CLIENT stuff
 	hook.Add("PostRenderVGUI", "UVRaceCinematicOverlayTop", function()
 		if not UVRaceCinematicOverlay then return end -- If the overlay isn't active
 		if gui.IsGameUIVisible() then return end -- If game ESC menu is opened
-		if not GetConVar("cl_drawhud"):GetBool() then return end
+		--if not GetConVar("cl_drawhud"):GetBool() then return end
 		if not GetConVar("unitvehicle_preraceinfo"):GetBool() then return end
 		
 		local now = CurTime()

@@ -1,0 +1,18 @@
+VertexLitGeneric
+{
+	$basetexture		"models\unitvehiclescars\uv_r35nismo\interior.vtf"
+
+	$halflambert		1
+	$nodecal			1
+
+	$color2				"[1 1 1]"
+
+	Proxies
+	{
+		Equals
+		{
+			srcVar1		$color2
+			resultVar	$color
+		}
+	}
+}

@@ -6,6 +6,7 @@ local Chatter = GetConVar("unitvehicle_chatter")
 local PursuitTech = GetConVar("unitvehicle_unit_pursuittech")
 local Barrels = GetConVar("unitvehicle_unit_helicopterbarrels")
 local SpikeStrips = GetConVar("unitvehicle_unit_helicopterspikestrip")
+local Skyhammer = GetConVar("unitvehicle_unit_helicopterskyhammer")
 
 local dvd = DecentVehicleDestination
 
@@ -45,59 +46,31 @@ end
 
 function ENT:Initialize()
 
-	local modeltable = {
-		["Default"] = "models/uvair_default.mdl",
-		["NFS Hot Pursuit 2"] = "models/hp2heliai/hp2heliai.mdl",
-		["NFS Most Wanted"] = "models/nfs_mwpolhel/nfs_mwpolhel.mdl",
-		["NFS Undercover"] = "models/nfs_ucpolhel/nfs_ucpolhel.mdl",
-		["NFS Undercover PS2"] = "models/nfsu_copheli/nfsu_copheli.mdl",
-		["NFS Hot Pursuit 2010"] = "models/nfs_hppolhel/nfs_hppolhel.mdl",
-		["NFS No Limits"] = "models/nfs_nlpolhel/nfs_nlpolhel.mdl",
-		["NFS Rivals, Payback & Heat"] = "models/nfs_paybackpolhel/nfs_paybackpolhel.mdl",
-		["NFS Unbound"] = "models/unboundheli/unboundheli.mdl",
-		["The Crew"] = "models/thecrewheli/thecrewheli.mdl"
-	}
+	UVRegisterHelicopterSpawn(self)
 
-	self.Model = modeltable[UVUHelicopterModel:GetString()] or "models/uvair_default.mdl"
+	self:GetModelData()
 
-	self:SetModel(self.Model)
-	self:SetSkin(math.random(0,self:SkinCount()-1))
+	self:SetModel(self.Model or "models/uvair_default.mdl")
+	self:SetSkin(self.Skin or math.random(0,self:SkinCount()-1))
+
+	if self.Bodygroups then
+		for k,v in pairs(self.Bodygroups) do
+			self:SetBodygroup(k, v)
+		end
+	end
+
 	self:PhysicsInit(SOLID_VPHYSICS)
     self:SetMoveType(MOVETYPE_VPHYSICS)
     self:SetSolid(SOLID_VPHYSICS)
 	
 	self.phys = self:GetPhysicsObject()
 	self.phys:EnableGravity(false)
-	self.phys:SetMass(5000)
+	self.phys:SetMass(self.Mass or 5000)
 	self.phys:Wake()
-
-	--Compensation for the model's volume (volume * 2)
-	if self.Model == "models/uvair_default.mdl" then
-		self.phys:SetMass(32764)
-	elseif self.Model == "models/hp2heliai/hp2heliai.mdl" then
-		self.phys:SetMass(30830)
-	elseif self.Model == "models/nfs_mwpolhel/nfs_mwpolhel.mdl" then
-		self.phys:SetMass(5026)
-	elseif self.Model == "models/nfs_ucpolhel/nfs_ucpolhel.mdl" then
-		self.phys:SetMass(45556)
-	elseif self.Model == "models/nfs_hppolhel/nfs_hppolhel.mdl" then
-		self.phys:SetMass(45154)
-	elseif self.Model == "models/nfs_nlpolhel/nfs_nlpolhel.mdl" then
-		self.phys:SetMass(42382)
-	elseif self.Model == "models/nfs_paybackpolhel/nfs_paybackpolhel.mdl" then
-		self.phys:SetMass(85322)
-	elseif self.Model == "models/unboundheli/unboundheli.mdl" then
-		self.phys:SetMass(123078)
-	elseif self.Model == "models/thecrewheli/thecrewheli.mdl" then
-		self.phys:SetMass(5026)
-	elseif self.Model == "models/NFSU_COPHELI/NFSU_COPHELI.mdl" then
-		self.phys:SetMass(24242)
-	end
 	
 	self.bountytimer = CurTime()
 	self.callsign = "#uv.unit.helicopter"
 	self.type = "air"
-
 
 	local selectedVoice = GetConVar("unitvehicle_unit_air_voice"):GetString()
 	local splittedText = string.Explode( ",", selectedVoice )
@@ -140,26 +113,32 @@ function ENT:Initialize()
 	if SpikeStrips:GetBool() then
 		table.insert(weaponchoices, "spikestrips")
 	end
+	if Skyhammer:GetBool() then
+		table.insert(weaponchoices, "skyhammer")
+	end
 
 	self.WeaponChoice = (#weaponchoices > 0 and weaponchoices[math.random(1, #weaponchoices)]) or nil
+	timer.Simple((math.random(10, 30)), function() self.cooldown = nil end)
 
 	local MathAggressive = math.random(0,1)
 	if MathAggressive == 1 then
 		self.aggressive = true
 	end
 		
-	timer.Simple((math.random(60,300)), function() 
-		if IsValid(self) and not self.Downed then --Fuel is randomized 
-			if Chatter:GetBool() and not (self.crashing or self.disengaging) then
-				if IsValid(self:GetTarget()) then
-					UVChatterLowOnFuel(self)
-				else
-					UVChatterDisengaging(self)
+	if UVUHelicopterMinFuel:GetInt() ~= 0 then
+		timer.Simple((math.random(UVUHelicopterMinFuel:GetInt(), UVUHelicopterMaxFuel:GetInt())), function() 
+			if IsValid(self) and not self.Downed then --Fuel is randomized 
+				if Chatter:GetBool() and not (self.crashing or self.disengaging) then
+					if IsValid(self:GetTarget()) then
+						UVChatterLowOnFuel(self)
+					else
+						UVChatterDisengaging(self)
+					end
 				end
+				self.disengaging = true
 			end
-			self.disengaging = true
-		end
-	end)
+		end)
+	end
 	
 	if UVTargeting and Chatter:GetBool() and not (self.crashing or self.disengaging) and IsValid(self) then
 		UVChatterInitialize(self) 
@@ -182,6 +161,8 @@ function ENT:Initialize()
 end
 
 function ENT:OnRemove()
+	UVRegisterHelicopterRemoval(self)
+
 	if self.displaybusting then
 		UVHUDBusting = nil
 		net.Start( "UVHUDStopBusting" )
@@ -240,7 +221,6 @@ function ENT:Think()
 		
 		if self.CloseToTarget and self:IsSeeTarget() and not self.spotted then
 			self.spotted = true
-			timer.Simple(20, function() self.cooldown = nil end)
 
 			if not UVTargeting then
 				UVTargeting = true
@@ -315,12 +295,17 @@ function ENT:Think()
 					if Chatter:GetBool() and not (self.crashing or self.disengaging) then
 						UVChatterExplosiveBarrelDeployed(self) 
 					end
+				elseif self.WeaponChoice == 'skyhammer' then
+					UVDeployKillSwitch(self, true)
+					timer.Simple((math.random(30,60)), function() self.cooldown = nil end)
 				end
 			end
 		end
 	end
 
-	UVHeliCooldown = CurTime()
+	if self.uvkillswitching then
+		UVKillSwitchCheck(self, true)
+	end
 	
 	if self.Downed then
 		if table.HasValue(UVUnitsChasing, self) then
@@ -385,6 +370,16 @@ function ENT:PhysicsUpdate()
 		if self.disengaging then
 			self:Remove()
 		end
+
+		local vel = self.phys:GetVelocity()
+
+		local outofbounds = {
+			["x"] = math.abs(p.x) > 16000 and 0 or vel.x,
+			["y"] = math.abs(p.y) > 16000 and 0 or vel.y,
+			["z"] = math.abs(p.z) > 16000 and 0 or vel.z
+		}
+
+		self.phys:SetVelocity(Vector(outofbounds.x, outofbounds.y, outofbounds.z))
 
 		self:SetPos(Vector(math.Clamp(p.x,-16000,16000),math.Clamp(p.y,-16000,16000),math.Clamp(p.z,-16000,16000))) -- out of bounds
 	end
@@ -473,7 +468,7 @@ function ENT:PhysicsUpdate()
 		self:ApplyAngles()
 		self:ApplyHeight()
 		
-		if GetConVar("ai_ignoreplayers"):GetBool() then
+		if GetConVar("ai_disabled"):GetBool() then
 			self:SlowDown()
 			self:StopRotating()
 			
@@ -483,7 +478,7 @@ function ENT:PhysicsUpdate()
 
 		local targetpos = vector_origin
 		if isValidTarget then
-			if self.aggressive and not self.engaging then
+			if self.aggressive and not self.engaging and self.WeaponChoice ~= 'skyhammer' then
 				targetpos = (self:GetTargetPos()+self:GetTarget():GetVelocity())
 			else
 				targetpos = self:GetTargetPos()
@@ -537,38 +532,43 @@ function ENT:PhysicsUpdate()
 				self.CloseToTarget = true
 			end
 		else
-			if self.PatrolWaypoint then
-				self.waypointPos = self.PatrolWaypoint["Target"]+(vector_up * 50)
-
-				self:FlyTo(self.waypointPos, true)
-				self:RotateToTarget(self.waypointPos)
-
-				--When there
-				if self:DistIgnoreZ(self.waypointPos) <= 1000 then
-					if self.PatrolWaypoint.Neighbors then
-						local WaypointTable = {}
-						for k, v in pairs(self.PatrolWaypoint.Neighbors) do
-							if not self.PreviousPatrolWaypoint or self.PreviousPatrolWaypoint["Target"] ~= dvd.Waypoints[v]["Target"] then
-								table.insert(WaypointTable, v)
-							end
-						end --Don't turn around
-						self.PreviousPatrolWaypoint = self.PatrolWaypoint
-						self.PatrolWaypoint = dvd.Waypoints[WaypointTable[math.random(#WaypointTable)]]
-					else
-						self.PatrolWaypoint = nil
-					end
-				end
-
-				if self.potentialtarget and 
-				self.potentialtarget.UVWanted and
-				UVStraightToWaypoint(self:GetPos(), self.potentialtarget:GetPos()) and 
-				not UVTargeting then
-					UVTargeting = true
-				end
-			else
-				self:RotateAround(targetpos)
+			if UVJammerDeployed then
+				self:SlowDown()
 				self:SelfRotate()
-				self:FindPatrol()
+			else
+				if self.PatrolWaypoint then
+					self.waypointPos = self.PatrolWaypoint["Target"]+(vector_up * 50)
+
+					self:FlyTo(self.waypointPos, true)
+					self:RotateToTarget(self.waypointPos)
+
+					--When there
+					if self:DistIgnoreZ(self.waypointPos) <= 1000 then
+						if self.PatrolWaypoint.Neighbors then
+							local WaypointTable = {}
+							for k, v in pairs(self.PatrolWaypoint.Neighbors) do
+								if not self.PreviousPatrolWaypoint or self.PreviousPatrolWaypoint["Target"] ~= dvd.Waypoints[v]["Target"] then
+									table.insert(WaypointTable, v)
+								end
+							end --Don't turn around
+							self.PreviousPatrolWaypoint = self.PatrolWaypoint
+							self.PatrolWaypoint = dvd.Waypoints[WaypointTable[math.random(#WaypointTable)]]
+						else
+							self.PatrolWaypoint = nil
+						end
+					end
+
+					if self.potentialtarget and 
+					self.potentialtarget.UVWanted and
+					UVStraightToWaypoint(self:GetPos(), self.potentialtarget:GetPos()) and 
+					not UVTargeting then
+						UVTargeting = true
+					end
+				else
+					self:RotateAround(targetpos)
+					self:SelfRotate()
+					self:FindPatrol()
+				end
 			end
 			self.LastUpdate = CurTime()
 		end
@@ -875,6 +875,22 @@ function ENT:StartCrush()
 		if IsValid(self:GetTarget()) then
 			self:SetTarget(nil)
 		end
+
+		local centerPos = self:WorldSpaceCenter()
+		local radius = 1000
+
+		local foundEntities = ents.FindInSphere(centerPos, radius)
+		local playersInRange = {}
+
+		for _, ent in ipairs(foundEntities) do
+		    if IsValid(ent) and ent:IsPlayer() then
+		        table.insert(playersInRange, ent)
+		    end
+		end
+
+		for _, ply in ipairs(playersInRange) do
+		    UVActionCam(ply, "Takedown", self)
+		end
 	end
 	
 end
@@ -891,11 +907,14 @@ function ENT:Explode()
 	wreck:SetPos(self:GetPos())
 	wreck:SetAngles(self.phys:GetAngles())
 	for k,v in pairs(wreck:GetBodyGroups()) do
-		wreck:SetBodygroup(k, wreck:GetBodygroup(k)+1)
+		wreck:SetBodygroup(k, self:GetBodygroup(k))
 	end
 	wreck:SetSkin(self:GetSkin())
 	for k, v in pairs(self:GetMaterials()) do
-		wreck:SetSubMaterial( k, self:GetSubMaterial( k ) )
+		wreck:SetSubMaterial( k, self:GetSubMaterial(k))
+	end
+	if isfunction(self.OnWreck) then
+		self.OnWreck(wreck)
 	end
 	wreck:Spawn()
 	wreck:GetPhysicsObject():EnableMotion(true)
@@ -959,6 +978,22 @@ function ENT:Explode()
 		self.crashing = true
 		UVBounty = (UVBounty+bountyplus)
 		UVComboBounty = UVComboBounty + 1
+
+		local centerPos = self:WorldSpaceCenter()
+		local radius = 1000
+
+		local foundEntities = ents.FindInSphere(centerPos, radius)
+		local playersInRange = {}
+
+		for _, ent in ipairs(foundEntities) do
+		    if IsValid(ent) and ent:IsPlayer() then
+		        table.insert(playersInRange, ent)
+		    end
+		end
+
+		for _, ply in ipairs(playersInRange) do
+		    UVActionCam(ply, "Takedown", self)
+		end
 	end
 end
 

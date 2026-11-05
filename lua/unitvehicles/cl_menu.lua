@@ -4,7 +4,7 @@ UVMenu.CustomizeHUD = UVMenu.CustomizeHUD or {}
 UVMenu.CustomizeSpeedo = UVMenu.CustomizeSpeedo or {}
 
 -- Current Version -- Change this whenever a new update is releasing!
-UV.CurVersion = "1.7.4" --MAJOR.MINOR.PATCH
+UV.CurVersion = "1.9.0" --MAJOR.MINOR.PATCH
 
 -- Credits List
 UV.Credits = {
@@ -218,7 +218,7 @@ local MonthNames = {
 }
 
 local DateFormats = {
-    en = "{day} {month} {year}",
+    en = "{month} {day} {year}", --sorry non-Americans
     fr = "{day} {month} {year}",
     de = "{day}. {month} {year}",
     ["es-ES"] = "{day} {month} {year}",
@@ -500,6 +500,8 @@ UVMenu.Main = function()
 				
 				{ type = "bool", text = "uv.airacer.override", desc = "uv.airacer.override.desc", convar = "unitvehicle_racer_assignracers", sv = true },
 				{ type = "vehicleoverride", text = "uv.airacer.overridelist", desc = "uv.airacer.overridelist.desc", convar = "unitvehicle_racer_racers", sv = true, parentconvar = "unitvehicle_racer_assignracers" },
+			
+				{ type = "drivermodel", text = "uv.ailogic.drivermodel", convar = "unitvehicle_racer_drivermodel", sv = true }
 			},
 			
 			{ TabName = "uv.tm", Icon = "unitvehicles/icons_settings/gameplay.png", sv = true, -- Traffic Manager
@@ -522,6 +524,8 @@ UVMenu.Main = function()
 
 				{ type = "bool", text = "uv.airacer.override", desc = "uv.tm.override.desc", convar = "unitvehicle_traffic_assigntraffic", sv = true },
 				{ type = "vehicleoverride", text = "uv.airacer.overridelist", desc = "uv.airacer.overridelist.desc", convar = "unitvehicle_traffic_vehicles", sv = true, parentconvar = "unitvehicle_traffic_assigntraffic" },
+				
+				{ type = "drivermodel", text = "uv.ailogic.drivermodel", convar = "unitvehicle_traffic_drivermodel", sv = true }
 			},
 
 			{ TabName = "uv.settings", Icon = "unitvehicles/icons_settings/options.png", playsfx = "clickopen", Prompts = { "uv.prompt.open.menu" }, func = function()
@@ -585,7 +589,7 @@ UVMenu.Settings = function()
 	UVMenu.CurrentMenu = UVMenu:Open({
 		Name = UVString("uv.unitvehicles") .. " | " .. UVString("uv.settings"),
 		Width  = UV.ScaleW(1540),
-		Height = UV.ScaleH(800),
+		Height = UV.ScaleH(900),
 		Description = true,
 		UnfocusClose = true,
 		Tabs = {
@@ -632,7 +636,8 @@ UVMenu.Settings = function()
 				{ type = "label", text = "uv.pursuit" },
 				{ type = "bool", text = "uv.ui.policescanner", desc = "uv.ui.policescanner.desc", convar = "unitvehicle_policescanner" },
 				{ type = "bool", text = "uv.ui.policescanner.vehicle", desc = "uv.ui.policescanner.vehicle.desc", convar = "unitvehicle_policescanner_vehicle", requireparentconvar = "unitvehicle_policescanner" },
-				-- { type = "bool", text = "uv.ui.subtitles", desc = "uv.ui.subtitles.desc", convar = "unitvehicle_subtitles" },
+				{ type = "bool", text = "uv.ui.detection", desc = "uv.ui.detection.desc", convar = "unitvehicle_detection" },
+				{ type = "bool", text = "uv.ui.subtitles", desc = "uv.ui.subtitles.desc", convar = "unitvehicle_subtitles" },
 				{ type = "bool", text = "uv.ui.vehnametakedown", desc = "uv.ui.vehnametakedown.desc", convar = "unitvehicle_vehiclenametakedown" },
 			},
 
@@ -696,6 +701,33 @@ UVMenu.Settings = function()
 				{ type = "bindoverride", text = "uv.controls.glyphs.list.enable", desc = "uv.controls.glyphs.list.desc", convar = "unitvehicle_glyph_set", requireparentconvar = "unitvehicle_glyph_override" },
 			},
 
+			{ TabName = "uv.camera", Icon = "unitvehicles/icons/milestone_speedtrap.png", sv = true,
+				{ type = "label", text = "uv.camera.actioncam" },
+				
+				{ type = "bool", text = "uv.camera.actioncam", desc = "uv.camera.actioncam.desc", convar = "unitvehicle_actioncam", sv = true },
+				{ type = "bool", text = "uv.camera.actioncam.wrecked", desc = "uv.camera.actioncam.wrecked.desc", convar = "unitvehicle_actioncam_wrecked", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+
+				{ type = "bool", text = "uv.camera.actioncam.racestart", desc = "uv.camera.actioncam.racestart.desc", convar = "unitvehicle_actioncam_racestart", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				
+				{ type = "bool", text = "uv.camera.actioncam.racefinish", desc = "uv.camera.actioncam.racefinish.desc", convar = "unitvehicle_actioncam_racefinish", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				
+				{ type = "bool", text = "uv.camera.actioncam.crash", desc = "uv.camera.actioncam.crash.desc", convar = "unitvehicle_actioncam_crash", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				{ type = "slider", text = "uv.camera.actioncam.crash.threshold", desc = "uv.camera.actioncam.crash.threshold", convar = "unitvehicle_actioncam_crashthreshold", min = 1, max = 10000, decimals = 0, sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				
+				{ type = "bool", text = "uv.camera.actioncam.jump", desc = "uv.camera.actioncam.jump.desc", convar = "unitvehicle_actioncam_jump", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				{ type = "slider", text = "uv.camera.actioncam.jump.threshold", desc = "uv.camera.actioncam.jump.threshold", convar = "unitvehicle_actioncam_jumpthreshold", min = 1, max = 10000, decimals = 0, sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				
+				{ type = "bool", text = "uv.camera.actioncam.spotted", desc = "uv.camera.actioncam.spotted.desc", convar = "unitvehicle_actioncam_spotted", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				
+				{ type = "bool", text = "uv.camera.actioncam.roadblock", desc = "uv.camera.actioncam.roadblock.desc", convar = "unitvehicle_actioncam_roadblock", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				{ type = "slider", text = "uv.camera.actioncam.roadblock.threshold", desc = "uv.camera.actioncam.roadblock.threshold", convar = "unitvehicle_actioncam_roadblockthreshold", min = 1, max = 10000, decimals = 0, sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				
+				{ type = "bool", text = "uv.camera.actioncam.takedown", desc = "uv.camera.actioncam.takedown.desc", convar = "unitvehicle_actioncam_takedown", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				{ type = "slider", text = "uv.camera.actioncam.takedown.threshold", desc = "uv.camera.actioncam.takedown.threshold", convar = "unitvehicle_actioncam_takedownthreshold", min = 1, max = 10000, decimals = 0, sv = true, requireparentconvar = "unitvehicle_actioncam" },
+				
+				{ type = "bool", text = "uv.camera.actioncam.pursuitbreaker", desc = "uv.camera.actioncam.pursuitbreaker.desc", convar = "unitvehicle_actioncam_pursuitbreaker", sv = true, requireparentconvar = "unitvehicle_actioncam" },
+			},
+
 			{ TabName = "uv.pursuit", Icon = "unitvehicles/icons/milestone_pursuit.png", sv = true,
 				{ type = "label", text = "uv.pursuit.heatlevels", sv = true },
 				{ type = "bool", text = "uv.pursuit.heatlevels.aiunits", desc = "uv.pursuit.heatlevels.aiunits.desc", convar = "unitvehicle_spawnmainunits", sv = true },
@@ -707,7 +739,6 @@ UVMenu.Settings = function()
 				
 				{ type = "label", text = "uv.settings.general", sv = true },
 				{ type = "bool", text = "uv.pursuit.canexitvehicle", desc = "uv.pursuit.canexitvehicle.desc", convar = "unitvehicle_canexitvehicle", sv = true },
-				{ type = "bool", text = "uv.pursuit.spottedfreezecam", desc = "uv.pursuit.spottedfreezecam.desc", convar = "unitvehicle_spottedfreezecam", sv = true, sp = true },
 				{ type = "bool", text = "uv.pursuit.randomplayerunits", desc = "uv.pursuit.randomplayerunits.desc", convar = "unitvehicle_randomplayerunits", sv = true },
 				{ type = "bool", text = "uv.pursuit.autohealth", desc = "uv.pursuit.autohealth.desc", convar = "unitvehicle_autohealth", sv = true },
 				{ type = "bool", text = "uv.pursuit.wheelsdetaching", desc = "uv.pursuit.wheelsdetaching.desc", convar = "unitvehicle_wheelsdetaching", sv = true },
@@ -780,6 +811,7 @@ UVMenu.Settings = function()
 				{ type = "bool", text = "uv.aidifficulty.unit.rubberband", desc = "uv.aidifficulty.unit.rubberband.desc", convar = "unitvehicle_unitcatchup", showprefix = true, sv = true },
 
 				{ type = "label", text = "uv.ailogic", sv = true },
+				{ type = "bool", text = "uv.ailogic.drivermodel", desc = "uv.ailogic.drivermodel.desc", convar = "unitvehicle_drivermodel", sv = true },
 				{ type = "bool", text = "uv.ailogic.optimizerespawn", desc = "uv.ailogic.optimizerespawn.desc", convar = "unitvehicle_optimizerespawn", sv = true },
 				{ type = "bool", text = "uv.ailogic.trafficstreaming", desc = "uv.ailogic.trafficstreaming.desc", convar = "unitvehicle_trafficstreaming", sv = true },
 				{ type = "bool", text = "uv.ailogic.wrecking", desc = "uv.ailogic.wrecking.desc", convar = "unitvehicle_canwreck", sv = true },
@@ -1078,7 +1110,7 @@ UVMenu.RaceManagerTrackSelect = function()
 		local raceFile = race.file
 
 		for infoName, infoValue in pairs( raceData ) do
-			if type( infoValue ) ~= "number" or infoValue > 0 then
+			if LOCALIZATION_MAP[infoName] and (type( infoValue ) ~= "number" or infoValue > 0) then
 				table.insert( descLines, string.format( UVString(LOCALIZATION_MAP[infoName]), infoValue ) )
 			end
 		end
@@ -1096,7 +1128,9 @@ UVMenu.RaceManagerTrackSelect = function()
 					UVMenu.OpenMenu(UVMenu.RaceManager)
 					UVMenu.PlaySFX("menuopen")
 				end)
-			end
+			end,
+			layout = raceData.layout,
+			grid = raceData.grid,
 		})
 	end
 
@@ -1112,8 +1146,9 @@ UVMenu.RaceManagerTrackSelect = function()
 
 	UVMenu:Open({
 		Name = " ",
-		Width  = UV.ScaleW(690),
-		Height = UV.ScaleH(705),
+		Width  = UV.ScaleW(1000),
+		Height = UV.ScaleH(600),
+		MinHeight = UV.ScaleH(600),
 		DynamicHeight = true,
 		Description = true,
 		UnfocusClose = true,
@@ -1350,7 +1385,7 @@ UVMenu.WreckedDebrief = function()
 					UVMenu.CloseCurrentMenu()
 				end
 				},
-				{ type = "timer", text = "uv.results.autoclose", duration = 10, func = 
+				{ type = "timer", text = "uv.results.autoclose", duration = 30, func = 
 					function(self2)
 						net.Start("uvrace_invite")
 						net.WriteBool(false)
@@ -1393,7 +1428,7 @@ UVMenu.RaceInvite = function()
 					UVMenu.CloseCurrentMenu()
 				end
 				},
-				{ type = "timer", text = "uv.race.invite.autodecline", duration = 10, func = 
+				{ type = "timer", text = "uv.race.invite.autodecline", duration = 30, func = 
 					function(self2)
 						net.Start("uvrace_invite")
 						net.WriteBool(false)
@@ -1510,27 +1545,19 @@ UVMenu.HeatManager = function()
 		{ type = "slider", text = "uv.hm.maxhl", desc = "uv.hm.maxhl.desc", convar = "unitvehicle_unit_maxheat", min = 1, max = MAX_HEAT_LEVEL, decimals = 0, func = function() UVMenu.OpenMenu(UVMenu.HeatManager, true) end, sv = true },
 
 		{ type = "label", text = "uv.hm.commander" },
-		{ type = "bool", text = "uv.hm.commander.norepair", desc = "uv.hm.commander.norepair.desc", convar = "unitvehicle_unit_commanderrepair", sv = true },
+		{ type = "bool", text = "uv.hm.commander.canrepair", desc = "uv.hm.commander.canrepair.desc", convar = "unitvehicle_unit_commanderrepair", sv = true },
 		{ type = "slider", text = "uv.hm.commander.health", desc = "uv.hm.commander.health.desc", convar = "unitvehicle_unit_onecommanderhealth", min = 1000, max = 10000, sv = true },
 		
 		{ type = "label", text = "uv.hm.air" },
-		{ type = "combo", text = "uv.hm.air.model", desc = "uv.hm.air.model.desc", convar = "unitvehicle_unit_helicoptermodel", sv = true, content = {
-				{ "Default", "Default" },
-				{ "NFS Hot Pursuit 2", "NFS Hot Pursuit 2" },
-				{ "NFS Most Wanted", "NFS Most Wanted" },
-				{ "NFS Undercover", "NFS Undercover" },
-				{ "NFS Undercover PS2", "NFS Undercover PS2"},
-				{ "NFS Hot Pursuit 2010", "NFS Hot Pursuit 2010" },
-				{ "NFS No Limits", "NFS No Limits" },
-				{ "NFS Rivals, Payback & Heat", "NFS Rivals, Payback & Heat" },
-				{ "NFS Unbound", "NFS Unbound" },
-				{ "The Crew", "The Crew" }
-			},
-		},
+		{ type = "combo", text = "uv.hm.air.model", desc = "uv.hm.air.model.desc", convar = "unitvehicle_unit_helicoptermodel", sv = true, content = UVAirModelsList or {} },
 		{ type = "bool", text = "uv.hm.air.canbust", desc = "uv.hm.air.canbust.desc", convar = "unitvehicle_unit_helicopterbusting", sv = true },
 		{ type = "bool", text = "uv.hm.air.pt.exp", desc = "uv.hm.air.pt.desc", convar = "unitvehicle_unit_helicopterbarrels", sv = true },
 		{ type = "bool", text = "uv.hm.air.pt.spikes", desc = "uv.hm.air.pt.desc", convar = "unitvehicle_unit_helicopterspikestrip", sv = true },
-						
+		{ type = "bool", text = "uv.hm.air.pt.skyhammer", desc = "uv.hm.air.pt.desc", convar = "unitvehicle_unit_helicopterskyhammer", sv = true },
+		{ type = "slider", text = "uv.hm.air.fuel.min", desc = "uv.hm.air.fuel.min.desc", convar = "unitvehicle_unit_helicopterminfuel", min = 0, max = 3600, decimals = 0, sv = true },
+		{ type = "slider", text = "uv.hm.air.fuel.max", desc = "uv.hm.air.fuel.max.desc", convar = "unitvehicle_unit_helicoptermaxfuel", min = 1, max = 3600, decimals = 0, sv = true },
+		{ type = "slider", text = "uv.hm.air.cooldown", desc = "uv.hm.air.cooldown.desc", convar = "unitvehicle_unit_helicoptercooldown", min = 0, max = 3600, decimals = 0, sv = true },
+		
 		{ type = "label", text = "uv.ptech" },
 		{ type = "bool", text = "uv.hm.enablept", desc = "uv.hm.enablept.desc", convar = "unitvehicle_unit_pursuittech", sv = true },
 		{ type = "bool", text = "uv.ptech.esf", desc = "uv.hm.pt.spawnwith.desc", convar = "unitvehicle_unit_pursuittech_esf", requireparentconvar = "unitvehicle_unit_pursuittech", sv = true },
@@ -1552,6 +1579,19 @@ UVMenu.HeatManager = function()
 		{ type = "slider", text = "uv.unit.rhino", desc = "uv.hm.disablebounty.desc", convar = "unitvehicle_unit_bountyrhino", min = 1, max = 9999999, decimals = 0, sv = true },
 		{ type = "slider", text = "uv.unit.helicopter", desc = "uv.hm.disablebounty.desc", convar = "unitvehicle_unit_bountyair", min = 1, max = 9999999, decimals = 0, sv = true },
     })
+
+	-- Driver model tab
+	local drivermodelTab = {
+		TabName = "uv.hm.dm",
+	}
+
+    local units = { "Patrol", "Support", "Pursuit", "Interceptor", "Special", "Commander", "Rhino" }
+	for _, unit in ipairs(units) do
+		local lower = string.lower(unit)
+		table.insert(drivermodelTab, { type = "drivermodel", text = "uv.unit." .. lower, convar = "unitvehicle_unit_" .. lower .. "_drivermodel", sv = true })
+	end
+
+	table.insert(tabs, drivermodelTab)
 
     -- Voice profile tab
     table.insert(tabs, {
@@ -1580,14 +1620,17 @@ UVMenu.HeatManager = function()
 			table.insert(heatTab, { type = "slider", text = "uv.hm.heat.heatlvl.time", desc = "uv.hm.heat.heatlvl.time.desc", convar = "unitvehicle_unit_timetillnextheat" .. i, min = 20, max = 600, decimals = 0, sv = true })
 		end
 
-		table.insert(heatTab, { type = "slider", text = "uv.hm.heat.minbounty", desc = "uv.hm.heat.minbounty.desc", convar = "unitvehicle_unit_heatminimumbounty" .. i, min = 1, max = 999999999, decimals = 0, sv = true })
+		table.insert(heatTab, { type = "slider", text = "uv.hm.heat.minbounty", desc = "uv.hm.heat.minbounty.desc", convar = "unitvehicle_unit_heatminimumbounty" .. i, min = 0, max = 999999999, decimals = 0, sv = true })
 		table.insert(heatTab, { type = "slider", text = "uv.hm.heat.maxunits", desc = "uv.hm.heat.maxunits.desc", convar = "unitvehicle_unit_maxunits" .. i, min = 1, max = 40, decimals = 0, sv = true })
 		table.insert(heatTab, { type = "slider", text = "uv.hm.heat.avaunits", desc = "uv.hm.heat.avaunits.desc", convar = "unitvehicle_unit_unitsavailable" .. i, min = 1, max = 1000, decimals = 0, sv = true })
 		table.insert(heatTab, { type = "slider", text = "uv.hm.heat.backuptime", desc = "uv.hm.heat.backuptime.desc", convar = "unitvehicle_unit_backuptimer" .. i, min = 1, max = 600, decimals = 0, sv = true })
 		table.insert(heatTab, { type = "slider", text = "uv.hm.heat.bustspeed", desc = "uv.hm.heat.bustspeed.desc", convar = "unitvehicle_unit_bustspeed" .. i, min = 1, max = 200, decimals = 0, sv = true })
 		table.insert(heatTab, { type = "slider", text = "uv.hm.heat.cooldowntime", desc = "uv.hm.heat.cooldowntime.desc", convar = "unitvehicle_unit_cooldowntimer" .. i, min = 1, max = 600, decimals = 0, sv = true })
 		table.insert(heatTab, { type = "bool", text = "uv.hm.heat.roadblocks", desc = "uv.hm.heat.roadblocks.desc", convar = "unitvehicle_unit_roadblocks" .. i, sv = true })
+		table.insert(heatTab, { type = "slider", text = "uv.hm.units.spawnchance", desc = "uv.hm.units.spawnchance.desc", convar = "unitvehicle_unit_roadblocks_chance" .. i, min = 0, max = 100, decimals = 0, requireparentconvar = "unitvehicle_unit_roadblocks" .. i, sv = true })
 		table.insert(heatTab, { type = "bool", text = "uv.hm.heat.helicopter", desc = "uv.hm.heat.helicopter.desc", convar = "unitvehicle_unit_helicopters" .. i, sv = true })
+		table.insert(heatTab, { type = "slider", text = "uv.hm.units.spawnchance", desc = "uv.hm.units.spawnchance.desc", convar = "unitvehicle_unit_helicopters_chance" .. i, min = 0, max = 100, decimals = 0, requireparentconvar = "unitvehicle_unit_helicopters" .. i, sv = true })
+		table.insert(heatTab, { type = "slider", text = "uv.hm.units.limit", desc = "uv.hm.units.limit.helicopter.desc", convar = "unitvehicle_unit_helicopters_limit" .. i, min = 1, max = 10, decimals = 0, requireparentconvar = "unitvehicle_unit_helicopters" .. i, sv = true })
 
 		table.insert(heatTab, { type = "label", text = "uv.hm.units" })
 
@@ -1876,7 +1919,13 @@ UVMenu.DVWarningDontShowAgain = function()
 		Tabs = {
 			{ TabName = "uv.hm.presets.warning", Icon = "unitvehicles/icons/generic_alert.png", ShowIcon = true,
 				{ type = "infosimple", text = "uv.system.dontshowagain.finalwarn" },
-				{ type = "timer", text = "uv.results.autoclose", duration = 10, func = 
+				{ type = "button", text = "uv.system.close", playsfx = "clickback", prompts = {"uv.prompt.confirm"}, func =
+					function(self2)
+						UVMenu.CloseCurrentMenu(true) 
+						__DV_WARNING_NOSHOW = true
+					end
+				},
+				{ type = "timer", text = "uv.results.autoclose", duration = 30, func = 
 					function(self2)
 						UVMenu.CloseCurrentMenu(true)
 						__DV_WARNING_NOSHOW = true

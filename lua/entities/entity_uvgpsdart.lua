@@ -31,7 +31,10 @@ if SERVER then
 					end
 				end
 			end
-			UVChatterGPSDartDeployed(self.uvdeployed)
+			
+			if self.uvdeployed.UnitVehicle then
+				UVChatterGPSDartDeployed(self.uvdeployed.UnitVehicle)
+			end
 		end
 
 		local MathSound = math.random(1,3)
@@ -105,10 +108,12 @@ if SERVER then
 			end
 		end)
 
-		if self.taggedobject.UVWanted then
-			UVChatterGPSDartHit(self.uvdeployed)
-		else
-			UVChatterGPSDartMissed(self.uvdeployed)
+		if self.uvdeployed and self.uvdeployed.UnitVehicle then
+			if self.taggedobject.UVWanted then
+				UVChatterGPSDartHit(self.uvdeployed.UnitVehicle)
+			else
+				UVChatterGPSDartMissed(self.uvdeployed.UnitVehicle)
+			end
 		end
 	end
 

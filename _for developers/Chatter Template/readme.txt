@@ -9,7 +9,7 @@
 *no voice restriction, so it's not just dispatch themself who is talking ... could be roadblock/support units
 
 *during a call, these folders will play in order: 
-addressgroup > dispatchcalldamagetoproperty/dispatchcallhitandrun/dispatchcallspeeding/dispatchcallstreetracing > d_location > unitrequest
+addressgroup/addressgroup_map > dispatchcalldamagetoproperty/dispatchcallhitandrun/dispatchcallspeeding/dispatchcallstreetracing > d_location > unitrequest
 
 *when cooldown starts, these folders will play in order: 
 dispbreakaway > d_location > quadrant
@@ -30,17 +30,19 @@ dispatchcallhitandrun = "... we got reports of a hit and run driver, they were l
 dispatchcallspeeding = "... we got reports of a speeding driver, they were last seen ..."
 dispatchcallstreetracing = "... we got reports of a group of street racers, they were last seen ..."
 dispatchcallunknowndescription = "Caller did not get a good look at the vehicle, standby"
-dispatchcallvehicledescription = (TO BE IMPLEMENTED WITH UVGetVehicleMakeAndModel SCRIPT)
 dispatchdenyrequest = "Negative"
 dispatchidletalk = *random conversation between dispatch and unit*
 dispatchjammerend = "All radio communications restored, resume call on Channel *number*"
 dispatchmultipleunitsdownacknowledge = "Roger that, EMS are on their way"
 dispbreakaway = "All Units, suspect was last seen ..."
+- OPTIONAL, works for all heats, usually made for heat5
+heatXtakeover = "This Unit will take over the pursuit"
+heatXreassure = "Not much I can do"
+-
 heat2 = "Condition 2"
 heat3 = "Condition 3"
 heat4 = "Condition 4"
-heat5 = "Condition 5/Special Units taking over the pursuit soon"
-heat5reassure = "Not much I can do"
+heat5 = "Condition 5"
 heat6 = "Condition 6"
 heat7 = "Condition 7"
 heat8 = "Condition 8"
@@ -48,7 +50,6 @@ heat9 = "Condition 9"
 heat10 = "CONDITION 10"
 idletalk = *random conversation between Units*
 losingupdate = "We got a possible match"
-lost = "Dispatch, we should clear this call"
 lostacknowledge = "All Units, clear this call and resume patrols"
 pursuitbreaker = "Units reporting suspect has hit a structure, watch for debris"
 pursuitbreakergas = "Units reporting suspect has hit the gas pumps"
@@ -64,6 +65,12 @@ roadblockhit = "Suspect has hit the roadblock"
 roadblockmissed = "Suspect has gone around the roadblock"
 spikestriphit = "Suspect hit the spikes"
 unitrequest = "... I need Units to respond"
+vehicledescription = 
+    - *name of the brand*
+        - default = "Suspect is in a *name of the brand*."
+        - *color* = "Suspect is in a *color* *name of the brand*."
+    - policecar
+        - default = "Suspect is in a police car."
 
 --- AIR UNIT ---
 
@@ -86,6 +93,7 @@ disengaging = "We are disengaging from the pursuit"
 enemycrashed = "Suspect has crashed"
 foundenemy = "We found the suspect"
 foundmultipleenemies = "We got multiple suspects"
+headingstopped = "Suspect has stopped"
 headingeast = "Suspect is heading east"
 headingnorth = "Suspect is heading north"
 headingsouth = "Suspect is heading south"
@@ -93,13 +101,14 @@ headingwest = "Suspect is heading west"
 heat2 = "Condition 2"
 heat3 = "Condition 3"
 heat4 = "Condition 4"
-heat5 = "Condition 5/Special Units taking over the pursuit soon"
+heat5 = "Condition 5"
 heat6 = "Condition 6"
 heat7 = "Condition 7"
 heat8 = "Condition 8"
 heat9 = "Condition 9"
 heat10 = "CONDITION 10"
 hit = "We got hit"
+hitptemp = "We got hit by EMP, disengaging"
 hittraffic = "Suspect has hit traffic"
 identify = "Air Unit 1"
 initialize = "We are lifting off"
@@ -113,9 +122,9 @@ passive = "I'm pulling back, following the suspect for now"
 ptexplosivebarreldeployed = "Explosive barrels deployed"
 ptexplosivebarrelhit = "Explosive barrels hit"
 ptexplosivebarrelmissed = "Explosive barrels missed"
-ptkillswitchhit = "Suspect has been killswitched"
-ptkillswitchmissed = "Killswitch unsuccessful"
-ptkillswitchstart = "Killswitching suspect vehicle"
+ptskyhammerhit = "Skyhammer successful"
+ptskyhammermissed = "Skyhammer unsuccessful"
+ptskyhammerstart = "Starting Skyhammer"
 ptspikestripdeployed = "Spikes strip deployed"
 ptspikestriphit = "Spikes strip hit"
 pursuitbreaker = "Suspect has hit a structure, watch for debris"
@@ -159,6 +168,7 @@ donotdisengage = "Do not disengage, remain in pursuit"
 enemycrashed = "Suspect has crashed"
 foundenemy = "I found the suspect"
 foundmultipleenemies = "I got multiple suspects"
+headingstopped = "Suspect has stopped"
 headingeast = "Suspect is heading east"
 headingnorth = "Suspect is heading north"
 headingsouth = "Suspect is heading south"
@@ -182,7 +192,7 @@ identify = "Unit 1, X-Ray 2, Yankee 5 (generic, you can come up with your own "i
     - *name of Unit class* = "*name of Unit class* (ex. This is Interceptor Unit)"
 inperson
     - finearrest = "YOU ARE UNDER ARREST!"
-    - finearrest = "DRIVE CAREFULLY!"
+    - finepaid = "DRIVE CAREFULLY!"
 leftpursuit = "I have fallen behind, leaving the pursuit"
 losing = "I have lost the suspect, trying to regain visual"
 lost = "We lost the suspect, unable to locate again, suggest to call off pursuit or request a follow-up from dispatch"
@@ -233,6 +243,12 @@ stuntroll = "Suspect went upside down"
 stuntspin = "Suspect spun out / did 180"
 trafficstoprammed = "Pulling over a vehicle that just hit me"
 trafficstopspeeding = "Pulling over a speeding vehicle"
+vehicledescription = 
+    - *name of the brand*
+        - default = "Suspect is in a *name of the brand*."
+        - *color* = "Suspect is in a *color* *name of the brand*."
+    - policecar
+        - default = "Suspect is in a police car."
 wreck = "I got taken out"
 
 --- MISC ---
@@ -241,7 +257,7 @@ chirpgeneric = *beep*
 emergency = *beep boop*
 radiooff = After talking
 radioon = Before talking
-static = When Unit gets taken out
+static = When Unit gets taken out/radio jammed
 
 --- RADIO CODES ---
 

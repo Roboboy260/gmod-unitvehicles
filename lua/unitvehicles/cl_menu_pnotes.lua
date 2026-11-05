@@ -8,6 +8,136 @@ UV = UV or {}
 -- },
 
 UV.PNotes = {
+["1.9.0"] = {
+Date = { year = 2026, month = 11, day = 5 },
+Type = "Minor",
+Text = [[
+After a long time, update 1.9.0 is finally here!
+
+**New Features**
+- The UVPD has received new equipment:
+      |-- New Vehicles:
+            |-- Nissan GT-R NISMO Command Interceptor '17
+            |-- <color=255,255,100>Slicktop</color> and <color=255,255,100>Unmarked</color> versions of the:
+                  |-- Ford Crown Victoria Police Interceptor '10
+                  |-- Ford Police Interceptor Utility '11
+                  |-- Dodge Charger SRT8 Super Bee (LX) '07
+                  |-- Chevrolet Corvette Stingray (C7) '14
+                  |-- Chevrolet Colorado ZR2 '17
+      |-- New Voice Profiles:
+            |-- swat1 & swat2
+            |-- fed1 & fed2
+            |-- commander1
+      |-- Updated damage system for all UVPD vehicles - now with more detachable gibs
+
+- Added <color=255,255,100>Need for Speed: High Stakes</color> Helicopter model and UI SFX
+- Added a <color=255,255,100>Visual Detection</color> system
+      |-- Units now take a moment before they recognize you
+      |-- Use evasive driving to avoid them, hide or use a <color=255,255,100>Jammer</color> to increase their detection time
+      |-- Comes with a <color=255,255,100>Display Visual Detection</color> option, enabled by default
+- Added a model preview for the <color=255,255,100>Creator: Roadblocks</color> tool
+- Added a grid slot preview for the <color=255,255,100>Creator: Races</color> tool
+- Added race preview layout when selecting races
+- Added an "undercover" flag when creating new Units
+      |-- Undercover vehicles do not show up on the <color=255,255,100>Police Scanner</color>
+- Added individual vehicle spawn chances when assigning Units via <color=255,255,100>Heat Level Manager</color>
+- Added a search feature for all data lists
+- Added a vehicle blinking effect when resetting
+- Added adjustable Air Unit <color=255,255,100>Cooldown Time</color>, default is 180 seconds
+- Added back <color=255,255,100>Subtitles</color>, now available for the Default preset Voice Profiles
+
+**Changes**
+- Revamped the <color=255,255,100>Default</color> presets:
+      |-- Make use of new UVPD vehicles
+      |-- Expand until Heat 6
+      |-- Re-sorted existing voice profiles
+      |-- Subscribe to <color=255,255,100>[Unit Vehicles] Default Voice Pack Extended</color> to use unused/extra voice profiles
+
+- Pursuit Tech Improvements:
+      |-- ESF, Stun mines, and the EMP can now disable your engine!
+            |-- Adjust the <color=255,255,100>Disable Duration</color> in the <color=255,255,100>Pursuit Tech</color> tool or via ConVars
+      |-- All electronic Pursuit Tech can now disable all active Pursuit Tech you have on your vehicle
+            |-- Affects the <color=255,255,100>ESF</color>, <color=255,255,100>Stun Mine</color>, <color=255,255,100>EMP </color>& <color=255,255,100>Killswitch</color>
+      |-- Added custom Pursuit Tech slot override when creating units and racers <color=100,255,100>(existing data will not be affected)</color>
+      |-- Tool - <color=255,255,100>Pursuit Tech</color>: Added an option to apply upgraded Pursuit Tech for each slot
+      |-- Added an updated visual display for applying upgrade Pursuit Tech on a vehicle
+
+- Pursuit Tech Adjustments: 
+      |-- Ramming or using Pursuit Tech on Racer AI will cause them to retaliate with Pursuit Tech if they have it
+      |-- AI Racers can once more use the <color=255,255,100>Jammer</color>
+      |-- AI Racers and Units' useage of Pursuit Tech now have a random delay, giving you a brief chance to avoid them
+      |-- <color=255,255,100>Spike Strips</color> are now dropped at reduced speed
+      |-- The Commander can now be given the <color=255,255,100>Repair Kit</color>
+            |-- However, they can only repair blown tires if <color=255,255,100>Can Commander Repair?</color> is disabled.
+
+- Patrolling AI Units and AI Traffic now stop at Decent Vehicle red lights, or when something blocks their way
+- Improved AI logic controlling your vehicle during Action Cam
+- Tweaked Call Response and Police Radio logic
+- Units and Racers will no longer instantly get wrecked/busted/disqualified when underwater
+- Tweaked the penalty logic when resetting as a Racer during pursuits
+
+**Fixes**
+- Fixed UVPD Dispatcher lines being too loud
+- Fixed an issue where you can't use Pursuit Tech while in Action Cam
+- Fixed time formatting
+- Fixed some Pursuit Tech SFX being too quiet
+- Fixed your own Spikes Strip getting removed by your own Jammer
+- Fixed Roadblock Units respawning way too soon
+
+/// RACE /// CHASE /// ESCAPE ///
+]],
+},
+
+["1.8.0"] = {
+Date = { year = 2026, month = 8, day = 8 },
+Type = "Minor",
+Text = [[
+Update 1.8.0 is finally here! Took a bit longer than expected but it has been worth the wait!
+
+**New Features**
+- Added an <color=255,255,100>Action Camera</color> function; experience a cinematic sequence during certain gameplay moments
+      |-- When enabled, the camera will show dramatic angles during certain events
+      |-- Gameplay may slow down in Singleplayer
+      |-- Use the Speedbreaker to prevent the Action Cam from activating
+      |-- Adjust its options under the new <color=255,255,100>Settings / Camera</color> tab!
+
+- Added support for <color=255,255,100>Driver Models</color> for AI-controlled vehicles
+      |-- The new <color=255,255,100>Creator: Driver Models</color> tool lets you add new models
+      |-- Assign which models the Racers, Traffic and Units use in <color=255,255,100>AI Racer, Traffic & Heat Level</color> Managers
+            |-- Toggle button is located under <color=255,255,100>AI Settings</color>
+- Addon creators can now create their own custom helicopter models with custom sprites, sounds and general data
+      |-- Refer to <color=255,255,100>#uv-updates</color> on our Discord server for more details
+- Added new variables for the Air Unit in the <color=255,255,100>Heat Level Manager</color>:
+      |-- Min. & Max Fuel
+      |-- Chance to Spawn
+      |-- Spawn Limit
+      |-- Max Amount
+- Added the <color=255,255,100>Skyhammer</color> Pursuit Tech for the Air Unit
+      |-- Takes longer to lock-on than the Killswitch, but has twice the disable duration
+      |-- Dodge it by outmaneuvering the Air Unit, or by using the <color=255,255,100>Jammer</color>.
+
+- Added Pursuit Breaker SFX
+- Added Roadblock Spawn Chance for each Heat Level
+- Added the ability to EMP an Air Unit
+
+**Changes**
+- Various improvements to AI behaviour
+- You can now hide from Units when not actively in a pursuit
+- Traffic will now despawn when a race begins
+- AI Units will now be wrecked when flipped over by Traffic or other Units who were rammed by Racers
+- Updated the badging on most Air Unit models
+- Roboboy takes over as UVPD Dispatcher on default voice preset, replacing Moka
+
+**Fixes**
+- Fixed that Pursuit Chatter related to certain Pursuit Tech never triggered
+- Fixed that Repair Shops sometimes did not repair vehicles driving at high speeds
+- Fixed that AI Units sometimes patrolled on waypoints not meant for traffic
+- Fixed certain issues related to GMinimap support
+
+/// RACE /// CHASE /// ESCAPE ///
+]],
+},
+
 ["1.7.4"] = {
 Date = { year = 2026, month = 6, day = 1 },
 Text = [[
@@ -34,7 +164,7 @@ Text = [[
 Date = { year = 2026, month = 5, day = 27 },
 Text = [[
 **Additions**
-- Added a new toggle: *Workshop Priority*, found inside <color=255,255,0>Settings / UV Settings / Data Import</color>
+- Added a new toggle: *Workshop Priority*, found inside <color=255,255,100>Settings / UV Settings / Data Import</color>
       |-- If enabled, Workshop content will be prioritized over Local content
       |-- Disable this if you want to use/work on local content instead of Workshop content
       |-- You will need to reload the map for the change to take effect.
@@ -68,7 +198,7 @@ Text = [[
       |-- This means that items in your local 'data' folder are separated from Workshop content (local data takes priority over Workshop content)
       |-- You may have to clean up your local 'data' folder to remove any Workshop files that are no longer needed in the 'data' folder; they are now loaded from the addons themselves
       |-- This change has also reworked the way presets are loaded and saved:
-            |-- Presets are now saved in & loaded from the <color=255,255,0>data/unitvehicles/preset_import</color> folder
+            |-- Presets are now saved in & loaded from the <color=255,255,100>data/unitvehicles/preset_import</color> folder
             |-- When you load up a map for the first time after updating, the local presets you had saved will be imported into the new system, after which the old presets will be deleted
             |-- This change also eliminated the use of the 'Export Presets' button in the UV menu, as presets are stored in the new system which is also the same system that allows presets to be imported from external sources
 
@@ -101,7 +231,7 @@ We'd like to take this opportunity to disclose what we are currently planning:
 
 For a long while now, we have been considering of expanding the playability of UV by introducing some sort of gameplay with progression. We think that we've reached the point where we essentially have a complete 'base' for it and having majority of the core features implemented.
 
-With that said, we'd like to announce that we are planning out a <color=255,255,0>gamemode</color> for Unit Vehicles! It will be a full-fledged gamemode, with its own set of features, mechanics and progression.
+With that said, we'd like to announce that we are planning out a <color=255,255,100>gamemode</color> for Unit Vehicles! It will be a full-fledged gamemode, with its own set of features, mechanics and progression.
 
 The plan is to allow players to be both a Unit and a Racer, having two different paths to progress through; similar to the "Need For Speed: Rivals" formula *( with our own features and twists to it ;) )*.
 Each map will have its own objectives, races, challenges, etc.
@@ -110,7 +240,7 @@ We aim to allow players to customize many aspects of their gameplay and easily i
 The cores are still being established so we don't really have a 'concrete' idea of what it will look like just yet - this is where you guys come in!
 We will continue making adjustments and reworking bits of Unit Vehicles to make it more flexible and "expandable" for such a thing.
 
-Having that said however, we'd also like to ask <color=255,255,0>you, the community</color>, to help us along the way!
+Having that said however, we'd also like to ask <color=255,255,100>you, the community</color>, to help us along the way!
       |-- We are hoping to gather some of *your* suggestions and feedbacks on what you'd like to see in the gamemode, we are open to any and all ideas!
       |-- You can either submit your suggestions via our Discord server, or by creating a new 'Discussion' post on the addon's Steam page; I assure you that we read both!
 
@@ -319,8 +449,8 @@ Text = [[
       |-- Save them as .json presets for each map
       |-- Allow Repair Shops to spawn on their own automatically
 - Added support for themed Speedometers
-      |-- Can be customized via a new *<color=255,255,0>Customize Speedometer</color>* button
-      |-- Only works in <color=255,255,0>Glide</color> vehicles
+      |-- Can be customized via a new *<color=255,255,100>Customize Speedometer</color>* button
+      |-- Only works in <color=255,255,100>Glide</color> vehicles
       |-- This update provides themed *Most Wanted*, *Carbon* and *Underground 2* speedometers
 - Added tips that are displayed on the end-of-pursuit results screens on all HUD types
 

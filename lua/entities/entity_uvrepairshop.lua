@@ -10,36 +10,36 @@ ENT.AdminOnly = false
 
 if SERVER then
     local AutoHealth = GetConVar("unitvehicle_autohealth")
-	local RepairCooldown = GetConVar("unitvehicle_repaircooldown")
-	local RepairRange = GetConVar("unitvehicle_repairrange")
-	local AutoHealth = GetConVar("unitvehicle_autohealth")
-	
-	function ENT:Initialize()
-		self:SetModel("models/unitvehiclesprops/uvrepairstation/uvrepairstation.mdl")
-		self:PhysicsInit(SOLID_VPHYSICS)
-		self:SetMoveType(MOVETYPE_VPHYSICS)
-		self:SetSolid(SOLID_VPHYSICS)
-		self:SetCollisionGroup(COLLISION_GROUP_WORLD)
-		self:GetPhysicsObject():EnableMotion(false)
-		net.Start("UVHUDAddUV")
-		net.WriteInt(self:EntIndex(), 32)
-		net.WriteInt(self:GetCreationID(), 32)
-		net.WriteString("repairshop")
-		net.Broadcast()
+    local RepairCooldown = GetConVar("unitvehicle_repaircooldown")
+    local RepairRange = GetConVar("unitvehicle_repairrange")
+    
+    function ENT:Initialize()
+        self:SetModel("models/unitvehiclesprops/uvrepairstation/uvrepairstation.mdl")
+        self:PhysicsInit(SOLID_VPHYSICS)
+        self:SetMoveType(MOVETYPE_VPHYSICS)
+        self:SetSolid(SOLID_VPHYSICS)
+        self:SetTrigger(true)
+        self:UseTriggerBounds( true, RepairRange:GetInt() )
+        
+        local phys = self:GetPhysicsObject()
+        if IsValid(phys) then
+            phys:EnableMotion(false)
+        end
+        
+        net.Start("UVHUDAddUV")
+        net.WriteInt(self:EntIndex(), 32)
+        net.WriteInt(self:GetCreationID(), 32)
+        net.WriteString("repairshop")
+        net.Broadcast()
 	end
-	
-	function ENT:Think()
-		local vehicles = ents.FindInSphere(self:WorldSpaceCenter(), RepairRange:GetInt())
-		for k, v in pairs(vehicles) do
-			if not v.uvrepairdelayed and 
-			not v.wrecked and 
-			(v:GetClass() == "prop_vehicle_jeep" or v.IsSimfphyscar or v.IsGlideVehicle or (v.LVS and v.BaseClass.ClassName == "lvs_base_wheeldrive"))
-			then
-			-- and not table.HasValue(UVCommanders, v) then
-				UVRepair(v)
-			end
-		end
-	end
+
+    function ENT:Touch(v)
+        if IsValid(v) and not v.uvrepairdelayed and not v.wrecked then
+            if v:GetClass() == "prop_vehicle_jeep" or v.IsSimfphyscar or v.IsGlideVehicle or (v.LVS and v.BaseClass and v.BaseClass.ClassName == "lvs_base_wheeldrive") then
+                UVRepair(v)
+            end
+        end
+    end
 
 else
     function ENT:Draw()   

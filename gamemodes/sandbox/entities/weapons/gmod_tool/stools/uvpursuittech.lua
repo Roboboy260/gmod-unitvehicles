@@ -14,6 +14,7 @@ local PursuitTechDefs = {
         description = "#uv.ptech.emp.desc",
         racer = true, unit = true,
         convars = {
+            disableduration = { default = 2, min = 0, max = 10, decimals = 1 },
             damage   = { default = 0.1, min = 0, max = 1, decimals = 1 },
             damagecommander = { default = 0.1, min = 0, max = 1, decimals = 1, nounit = true },
             force    = { default = 100, min = 0, max = 1000, decimals = 0 },
@@ -30,6 +31,7 @@ local PursuitTechDefs = {
         shortname = "esf",
         racer = true, unit = true,
         convars = {
+            disableduration = { default = 1, min = 0, max = 10, decimals = 1 },
             duration = { default = 10, min = 1, max = 30, decimals = 0 },
             power    = { default = 1000000, min = 100000, max = 10000000, decimals = 0 },
             damage   = { default = 0.1, min = 0, max = 1, decimals = 1 },
@@ -59,7 +61,7 @@ local PursuitTechDefs = {
         racer = false, unit = true,
         convars = {
             lockontime      = { default = 3, min = 1, max = 10, decimals = 1 },
-            disableduration = { default = 2.5, min = 1, max = 10, decimals = 1 },
+            disableduration = { default = 3, min = 1, max = 10, decimals = 1 },
             cooldown        = { default = 30, min = 0, max = 120, decimals = 0 },
             maxammo            = { default = 5, min = 0, max = 120, decimals = 0 }
         }
@@ -199,6 +201,7 @@ local PursuitTechDefs = {
             power    = { default = 1000000, min = 100000, max = 10000000, decimals = 0 },
             damage   = { default = 0.1, min = 0, max = 1, decimals = 1 },
             damagecommander = { default = 0.1, min = 0, max = 1, decimals = 1, nounit = true },
+            disableduration = { default = 1.5, min = 0, max = 10, decimals = 1 },
             cooldown = { default = 30, min = 0, max = 120, decimals = 0 },
             maxammo     = { default = 5, min = 0, max = 120, decimals = 0 }
         }
@@ -224,6 +227,10 @@ TOOL.ClientConVar["racer_slot1"] = ""
 TOOL.ClientConVar["racer_slot2"] = ""
 TOOL.ClientConVar["unit_slot1"]  = ""
 TOOL.ClientConVar["unit_slot2"]  = ""
+TOOL.ClientConVar["racer_slot1_upgraded"] = 0
+TOOL.ClientConVar["racer_slot2_upgraded"] = 0
+TOOL.ClientConVar["unit_slot1_upgraded"] = 0
+TOOL.ClientConVar["unit_slot2_upgraded"] = 0
 
 -- generate per-PT convars
 for displayName, info in pairs(PursuitTechDefs) do
@@ -512,13 +519,29 @@ if CLIENT then
 		end
 
 		local racerSlot1Combo = CreateSlotCombo("racer_slot1", pttable_racer)
+		CPanel:AddControl("CheckBox", {
+			Label = "#tool.uvpursuittech.upgraded",
+			Command = "uvpursuittech_racer_slot1_upgraded"
+		})
 		local racerSlot2Combo = CreateSlotCombo("racer_slot2", pttable_racer)
+		CPanel:AddControl("CheckBox", {
+			Label = "#tool.uvpursuittech.upgraded",
+			Command = "uvpursuittech_racer_slot2_upgraded"
+		})
 
 		-- ===== Unit slots =====
 		CPanel:AddControl("Label", {Text=" "})
 		CPanel:AddControl("Label",{Text="#tool.uvpursuittech.slot.unit"})
 		local unitSlot1Combo = CreateSlotCombo("unit_slot1", pttable_unit)
+		CPanel:AddControl("CheckBox", {
+			Label = "#tool.uvpursuittech.upgraded",
+			Command = "uvpursuittech_unit_slot1_upgraded"
+		})
 		local unitSlot2Combo = CreateSlotCombo("unit_slot2", pttable_unit)
+		CPanel:AddControl("CheckBox", {
+			Label = "#tool.uvpursuittech.upgraded",
+			Command = "uvpursuittech_unit_slot2_upgraded"
+		})
 
 		-- ===== Settings PT picker =====
 		CPanel:AddControl("Label",{Text=" "})
@@ -649,9 +672,9 @@ if CLIENT then
                     end
                 end
 
-                function slider:OnValueChanged( val )
-                    print(self:IsEditing(), val)
-                end
+                --function slider:OnValueChanged( val )
+                --    print(self:IsEditing(), val)
+                --end
 
 				table.insert(sliders, slider)
 			end
@@ -762,17 +785,18 @@ function TOOL:LeftClick(trace)
 
     if CLIENT then return false end
 
-    local isUnit = car.UnitVehicle == true
-    local slotNum = self:GetClientNumber("slot") or 1
-
     -- Choose correct slot convar based on vehicle type
-    local ptSlot1, ptSlot2
+    local ptSlot1, ptSlot2, upgradedSlot1, upgradedSlot2
     if car.UnitVehicle then
         ptSlot1 = self:GetClientInfo("unit_slot1") or ""
         ptSlot2 = self:GetClientInfo("unit_slot2") or ""
+		upgradedSlot1 = self:GetClientNumber("unit_slot1_upgraded") == 1
+		upgradedSlot2 = self:GetClientNumber("unit_slot2_upgraded") == 1
     else
         ptSlot1 = self:GetClientInfo("racer_slot1") or ""
         ptSlot2 = self:GetClientInfo("racer_slot2") or ""
+		upgradedSlot1 = self:GetClientNumber("racer_slot1_upgraded") == 1
+		upgradedSlot2 = self:GetClientNumber("racer_slot2_upgraded") == 1
     end
 
     if not car.PursuitTech then car.PursuitTech = {} end
@@ -816,7 +840,11 @@ function TOOL:LeftClick(trace)
 
 			-- UVReplicatePT(car, slot)
 
-            UVAddPursuitTech( car, ptselected, slot, nil, nil )
+			local upgraded = upgradedSlot2
+			if slot == 1 then
+				upgraded = upgradedSlot1
+			end
+            UVAddPursuitTech(car, ptselected, slot, nil, nil, upgraded)
 		end
 	end
 

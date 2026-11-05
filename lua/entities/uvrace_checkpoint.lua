@@ -285,29 +285,29 @@ if CLIENT then
 								break
 							end
 						end
-						if not IsValid(nextEnt) then return end
+						if IsValid(nextEnt) then
+							local nextCenter = nextEnt:GetPos() + nextEnt:OBBCenter()
+							local toNext = nextCenter - center
+							toNext.z = 0
+							toNext:Normalize()
 
-						local nextCenter = nextEnt:GetPos() + nextEnt:OBBCenter()
-						local toNext = nextCenter - center
-						toNext.z = 0
-						toNext:Normalize()
+							-- Signed angle between player forward and checkpoint direction
+							local dot = playerForward:Dot(toNext)
+							local cross = playerForward:Cross(toNext).z
+							local angleDiff = math.deg(math.atan2(cross, dot))
 
-						-- Signed angle between player forward and checkpoint direction
-						local dot = playerForward:Dot(toNext)
-						local cross = playerForward:Cross(toNext).z
-						local angleDiff = math.deg(math.atan2(cross, dot))
+							-- Clamp to -90..90 so arrow only rotates left/right
+							angleDiff = math.Clamp(angleDiff * 2, -90, 90)
 
-						-- Clamp to -90..90 so arrow only rotates left/right
-						angleDiff = math.Clamp(angleDiff * 2, -90, 90)
+							-- Draw arrow in 2D HUD
+							local screenPos = center:ToScreen()
+							local size = 40
 
-						-- Draw arrow in 2D HUD
-						local screenPos = center:ToScreen()
-						local size = 40
-
-						surface.SetMaterial(arrowMat)
-						surface.SetDrawColor(255, 255, 255, 255 * fade)
-						if not hidearrow then
-							surface.DrawTexturedRectRotated(data2D.x, data2D.y, size, size, angleDiff)
+							surface.SetMaterial(arrowMat)
+							surface.SetDrawColor(255, 255, 255, 255 * fade)
+							if not hidearrow then
+								surface.DrawTexturedRectRotated(data2D.x, data2D.y, size, size, angleDiff)
+							end
 						end
 					end
 				cam.PopModelMatrix()

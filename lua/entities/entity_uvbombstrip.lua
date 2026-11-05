@@ -8,7 +8,7 @@ ENT.AdminSpawnable = false
 
 if SERVER then
     function ENT:Initialize()
-    	self:SetModel("models/props_phx/oildrum001.mdl")
+    	self:SetModel("models/props_phx/oildrum001_explosive.mdl")
     	--self:SetMaterial("models/wireframe.vmt")
     	--self:SetColor( Color(255, 191, 0, 255) )
     	self:PhysicsInit(SOLID_VPHYSICS)

@@ -7,21 +7,12 @@ local UV_PT = {}
 
 UV_PT.Killswitch = {
     Hit = function(tbl)
-        local displayMe = false
-        if tbl.User == LocalPlayer():Nick() then
-            displayMe = true
-        end
-
-        local userString = "uv.ptech.killswitch.hit"
-        local targetString = "uv.ptech.killswitch.hit.you"
+        if tbl.User ~= LocalPlayer():Nick() then return end
 
         UV_UI.general.events.CenterNotification({
-            text = string.format( (displayMe and UVString( userString )) or UVString( targetString ), (displayMe and UVString( tbl.Target )) or UVString( tbl.User )),
-			color = not displayMe and Color(255, 0, 0) or nil,
-			immediate = not displayMe and true or nil,
-			critical = not displayMe and true or nil,
-			time = not displayMe and 3 or 1,
-		})
+            text = string.format(UVString("uv.ptech.killswitch.hit"), UVString(tbl.Target)),
+            time = 1,
+        })
     end,
     Locking = function(tbl)
         local displayMe = false
@@ -75,6 +66,61 @@ UV_PT.Killswitch = {
             text = UVString( userString ),
 			-- immediate = true,
 			-- critical = true,
+        })
+    end
+}
+UV_PT.Skyhammer = {
+    Hit = function(tbl)
+        local displayMe = false
+        if tbl.User == LocalPlayer():Nick() then
+            displayMe = true
+        end
+
+        local userString = "uv.ptech.skyhammer.hit"
+        local targetString = "uv.ptech.skyhammer.hit.you"
+
+        UV_UI.general.events.CenterNotification({
+            text = string.format( (displayMe and UVString( userString )) or UVString( targetString ), (displayMe and UVString( tbl.Target )) or UVString( tbl.User )),
+			color = not displayMe and Color(255, 0, 0) or nil,
+			immediate = not displayMe and true or nil,
+			critical = not displayMe and true or nil,
+			time = not displayMe and 3 or 1,
+		})
+    end,
+    Locking = function(tbl)
+        local displayMe = false
+        if tbl.User == LocalPlayer():Nick() then
+            displayMe = true
+        end
+
+        local userString = "uv.ptech.skyhammer.activated"
+        local targetString = "uv.ptech.skyhammer.lockingon"
+
+        UV_UI.general.events.CenterNotification({
+            text = (displayMe and UVString( userString )) or UVString(targetString),
+			color = not displayMe and Color(255, 0, 0) or nil,
+			immediate = not displayMe and true or nil,
+        })
+    end,
+    Counter = function(tbl)
+        local displayMe = false
+        if tbl.User == LocalPlayer():Nick() then
+            displayMe = true
+        end
+		local String = "uv.ptech.skyhammer.dodged"
+		
+        UV_UI.general.events.CenterNotification({
+            text = UVString( String ),
+        })
+    end,
+    EngineRestarting = function(tbl)
+        local userString = "uv.ptech.killswitch.engine.on"
+
+        UV_UI.general.events.CenterNotification({
+            text = UVString( userString ),
+			immediate = true,
+			critical = true,
+			time = 3,
         })
     end
 }
@@ -200,13 +246,37 @@ UV_PT.Spikestrip = {
             displayMe = true
         end
 
-        local userString = "%s hit your spikestrips!"
-        local targetString = "You hit %s's spikestrips!"
+		local userString = "uv.ptech.spikes.hit"
+        local targetString = "uv.ptech.spikes.hit.you"
 
-        -- UV_UI.general.events.CenterNotification({
-            -- text = string.format( (displayMe and UVString( userString )) or UVString( targetString ), (displayMe and tbl.Target) or tbl.User),
-        -- })
-    end
+        local display = nil
+
+        if displayMe then
+            local targets = tbl.Target or {}
+		    local firstName = targets[1] or "UNKNOWN"
+		    local extraCount = #targets - 1
+
+		-- Build name string: "Name" or "Name (+X)"
+		    display = UVString( firstName )
+		    if extraCount > 0 then
+			    display = string.format("%s (+%d)", UVString( firstName ), extraCount)
+		    end
+        else
+            display = UVString( tbl.User )
+        end
+
+		-- Format text with nameDisplay
+		local formattedText = string.format(
+			(displayMe and UVString( userString )) or UVString( targetString ),
+			display
+		)
+
+		-- Trigger notification
+		UV_UI.general.events.CenterNotification({
+			text = formattedText,
+		})
+
+    end,
 }
 UV_PT.StunMine = {
     Hit = function(tbl)
@@ -291,6 +361,7 @@ UV_PT.EMP = {
         UVEMPLockingStart = nil
         UVEMPLockingTarget = nil
         UVEMPLockingSource = nil
+        UVEMPLockingUpgraded = nil
 
         local userString = "uv.ptech.emp.hit"
         local isTargetLocal = targetCallsign == LocalPlayer():Nick()
@@ -315,6 +386,7 @@ UV_PT.EMP = {
         UVEMPLockingStart = nil
         UVEMPLockingTarget = nil
         UVEMPLockingSource = nil
+        UVEMPLockingUpgraded = nil
 
         UV_UI.general.events.CenterNotification({
             text = UVString( userString ),
@@ -327,6 +399,7 @@ UV_PT.EMP = {
         local carEntIndex = user[1]
         local carCreationID = user[2]
         local carCallsign = user[3]
+        local carUpgraded = user[4]
 
         local targetEntIndex = target[1]
         local targetCreationID = target[2]
@@ -347,6 +420,7 @@ UV_PT.EMP = {
         UVEMPLockingStart = CurTime()
         UVEMPLockingSource = user
         UVEMPLockingTarget = target
+        UVEMPLockingUpgraded = carUpgraded
 
         --print('Locking', target)
         local userString = "uv.ptech.emp.lockingon"

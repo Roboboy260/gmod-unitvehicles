@@ -30,6 +30,7 @@ if SERVER then
         local location = pbdata.Location or pbdata.Maxs
         local activeduration = pbdata.ActiveDuration or 10
         local dontunweldprops = pbdata.DontUnweldProps or nil
+        local disableactioncam = pbdata.DisableActionCam or nil
         
         if checkdistance then
             local ply = ents.FindByClass('player')[1]
@@ -137,12 +138,27 @@ if SERVER then
             ent.PursuitBreakerData = pbdata
             ent.ActiveDuration = activeduration
             ent.DontUnweldProps = dontunweldprops
+            ent.DisableActionCam = disableactioncam
             ent:AddCallback("PhysicsCollide", function(ent, data)
                 local object = data.HitEntity
-                
+                if not UVLoadedPursuitBreakers[ent.PursuitBreakerID] then
+                    return
+                end
+
                 if data.Speed > 10 and not object:IsWorld() and not object.PursuitBreaker then
                     if ent.PursuitBreaker then
                         UVTriggerPursuitBreaker(ent, object, data.TheirOldVelocity)
+
+                        local driver = UVGetDriver(object)
+                        if not ent.DisableActionCam and driver and not object.UnitVehicle then
+                            local tabledata = {}
+                            tabledata.Name = pbdata.jsonfile
+                            tabledata.Location = pbdata.Location
+                            tabledata.Mins = pbdata.Mins
+                            tabledata.Maxs = pbdata.Maxs
+
+                            UVActionCam(driver, "PursuitBreaker", nil, tabledata)
+                        end
                     elseif not ent.PursuitBreakerActive then
                         return
                     end
@@ -225,10 +241,13 @@ if SERVER then
         if hitent.PursuitBreakerActive or not hitent.PursuitBreaker then return end
         
         local id = hitent.PursuitBreakerID
+        if not UVLoadedPursuitBreakers[id] then return end
+        
         local pbdata = hitent.PursuitBreakerData
         local location = hitent.PursuitBreakerLoc
         local activeduration = hitent.ActiveDuration or 10
         local dontunweldprops = hitent.DontUnweldProps or nil
+        local disableactioncam = hitent.DisableActionCam or nil
         local entities = UVLoadedPursuitBreakers[id].entities
         local constraints = UVLoadedPursuitBreakers[id].constraints
         
@@ -268,6 +287,10 @@ if SERVER then
             if not dontunweldprops then
                 UVRemoveConstraints(ent, "Weld") --Unweld everything but thrusters
             end
+
+            if not IsValid(ent) then
+                continue
+            end
             
             if ent:GetClass() == "gmod_thruster" then
                 ent:SetOn(true)
@@ -298,12 +321,47 @@ if SERVER then
         if IsValid(closestbreakableent) then 
             closestbreakableent:Fire("Break") 
         end
+
+        local pbFiles, pbFolders = file.Find("sound/pursuitbreakers/*", "GAME")
+        local jsonFilename = pbdata.jsonfile:lower()
+
+        local function getAudioFolderForJson(jsonFilename)
+            local longestMatch = nil
+            local maxLength = 0
+
+            for _, folder in ipairs(pbFolders) do
+                if string.find(jsonFilename, folder) then
+                    if #folder > maxLength then
+                        maxLength = #folder
+                        longestMatch = folder
+                    end
+                end
+            end
+        
+            return longestMatch
+        end
+
+        local matchedFolder = getAudioFolderForJson(jsonFilename)
+
+        if matchedFolder then
+            local audioFiles = file.Find("sound/pursuitbreakers/" .. matchedFolder .. "/*", "GAME")
+            if audioFiles and #audioFiles ~= 0 then
+                EmitSound( 
+                    "pursuitbreakers/" .. matchedFolder .. "/" .. audioFiles[math.random(1, #audioFiles)], 
+                    pbdata.Location or hitent:WorldSpaceCenter(), 
+                    0,
+                    CHAN_AUTO,
+                    1,
+                    100
+                )
+            end
+        end
         
         local Chatter = GetConVar("unitvehicle_chatter")
         
         --Check if it's a gas station
         if UVTargeting then
-            if string.find(pbdata.jsonfile:lower(), "gas") then
+            if string.find(jsonFilename, "gas") then
                 UVSoundChatter(hitent, 1, "pursuitbreakergas", 8)
             else
                 if Chatter:GetBool() then

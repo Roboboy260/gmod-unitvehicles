@@ -4,6 +4,85 @@ local POLICE_SPAWN_DIST_FAR_SQ   = 25000000
 local POLICE_SPAWN_DIST_MAX_SQ   = 100000000
 local POLICE_SPAWN_MAX_CANDIDATES = 64
 
+local unitPursuitTechSettings = {
+	{ name = "ESF", convar = "unitvehicle_unit_pursuittech_esf", short = "esf" },
+	{ name = "EMP", convar = "unitvehicle_unit_pursuittech_emp", short = "emp" },
+	{ name = "Spikestrip", convar = "unitvehicle_unit_pursuittech_spikestrip", short = "spikestrip" },
+	{ name = "Killswitch", convar = "unitvehicle_unit_pursuittech_killswitch", short = "killswitch" },
+	{ name = "Repair Kit", convar = "unitvehicle_unit_pursuittech_repairkit", short = "repairkit" },
+	{ name = "Shock Ram", convar = "unitvehicle_unit_pursuittech_shockram", short = "shockram" },
+	{ name = "GPS Dart", convar = "unitvehicle_unit_pursuittech_gpsdart", short = "gpsdart" },
+	{ name = "Grappler", convar = "unitvehicle_unit_pursuittech_grappler", short = "grappler" },
+}
+
+local unitPursuitTechByName = {}
+for _, setting in ipairs(unitPursuitTechSettings) do
+	unitPursuitTechByName[setting.name] = setting
+end
+
+function UVApplyConfiguredUnitPursuitTech(vehicle, memory)
+	if not UVUPursuitTech:GetBool() then return end
+
+	local pool = {}
+	for _, setting in ipairs(unitPursuitTechSettings) do
+		local allowedConVar = GetConVar(setting.convar)
+		if allowedConVar and allowedConVar:GetBool() then
+			table.insert(pool, setting.name)
+		end
+	end
+
+	local used = {}
+	vehicle.PursuitTech = {}
+
+	for slot = 1, 2 do
+		local choice = memory["PursuitTechSlot" .. slot]
+		local selectedTech
+
+		if choice == "allowed" then
+			local available = {}
+			for _, tech in ipairs(pool) do
+				if not used[tech] then
+					table.insert(available, tech)
+				end
+			end
+			if #available > 0 then
+				selectedTech = available[math.random(#available)]
+			end
+		elseif choice ~= "none" and unitPursuitTechByName[choice] and not used[choice] then
+			selectedTech = choice
+		end
+
+		local setting = selectedTech and unitPursuitTechByName[selectedTech]
+		if setting then
+			used[selectedTech] = true
+			local ammo = GetConVar("uvpursuittech_" .. setting.short .. "_maxammo_unit"):GetInt()
+			local upgraded
+			local upgradedSetting = memory["PursuitTechSlot" .. slot .. "Upgraded"]
+			if upgradedSetting ~= nil then
+				upgraded = tobool(upgradedSetting)
+			end
+			vehicle.PursuitTech[slot] = {
+				Tech = selectedTech,
+				Ammo = ammo > 0 and ammo or math.huge,
+				Cooldown = GetConVar("uvpursuittech_" .. setting.short .. "_cooldown_unit"):GetInt(),
+				LastUsed = -math.huge,
+				Upgraded = upgraded,
+			}
+		end
+	end
+
+	if not vehicle.PursuitTech[1] and not vehicle.PursuitTech[2] then
+		vehicle.PursuitTech = nil
+	end
+end
+
+local function CopyRacerPursuitTechSettings(vehicle, memory)
+	vehicle.UVForcedPursuitTechSlot1 = memory.PursuitTechSlot1
+	vehicle.UVForcedPursuitTechSlot2 = memory.PursuitTechSlot2
+	vehicle.UVForcedPursuitTechSlot1Upgraded = tobool(memory.PursuitTechSlot1Upgraded)
+	vehicle.UVForcedPursuitTechSlot2Upgraded = tobool(memory.PursuitTechSlot2Upgraded)
+end
+
 --SIMFPHYS ONLY--
 
 local function ValidateModel( model )
@@ -206,6 +285,32 @@ function UVCountActiveRhinos() -- Rhino Unit is npc_uvspecial with self.v.rhino 
 	return count
 end
 
+function UVSelectVehicleForSpawn(availableUnits, unit, vehicleBase, heat)
+	local weightedUnits = {}
+	local totalWeight = 0
+
+	for _, filename in ipairs(availableUnits) do
+		local weight = UVGetVehicleSpawnChance(heat, unit, vehicleBase, filename)
+		if weight > 0 then
+			totalWeight = totalWeight + weight
+			table.insert(weightedUnits, { filename = filename, weight = weight })
+		end
+	end
+
+	if totalWeight <= 0 then return nil end
+
+	local roll = math.random() * totalWeight
+	local accumulated = 0
+	for _, entry in ipairs(weightedUnits) do
+		accumulated = accumulated + entry.weight
+		if roll <= accumulated then
+			return entry.filename
+		end
+	end
+
+	return weightedUnits[#weightedUnits].filename
+end
+
 function UVGetRandomUnit( heat, modifiers )
 	heat = heat or UVHeatLevel
 
@@ -402,7 +507,7 @@ function UVCreateConstraintsFromTable( Constraint, EntityList )
 end
 
 --(Player, boolean)
-function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderrespawn, posspecified, angles, disperse)
+function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, posspecified, angles, disperse)
 	
 	if playercontrolled then
 		if not ply then
@@ -425,17 +530,8 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 	-- end
 
 	if next(dvd.Waypoints) == nil then
-		if not UVNoDVWaypointsNotify then
-			net.Start("UV_OpenDVWarning")
-			net.Broadcast()
-		end
-		return
-	end
-	UVNoDVWaypointsNotify = nil
-
-	if next(dvd.Waypoints) == nil then
 		net.Start("UV_OpenDVWarning")
-		net.Broadcast() -- or target a specific player
+		net.Broadcast()
 		return
 	end
 
@@ -458,7 +554,7 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 
 	if waypointLookup then
 		local enemywaypoint = dvd.GetNearestWaypoint(enemylocation)
-		local enemywaypointgroup = enemywaypoint["Group"]
+		local enemywaypointgroup = UVTargeting and enemywaypoint["Group"] or 0
 
 		local waypointtable = {}
 		local prioritywaypointtable = {}
@@ -466,12 +562,17 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		local prioritywaypointtable3 = {}
 	
 		local candidates = {}
+
+		local patrolling = not UVTargeting
 		
 		for k, v in ipairs( dvd.Waypoints ) do
 			local Waypoint = v.Target
 			local delta = enemylocation - Waypoint
 			local distSq = delta:LengthSqr()
-			if distSq <= POLICE_SPAWN_DIST_FAR_SQ or distSq >= POLICE_SPAWN_DIST_MAX_SQ then
+			if not patrolling and (distSq <= POLICE_SPAWN_DIST_FAR_SQ or distSq >= POLICE_SPAWN_DIST_MAX_SQ) then
+				continue
+			end
+			if patrolling and distSq < POLICE_SPAWN_DIST_MAX_SQ then
 				continue
 			end
 			
@@ -536,11 +637,19 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 	end
 
 	if helicopter then
+		local helilimit = GetConVar("unitvehicle_unit_helicopters_limit" .. UVHeatLevel):GetInt()
+		local helicopterSlot = UVFindAvailableHelicopterSlot(helilimit)
+		if not helicopterSlot or #ents.FindByClass("uvair") >= helilimit then return end
+
 		local heli = ents.Create("uvair")
+		if not IsValid(heli) then return end
+		heli.HelicopterSlot = helicopterSlot
+		UVRegisterHelicopterSpawn(heli)
 		heli:SetPos(uvspawnpoint + (vector_up * 1000))
 		heli:SetAngles(Angle(0, math.random(-180, 180), 0))
 		heli:Spawn()
 		heli:Activate()
+
 		return
 	end
 	
@@ -709,12 +818,14 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 			return
 		end
 		
-		availableunit = availableunits[math.random(1, #availableunits)]
+		availableunit = UVSelectVehicleForSpawn(availableunits, returnedUnitList.name, vehiclebase, UVHeatLevel)
 		
 		if commanderrespawn then
 			availableunit = commanderrespawn
 			uvnextclasstospawn = "npc_uvcommander"
 		end
+
+		if not availableunit then return end
 		
 		local JSONData = UV_LoadFile( "lvs>>units", availableunit )
 		
@@ -837,11 +948,16 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
 		Ent.unitscript = availableunit
+		Ent.undercover = MEMORY.Undercover
 		
+		local hasConfiguredPursuitTech = MEMORY.PursuitTechSlot1 ~= nil or MEMORY.PursuitTechSlot2 ~= nil
 		if rhinoattack then
 			Ent.uvclasstospawnon = "npc_uvspecial"
 			Ent.rhino = true
-		elseif Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
+		end
+		if hasConfiguredPursuitTech then
+			UVApplyConfiguredUnitPursuitTech(Ent, MEMORY)
+		elseif not rhinoattack and Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
 			
 			if UVUPursuitTech:GetBool() then
 				Ent.PursuitTech = {}
@@ -860,7 +976,7 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 				if UVUPursuitTech_Killswitch:GetBool() then
 					table.insert(pool, "Killswitch")
 				end
-				if UVUPursuitTech_RepairKit:GetBool() and Ent.uvclasstospawnon ~= "npc_uvcommander" then
+				if UVUPursuitTech_RepairKit:GetBool() then
 					table.insert(pool, "Repair Kit")
 				end
 				if UVUPursuitTech_ShockRam:GetBool() then
@@ -902,8 +1018,6 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		if Ent.uvclasstospawnon == "npc_uvcommander" then
 			UVOneCommanderDeployed = true
 			table.insert(UVCommanders, Ent)
-			Ent.uvlasthealth = UVCommanderLastHealth
-			Ent.uvlastenginehealth = UVCommanderLastEngineHealth
 		end
 		
 		Ent:CallOnRemove( "UVGlideVehicleRemoved", function(car)
@@ -965,12 +1079,14 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 			return
 		end
 		
-		availableunit = availableunits[math.random(1, #availableunits)]
+		availableunit = UVSelectVehicleForSpawn(availableunits, returnedUnitList.name, vehiclebase, UVHeatLevel)
 		
 		if commanderrespawn then
 			availableunit = commanderrespawn
 			uvnextclasstospawn = "npc_uvcommander"
 		end
+
+		if not availableunit then return end
 		
 		local JSONData = UV_LoadFile( "glide>>units", availableunit )
 		
@@ -1100,7 +1216,15 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 			
 			local dot = Color.r * Color.g * Color.b * Color.a
 			Ent.OldColor = dot
-			Ent:SetColor( Color )
+
+			if MEMORY.SaveColor then
+				Ent:SetColor( Color )
+			else
+				if isfunction(Ent.GetSpawnColor) then
+					Color = Ent:GetSpawnColor()
+					Ent:SetColor( Color )
+				end
+			end
 			
 			local data = {
 				Color = Color,
@@ -1118,11 +1242,16 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
 		Ent.unitscript = availableunit
+		Ent.undercover = MEMORY.Undercover
 		
+		local hasConfiguredPursuitTech = MEMORY.PursuitTechSlot1 ~= nil or MEMORY.PursuitTechSlot2 ~= nil
 		if rhinoattack then
 			Ent.uvclasstospawnon = "npc_uvspecial"
 			Ent.rhino = true
-		elseif Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
+		end
+		if hasConfiguredPursuitTech then
+			UVApplyConfiguredUnitPursuitTech(Ent, MEMORY)
+		elseif not rhinoattack and Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
 			
 			if UVUPursuitTech:GetBool() then
 				Ent.PursuitTech = {}
@@ -1141,7 +1270,7 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 				if UVUPursuitTech_Killswitch:GetBool() then
 					table.insert(pool, "Killswitch")
 				end
-				if UVUPursuitTech_RepairKit:GetBool() and Ent.uvclasstospawnon ~= "npc_uvcommander" then
+				if UVUPursuitTech_RepairKit:GetBool() then
 					table.insert(pool, "Repair Kit")
 				end
 				if UVUPursuitTech_ShockRam:GetBool() then
@@ -1183,8 +1312,6 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		if Ent.uvclasstospawnon == "npc_uvcommander" then
 			UVOneCommanderDeployed = true
 			table.insert(UVCommanders, Ent)
-			Ent.uvlasthealth = UVCommanderLastHealth
-			Ent.uvlastenginehealth = UVCommanderLastEngineHealth
 		end
 		
 		Ent:CallOnRemove( "UVGlideVehicleRemoved", function(car)
@@ -1244,12 +1371,14 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 			return
 		end
 		
-		availableunit = availableunits[math.random(1, #availableunits)]
+		availableunit = UVSelectVehicleForSpawn(availableunits, returnedUnitList.name, vehiclebase, UVHeatLevel)
 		
 		if commanderrespawn then
 			availableunit = commanderrespawn
 			uvnextclasstospawn = "npc_uvcommander"
 		end
+
+		if not availableunit then return end
 		
 		local DataString = UV_LoadFile( "simfphys>>units", availableunit )
 		
@@ -1299,7 +1428,7 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		local SpawnAng = uvspawnpointangles
 		SpawnAng.pitch = 0
 		SpawnAng.yaw = UVTargeting and rhinoattack and not posspecified and SpawnAng.yaw or SpawnAng.yaw + 180
-		SpawnAng.yaw = SpawnAng.yaw + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
+		SpawnAng.yaw = SpawnAng.yaw + (UVCheckIfRedlineSimfphys(vehicle) and -90 or 0) + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
 		SpawnAng.roll = 0
 		
 		Ent = simfphys.SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle, true )
@@ -1475,11 +1604,16 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
 		Ent.unitscript = availableunit
+		Ent.undercover = MEMORY.Undercover
 		
+		local hasConfiguredPursuitTech = MEMORY.PursuitTechSlot1 ~= nil or MEMORY.PursuitTechSlot2 ~= nil
 		if rhinoattack then
 			Ent.uvclasstospawnon = "npc_uvspecial"
 			Ent.rhino = true
-		elseif Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
+		end
+		if hasConfiguredPursuitTech then
+			UVApplyConfiguredUnitPursuitTech(Ent, MEMORY)
+		elseif not rhinoattack and Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
 			
 			if UVUPursuitTech:GetBool() then
 				Ent.PursuitTech = {}
@@ -1498,7 +1632,7 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 				if UVUPursuitTech_Killswitch:GetBool() then
 					table.insert(pool, "Killswitch")
 				end
-				if UVUPursuitTech_RepairKit:GetBool() and (Ent.uvclasstospawnon ~= "npc_uvcommander" and not commanderrespawn) then
+				if UVUPursuitTech_RepairKit:GetBool() then
 					table.insert(pool, "Repair Kit")
 				end
 				if UVUPursuitTech_ShockRam:GetBool() then
@@ -1541,7 +1675,6 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		if Ent.uvclasstospawnon == "npc_uvcommander" then
 			UVOneCommanderDeployed = true
 			table.insert(UVCommanders, Ent)
-			Ent.uvlasthealth = UVCommanderLastHealth
 		end
 		
 		if playercontrolled then
@@ -1609,12 +1742,14 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 			return
 		end
 		
-		availableunit = availableunits[math.random(1, #availableunits)]
+		availableunit = UVSelectVehicleForSpawn(availableunits, returnedUnitList.name, vehiclebase, UVHeatLevel)
 		
 		if commanderrespawn then
 			availableunit = commanderrespawn
 			uvnextclasstospawn = "npc_uvcommander"
 		end
+
+		if not availableunit then return end
 		
 		local DataString = UV_LoadFile( "prop_vehicle_jeep>>units", availableunit )
 		
@@ -1708,11 +1843,16 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
 		Ent.unitscript = availableunit
+		Ent.undercover = MEMORY.Undercover
 		
+		local hasConfiguredPursuitTech = MEMORY.PursuitTechSlot1 ~= nil or MEMORY.PursuitTechSlot2 ~= nil
 		if rhinoattack then
 			Ent.uvclasstospawnon = "npc_uvspecial"
 			Ent.rhino = true
-		elseif Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
+		end
+		if hasConfiguredPursuitTech then
+			UVApplyConfiguredUnitPursuitTech(Ent, MEMORY)
+		elseif not rhinoattack and Ent.uvclasstospawnon ~= "npc_uvpatrol" and Ent.uvclasstospawnon ~= "npc_uvsupport" then
 			
 			if UVUPursuitTech:GetBool() then
 				Ent.PursuitTech = {}
@@ -1731,7 +1871,7 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 				if UVUPursuitTech_Killswitch:GetBool() then
 					table.insert(pool, "Killswitch")
 				end
-				if UVUPursuitTech_RepairKit:GetBool() and Ent.uvclasstospawnon ~= "npc_uvcommander" then
+				if UVUPursuitTech_RepairKit:GetBool() then
 					table.insert(pool, "Repair Kit")
 				end
 				if UVUPursuitTech_ShockRam:GetBool() then
@@ -1774,7 +1914,6 @@ function UVAutoSpawn(ply, rhinoattack, helicopter, playercontrolled, commanderre
 		if Ent.uvclasstospawnon == "npc_uvcommander" then
 			UVOneCommanderDeployed = true
 			table.insert(UVCommanders, Ent)
-			Ent.uvlasthealth = UVCommanderLastHealth
 		end
 		
 		Ent:CallOnRemove( "UVGlideVehicleRemoved", function(car)
@@ -1824,17 +1963,8 @@ function UVAutoSpawnTraffic()
 	local suspectvelocity = Vector(0,0,0)
 
 	if next(dvd.Waypoints) == nil then
-		if not UVNoDVWaypointsNotify then
-			net.Start("UV_OpenDVWarning")
-			net.Broadcast()
-		end
-		return
-	end
-	UVNoDVWaypointsNotify = nil
-
-	if next(dvd.Waypoints) == nil then
 		net.Start("UV_OpenDVWarning")
-		net.Broadcast() -- or target a specific player
+		net.Broadcast()
 		return
 	end
 
@@ -2337,7 +2467,7 @@ function UVAutoSpawnTraffic()
 		local SpawnAng = uvspawnpointangles
 		SpawnAng.pitch = 0
 		SpawnAng.yaw = SpawnAng.yaw + 180
-		SpawnAng.yaw = SpawnAng.yaw + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
+		SpawnAng.yaw = SpawnAng.yaw + (UVCheckIfRedlineSimfphys(vehicle) and -90 or 0) + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
 		SpawnAng.roll = 0
 		
 		Ent = simfphys.SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle, true )
@@ -2510,6 +2640,7 @@ function UVAutoSpawnTraffic()
 		
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
+		CopyRacerPursuitTechSettings(Ent, MEMORY)
 
 		table.insert(UVVehicleInitializing, Ent)
 		
@@ -2628,6 +2759,7 @@ function UVAutoSpawnTraffic()
 		end)
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
+		CopyRacerPursuitTechSettings(Ent, MEMORY)
 
 		table.insert(UVVehicleInitializing, Ent)
 		
@@ -2648,14 +2780,10 @@ function UVAutoSpawnRacer()
 	local suspectvelocity = Vector(0,0,0)
 
 	if next(dvd.Waypoints) == nil then
-		if not UVNoDVWaypointsNotify then
-			net.Start("UV_OpenDVWarning")
-			net.Broadcast()
-		end
+		net.Start("UV_OpenDVWarning")
+		net.Broadcast()
 		return
 	end
-
-	UVNoDVWaypointsNotify = nil
 	
 	if next(UVPotentialSuspects) ~= nil then
 		local suspects = UVPotentialSuspects
@@ -2911,6 +3039,7 @@ function UVAutoSpawnRacer()
 			end
 
 			createdEntities[id].uvclasstospawnon = uvnextclasstospawn
+			CopyRacerPursuitTechSettings(createdEntities[id], MEMORY)
 
 			table.insert(UVVehicleInitializing, createdEntities[id])
 		end
@@ -3046,6 +3175,7 @@ function UVAutoSpawnRacer()
 			end
 
 			createdEntities[id].uvclasstospawnon = uvnextclasstospawn
+			CopyRacerPursuitTechSettings(createdEntities[id], MEMORY)
 
 			table.insert(UVVehicleInitializing, createdEntities[id])
 		end
@@ -3144,7 +3274,7 @@ function UVAutoSpawnRacer()
 		local SpawnAng = uvspawnpointangles
 		SpawnAng.pitch = 0
 		SpawnAng.yaw = SpawnAng.yaw + 180
-		SpawnAng.yaw = SpawnAng.yaw + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
+		SpawnAng.yaw = SpawnAng.yaw + (UVCheckIfRedlineSimfphys(vehicle) and -90 or 0) + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
 		SpawnAng.roll = 0
 		
 		Ent = simfphys.SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle, true )
@@ -3317,6 +3447,7 @@ function UVAutoSpawnRacer()
 		
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
+		CopyRacerPursuitTechSettings(Ent, MEMORY)
 
 		table.insert(UVVehicleInitializing, Ent)
 		
@@ -3450,6 +3581,7 @@ function UVAutoSpawnRacer()
 		end)
 		
 		Ent.uvclasstospawnon = uvnextclasstospawn
+		CopyRacerPursuitTechSettings(Ent, MEMORY)
 
 		table.insert(UVVehicleInitializing, Ent)
 		
@@ -3491,7 +3623,6 @@ local function GetVehicleData( ent )
 		Memory.HasBackfire = ent:GetBackFire()
 		Memory.DoesntStall = ent:GetDoNotStall()
 		Memory.SoundOverride = ent:GetSoundoverride()
-		Memory.AddedYaw = UVCheckIfRedlineSimfphys(ent) and 180 or 90
 		
 		Memory.FrontHeight = ent:GetFrontSuspensionHeight()
 		Memory.RearHeight = ent:GetRearSuspensionHeight()
@@ -3761,7 +3892,7 @@ function UVTeleportSimfphysVehicle( vehicle, pos, ang )
 	
 	local SpawnAng = ang
 	SpawnAng.pitch = 0
-	SpawnAng.yaw = SpawnAng.yaw  + 270 + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
+	SpawnAng.yaw = SpawnAng.yaw + (UVCheckIfRedlineSimfphys(vehicle) and -90 or 0) + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
 	SpawnAng.roll = 0
 	
 	Ent = simfphys.SpawnVehicle( ply, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle, true )
@@ -4100,7 +4231,7 @@ function UVMoveToGridSlot( vehicle )
 
 	local pos = spawn:GetPos()
 	local ang = spawn:GetAngles()
-	ang.yaw = ang.yaw + 180
+	ang.yaw = ang.yaw + (UVCheckIfRedlineSimfphys(vehicle) and -90 or 180)
 
 	UVSetVehiclePos( vehicle, pos, ang )
 	UVSetVehicleActive( vehicle, false )
@@ -4168,7 +4299,7 @@ function UVMoveToGridSlotLegacy( vehicle, aienabled )
 		
 		local SpawnAng = ang
 		SpawnAng.pitch = 0
-		SpawnAng.yaw = SpawnAng.yaw + Memory.AddedYaw + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
+		SpawnAng.yaw = SpawnAng.yaw + (UVCheckIfRedlineSimfphys(vehicle) and -90 or 0) + (vehicle.SpawnAngleOffset and vehicle.SpawnAngleOffset or 0)
 		SpawnAng.roll = 0
 		
 		Ent = simfphys.SpawnVehicle( nil, SpawnPos, SpawnAng, vehicle.Model, vehicle.Class, vname, vehicle )

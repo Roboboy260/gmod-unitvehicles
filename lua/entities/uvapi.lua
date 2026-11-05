@@ -433,8 +433,7 @@ end
 
 function ENT:SetELS(on)
 	if on == self:GetELS() or self.v.DontHaveEMS then return end
-	if self.v.IsGlideVehicle then
-		if not self.v.CanSwitchSiren then return end
+	if self.v.IsGlideVehicle and self.v.CanSwitchSiren then
 		if on then
 			self.v:SetSirenState(2)
 		else
@@ -496,9 +495,9 @@ function ENT:SetELS(on)
         local pc = self.v:GetPhotonControllerFromAncestor()
         if IsValid(pc) then
 			local sirendata = GetPhoton2Siren(self.v)
-			local randomsiren = "T"..math.random(1, #sirendata.OrderedTones)
+			self.selectedsiren = self.selectedsiren or "T"..math.random(1, #sirendata.OrderedTones)
             pc:SetChannelMode("Emergency.Warning", on and "MODE3" or "OFF")
-            pc:SetChannelMode("Emergency.Siren", on and randomsiren or "OFF")
+            pc:SetChannelMode("Emergency.Siren", on and self.selectedsiren or "OFF")
         end
 	elseif Photon and not GetConVar("unitvehicle_vcmodelspriority"):GetBool()
 	and isfunction(self.v.ELS_SirenOn)
@@ -520,8 +519,7 @@ end
 
 function ENT:SetELSSound(on)
 	if on == self:GetELSSound() or self.v.DontHaveEMS then return end
-	if self.v.IsGlideVehicle then
-		if not self.v.CanSwitchSiren then return end
+	if self.v.IsGlideVehicle and self.v.CanSwitchSiren then
 		if on then
 			self.v:SetSirenState(2)
 		else
@@ -556,8 +554,8 @@ function ENT:SetELSSound(on)
         local pc = self.v:GetPhotonControllerFromAncestor()
         if IsValid(pc) then
 			local sirendata = GetPhoton2Siren(self.v)
-			local randomsiren = "T"..math.random(1, #sirendata.OrderedTones)
-            pc:SetChannelMode("Emergency.Siren", on and randomsiren or "OFF")
+			self.selectedsiren = self.selectedsiren or "T"..math.random(1, #sirendata.OrderedTones)
+            pc:SetChannelMode("Emergency.Siren", on and self.selectedsiren or "OFF")
         end
 	elseif Photon and not GetConVar("unitvehicle_vcmodelspriority"):GetBool()
 	and isfunction(self.v.ELS_SirenOn)
@@ -579,7 +577,7 @@ function ENT:SetELSSound(on)
 end
 
 function ENT:ChangeELSSiren()
-	if self.v.IsGlideVehicle and isfunction(CFswitchSiren) then
+	if self.v.IsGlideVehicle and isfunction(CFswitchSiren) and self.v.CanSwitchSiren then
 		CFswitchSiren( self.v, true )
 	elseif self.v.IsSimfphyscar then
 		if self.v.ems then self.v.ems:Stop() end
@@ -605,8 +603,8 @@ function ENT:ChangeELSSiren()
         local pc = self.v:GetPhotonControllerFromAncestor()
         if IsValid(pc) then
 			local sirendata = GetPhoton2Siren(self.v)
-			local randomsiren = "T"..math.random(1, #sirendata.OrderedTones)
-            pc:SetChannelMode("Emergency.Siren", randomsiren)
+			self.selectedsiren = "T"..math.random(1, #sirendata.OrderedTones)
+            pc:SetChannelMode("Emergency.Siren", self.selectedsiren)
         end
 	elseif Photon
 	and isfunction(self.v.ELS_SirenToggle) then
@@ -762,4 +760,553 @@ function ENT:SetSteering(steering)
 	
 	local pose = self:GetPoseParameter "vehicle_steer" or 0
 	self:SetPoseParameter("vehicle_steer", pose + (steering - pose) / 10)
+end
+
+-- pathfinding related funcs
+
+local PATH_REPATH_DRIFT_SQ = 250000
+local PATH_REPATH_INTERVAL = 0.75
+local PATH_REPATH_STAGGER = 0.1
+local PATH_LEAD_MIN = 500
+local PATH_LEAD_MAX = 4000
+
+local function bestForwardNeighbor( fromWp, fromId, heading )
+	local laneStart = fromWp.Target
+	local bestDot, bestTarget, bestWp, bestId = -1, nil, nil, nil
+
+	if fromWp.Neighbors then
+		for _, n in pairs( fromWp.Neighbors ) do
+			local wp = dvd.Waypoints[n]
+
+			if wp then
+				local dir = ( wp.Target - laneStart ):GetNormalized()
+				local dot = dir:Dot( heading )
+
+				if dot > bestDot then
+					bestDot = dot
+					bestTarget = wp.Target
+					bestWp = wp
+					bestId = n
+				end
+			end
+		end
+	end
+
+	-- If we don't have forward neighbors, we're going the wrong way
+	-- unfortunately DV doesn't have backwards neighbors so we have to fetch 'em manually
+	-- (until we get our own specialized nav sys :D)
+
+	if bestDot < 0 and fromId then
+		for id, wp in pairs( dvd.Waypoints ) do
+			if wp.Neighbors and table.HasValue(wp.Neighbors, fromId) then
+				local dir = ( wp.Target - laneStart ):GetNormalized()
+				local dot = dir:Dot( heading )
+
+				if dot > bestDot then
+					bestDot = dot
+					bestTarget = wp.Target
+					bestWp = wp
+					bestId = id
+				end
+			end
+		end
+	end
+
+	return bestDot, bestTarget, bestWp, bestId
+end
+
+function ENT:GetRandomSearchWaypoint()
+	if dvd and next( dvd.Waypoints or {} ) ~= nil then
+		local selectedWaypoint = dvd.Waypoints[ math.random( #dvd.Waypoints ) ] if not selectedWaypoint then return nil end
+		return selectedWaypoint.Target
+	end
+end
+
+function ENT:GetSuspectLeadPathTarget( enemy )
+	if not IsValid( enemy ) then return nil end
+
+	local suspectPos = enemy:WorldSpaceCenter()
+	local vel = enemy:GetVelocity()
+	local speed = vel:Length()
+	local suspectDir
+
+	if speed > 50 then
+		suspectDir = vel:GetNormalized()
+	else
+		suspectDir = IsValid( self.v ) and ( suspectPos - self.v:WorldSpaceCenter() ):GetNormalized() or vector_forward
+	end
+
+	local leadDist = speed > 50 and math.Clamp( speed * math.Clamp( speed / 800, 1, 4 ), PATH_LEAD_MIN, PATH_LEAD_MAX ) or PATH_LEAD_MIN
+	local leadPos = suspectPos + suspectDir * leadDist
+
+	if not dvd or next( dvd.Waypoints or {} ) == nil or InfMap then
+		return leadPos
+	end
+
+	local wp, wpId = dvd.GetNearestWaypoint( suspectPos )
+
+	if not wp then
+		local wpAtLead = dvd.GetNearestWaypoint( leadPos )
+		return wpAtLead and wpAtLead.Target or leadPos
+	end
+
+	local currentWp, currentId = wp, wpId
+	local distFromSuspect = 0
+	local targetPos = wp.Target
+
+	for _ = 1, 12 do
+		local dot, nextTarget, nextWp, nextId = bestForwardNeighbor( currentWp, currentId, suspectDir )
+		if not nextTarget or dot < 0.1 then break end
+
+		distFromSuspect = distFromSuspect + ( nextTarget - currentWp.Target ):Length()
+		targetPos = nextTarget
+		currentWp = nextWp or currentWp
+		currentId = nextId or currentId
+
+		if distFromSuspect >= leadDist then break end
+	end
+
+	return targetPos
+end
+
+function ENT:ResolvePathfindTarget(enemy)
+	enemy = enemy or self.e
+	if not IsValid( enemy ) then return nil end
+
+	if UV_IsInCooldown( enemy ) then
+		return self:GetRandomSearchWaypoint() or enemy:WorldSpaceCenter()
+	end
+
+	return self:GetSuspectLeadPathTarget( enemy )
+end
+
+function ENT:InvalidateNavigationPath()
+	self.tableroutetoenemy = {}
+	self.PathGoal = nil
+	self.PathMode = nil
+end
+
+function ENT:RecordNavigationPath( goalPos )
+	if isvector( goalPos ) then self.PathGoal = Vector( goalPos ) end
+
+	self.PathFoundTime = CurTime()
+end
+
+function ENT:SelectDVPathWaypoint( waypoints, unitpos, forward )
+	if not waypoints or #waypoints == 0 then return nil end
+
+	local maxLookahead = math.min( #waypoints, 5 )
+	local minDot = 0.35
+
+	local traceOrigin = unitpos + vector_up * 20
+	local traceFilter = self:GetTraceFilter() or {self, self.v}
+	local traceMask = InfMap and MASK_ALL or MASK_NPCWORLDSTATIC
+
+	for i = maxLookahead, 1, -1 do
+		local waypoint = waypoints[i]
+		local toWaypoint = waypoint - unitpos
+
+		local distSqr = toWaypoint:LengthSqr()
+		if distSqr < 0.01 then continue end
+
+		local forwardDot = toWaypoint:GetNormalized():Dot(forward)
+		if forwardDot < minDot then continue end
+
+		if i == 1 then return waypoint end
+
+		local tr = util.TraceLine({
+			start = traceOrigin,
+			endpos = waypoint + vector_up * 50,
+			mask = traceMask,
+			filter = traceFilter,
+		})
+
+		if tr.Fraction >= 0.92 then
+			return waypoint
+		end
+	end
+
+	return waypoints[1]
+end
+
+function ENT:GetVehicleDriveForward()
+	if not IsValid(self.v) then return vector_forward end
+
+	if self.v.IsSimfphyscar then
+		return self.v:LocalToWorldAngles(self.v.VehicleData.LocalAngForward):Forward()
+	end
+
+	return self.v:GetForward()
+end
+
+function ENT:GetDriveOnPathFallback( unitpos, forward )
+	return IsValid(self.e) and self.e:WorldSpaceCenter() or unitpos + (forward * 100)
+end
+
+function ENT:PrunePathWaypoints( waypoints, unitpos, forward, drawDebug )
+	local reachThreshold = 250000
+	local passedThreshold = 16000000
+
+	for i = #waypoints, 1, -1 do
+		local waypoint = waypoints[i]
+		local toWaypoint = waypoint - unitpos
+		local distSqr = toWaypoint:LengthSqr()
+
+		if drawDebug then
+			debugoverlay.Box(waypoint, Vector(-10, -10, 0), Vector(10, 10, 50), 0.1, Color(0, 255, 0))
+		end
+
+		if distSqr < reachThreshold then
+			table.remove(waypoints, i)
+		else
+			local forwardDot = toWaypoint:GetNormalized():Dot(forward)
+
+			if forwardDot < -0.3 and distSqr > 62500 then
+				table.remove(waypoints, i)
+			elseif distSqr > passedThreshold and forwardDot < 0 then
+				table.remove(waypoints, i)
+			end
+		end
+	end
+end
+
+function ENT:OffsetPathWaypointForUnits( nextWaypoint, unitpos, forward )
+	local velocitySqr = self.v:GetVelocity():LengthSqr()
+	local aheadMaxDistSq = 500000
+	local onWaypointRadiusSq = 40000
+	local forwardDotMin = 0.2
+
+	for veh, _ in pairs(UVUnitVehicles) do
+		if veh ~= self.v and IsValid(veh) then
+			local otherPos = veh:WorldSpaceCenter()
+			local toOther = otherPos - unitpos
+			local distSq = toOther:LengthSqr()
+			local fwdDot = toOther:GetNormalized():Dot(forward)
+			local distToWpSq = (otherPos - nextWaypoint):LengthSqr()
+
+			if ((fwdDot > forwardDotMin and distSq < aheadMaxDistSq) or (distToWpSq < onWaypointRadiusSq)) and velocitySqr > veh:GetVelocity():LengthSqr() then
+				local right = forward:Cross(vector_up)
+				if right:LengthSqr() > 0.01 then
+					right:Normalize()
+					local offsetAmount = 5
+					if self.__entIndex % 2 == 0 then
+						return nextWaypoint + right * offsetAmount
+					end
+					return nextWaypoint - right * offsetAmount
+				end
+				break
+			end
+		end
+	end
+
+	return nextWaypoint
+end
+
+function ENT:DriveOnPath()
+	if self.PathMode == "navmesh" then
+		return self:DriveOnPathNavMesh()
+	end
+	return self:DriveOnPathDV()
+end
+
+function ENT:DriveOnPathDV()
+	local unitpos = self.v:WorldSpaceCenter()
+	local forward = self:GetVehicleDriveForward()
+	local waypoints = self.tableroutetoenemy
+
+	if not waypoints or next(waypoints) == nil then
+		return self:GetDriveOnPathFallback( unitpos, forward )
+	end
+
+	self:PrunePathWaypoints( waypoints, unitpos, forward, true )
+
+	if next(waypoints) == nil then
+		self:InvalidateNavigationPath()
+		return self:GetDriveOnPathFallback( unitpos, forward )
+	end
+
+	local nextWaypoint = self:SelectDVPathWaypoint( waypoints, unitpos, forward )
+	nextWaypoint = self:OffsetPathWaypointForUnits( nextWaypoint, unitpos, forward )
+
+	debugoverlay.Line( unitpos, nextWaypoint, 1, Color(255, 0, 0), true )
+	debugoverlay.Box( nextWaypoint, Vector(-10, -10, 0), Vector(10, 10, 50), 0.1, Color(255, 0, 0) )
+
+	return nextWaypoint
+end
+
+function ENT:DriveOnPathNavMesh()
+	local unitpos = self.v:WorldSpaceCenter()
+	local forward = self:GetVehicleDriveForward()
+	local waypoints = self.tableroutetoenemy
+
+	if not waypoints or next(waypoints) == nil then
+		return self:GetDriveOnPathFallback( unitpos, forward )
+	end
+
+	self:PrunePathWaypoints( waypoints, unitpos, forward, true )
+
+	if next(waypoints) == nil then
+		self:InvalidateNavigationPath()
+		return self:GetDriveOnPathFallback( unitpos, forward )
+	end
+
+	local nextWaypoint = self:OffsetPathWaypointForUnits( waypoints[1], unitpos, forward )
+
+	debugoverlay.Line( unitpos, nextWaypoint, 1, Color(255, 0, 0), true )
+	debugoverlay.Box( nextWaypoint, Vector(-10, -10, 0), Vector(10, 10, 50), 0.1, Color(255, 0, 0) )
+
+	return nextWaypoint
+end
+
+function ENT:IsNavigationGrounded()
+	if not IsValid( self.v ) then return false end
+	if math.abs( self.v:GetVelocity().z ) > 200 then return false end
+
+	local pos = self.v:WorldSpaceCenter()
+
+	return util.TraceLine({
+		start = pos,
+		endpos = pos - vector_up * 128,
+		mask = MASK_NPCWORLDSTATIC,
+		filter = self:GetTraceFilter() or {self, self.v},
+	}).Hit
+end
+
+function ENT:IsPathWaypointBlocked()
+	local route = self.tableroutetoenemy
+	if not route or not IsValid( self.v ) or next( route ) == nil then return false end
+
+	local unitpos = self.v:WorldSpaceCenter()
+	local nextWaypoint
+
+	for _, waypoint in ipairs( route ) do
+		if ( waypoint - unitpos ):LengthSqr() > 250000 then
+			nextWaypoint = waypoint
+			break
+		end
+	end
+
+	if not nextWaypoint then return false end
+
+	return util.TraceLine({
+		start = unitpos,
+		endpos = nextWaypoint + vector_up * 50,
+		mask = InfMap and MASK_ALL or MASK_NPCWORLDSTATIC,
+		filter = self:GetTraceFilter() or {self, self.v},
+	}).Fraction < 0.8
+end
+
+function ENT:ShouldRepath(targetPos)
+	if not isvector( targetPos ) then return false end
+	if self.stuck then return true end
+	if self:IsPathWaypointBlocked() then return true end
+
+	if isvector( self.PathGoal ) and targetPos:DistToSqr( self.PathGoal ) > PATH_REPATH_DRIFT_SQ then
+		return true
+	end
+
+	return false
+end
+
+function ENT:ShouldCheckRepath()
+	local entIndex = self.__entIndex or self:EntIndex()
+	local now = CurTime()
+	self._nextRepathCheck = self._nextRepathCheck or ( now + ( entIndex % 10 ) * PATH_REPATH_STAGGER )
+
+	if now < self._nextRepathCheck then return false end
+
+	self._nextRepathCheck = now + PATH_REPATH_INTERVAL
+	return true
+end
+
+function ENT:TryRefreshPathToTarget( enemy )
+	enemy = enemy or self.e
+	if not IsValid( enemy ) then return end
+
+	local pathTarget = self:ResolvePathfindTarget( enemy )
+	if not isvector( pathTarget ) then return end
+
+	local route = self.tableroutetoenemy
+	local hasRoute = route and next( route ) ~= nil
+
+	if UV_IsInCooldown(enemy) then
+		if hasRoute then return end
+
+		self:PathFindToEnemy(pathTarget, enemy) return
+	end
+
+	local hasSubstantialRoute = hasRoute and #route > 1
+
+	if not hasSubstantialRoute then self:PathFindToEnemy(pathTarget, enemy)
+		return
+	end
+
+	if not self:ShouldCheckRepath() then return end
+	if not self:ShouldRepath( pathTarget ) then return end
+
+	if self.NavigateCooldown then
+		self.NavigateCooldown = nil
+		if self._cooldownString then
+			timer.Remove( self._cooldownString )
+		end
+	end
+
+	self:InvalidateNavigationPath()
+	self:PathFindToEnemy( pathTarget, enemy )
+end
+
+function ENT:GetVehiclePrefix()
+    if self.v.IsScar then
+        return "SCAR_"
+    elseif self.v.IsSimfphyscar then
+        return "Simfphys_"
+    elseif self.v.LVS or self.v.LVS_GUNNER then
+        return "LVS_"
+    elseif self.v.IsGlideVehicle then
+        return "Glide_"
+    else
+        return "Source_"
+    end
+end
+
+function ENT:GetVehicleIdentifier()
+    local id = ""
+    if self.v.IsScar then
+        id = self.v:GetClass()
+    else
+        id = self.v:GetModel() or "INVALID_MODEL"
+    end
+
+    return self:GetVehiclePrefix() .. id
+end
+
+function ENT:GetDefaultDriverModel()
+	local modelTable = {
+		["ModelName"] = "models/player/kleiner.mdl",
+	}
+
+    return modelTable
+end
+
+function ENT:AttachDriverModel(filename)
+	if not IsValid(self.v) then return end
+
+	local usingDefaultModel = false
+
+	if not filename or filename == "" then
+		--print("[Unit Vehicles]: Assigned Driver Model(s) for " .. self:GetClass() .. " seems to be empty. Using default model instead.")
+		usingDefaultModel = true
+	end
+
+    local v = self.v
+    local seat = v
+    if v.IsScar then
+        seat = v.Seats and v.Seats[1]
+    elseif self.v.IsSimfphyscar then
+        seat = v.DriverSeat
+    elseif v.LVS or v.LVS_GUNNER then
+        seat = v:GetDriverSeat()
+    elseif v.IsGlideVehicle then
+        seat = v.seats and v.seats[1]
+    end
+
+    if not IsValid(seat) then return end
+
+	if self.v.DriverModel and IsValid(self.v.DriverModel) then self.v.DriverModel:Remove() end
+
+    local anim = dvd.DriverAnimation[self:GetVehicleIdentifier()] or dvd.DriverAnimation[self:GetVehiclePrefix()] or "drive_jeep"
+
+	local data = {}
+	
+	if not usingDefaultModel then
+		data = UV_LoadFile("drivermodels", filename)
+		if not data then
+			print("[Unit Vehicles]: Failed to load Driver Model data '" .. filename .. "' for " .. self:GetClass() .. ".")
+			usingDefaultModel = true 
+		end
+	end
+	
+	if usingDefaultModel and isfunction(self.v.UVVehicleInitialize) then
+		self.v:UVVehicleInitialize()
+		return
+	end
+
+	local DMMemory = usingDefaultModel and self:GetDefaultDriverModel() or util.JSONToTable(data, true)
+
+	local model = DMMemory.ModelName
+	if not util.IsValidModel(model) then
+		print("[Unit Vehicles]: Driver Model '" .. model .. "' is either missing or invalid for " .. self:GetClass() .. ".")
+		model = "models/player/kleiner.mdl"
+	end
+	
+	local DriverModel = ents.Create("prop_dynamic")
+	DriverModel:SetSolid(SOLID_NONE)
+	DriverModel:SetMoveType(MOVETYPE_NONE)
+	DriverModel:SetCollisionGroup(10)
+    DriverModel:SetModel(model)
+	DriverModel:SetNoDraw(true)
+	DriverModel:SetPos(seat:GetPos())
+	DriverModel:SetAngles(seat:GetAngles())
+    DriverModel:SetParent(seat)
+	DriverModel:Spawn()
+	DriverModel:Activate()
+
+	if DMMemory.Bodygroups and not DMMemory.RandomizeBodygroups then
+		for index, value in pairs(DMMemory.Bodygroups) do
+		    DriverModel:SetBodygroup(index, value)
+		end
+	else
+		for k = 0, DriverModel:GetNumBodyGroups() do
+			DriverModel:SetBodygroup( k, math.random( 0, DriverModel:GetBodygroupCount( k ) - 1 ) )
+		end
+	end
+
+	if DMMemory.Skin and not DMMemory.RandomizeSkin then
+		DriverModel:SetSkin(DMMemory.Skin)
+	else
+		local totalSkins = DriverModel:SkinCount()
+    	if totalSkins > 0 then
+    	    DriverModel:SetSkin(math.random(0, totalSkins - 1))
+    	end
+	end
+
+	local color = (DMMemory.RandomizeColor and Color(math.random(0, 255), math.random(0, 255), math.random(0, 255))) 
+	or (DMMemory.Color and Color(DMMemory.Color.r, DMMemory.Color.g, DMMemory.Color.b))
+	or color_white
+
+	self.v.DriverModel = DriverModel
+	self.v.DriverModel.vehicle = self.v
+    seat:SetSequence(0)
+
+	local attachedEntity = DriverModel.AttachedEntity or DriverModel
+	local nonUnit = (class == "npc_racervehicle" or class == "npc_trafficvehicle") and true
+
+    timer.Simple(.1, function()
+        if not IsValid(seat) then return end
+        if not IsValid(DriverModel) then return end
+        if not IsValid(self.v) then return end
+
+        local a = seat:GetAttachment(assert(seat:LookupAttachment("vehicle_driver_eyes"), dvd.Texts.Errors.AttachmentNotFound))
+        local d = dvd.SeatPos[self:GetVehicleIdentifier()] or dvd.SeatPos[self:GetVehiclePrefix()] or Vector(-8, 0, -32)
+        local seatang = seat:WorldToLocalAngles(a.Ang)
+        local seatpos = seat:WorldToLocal(a.Pos + a.Ang:Forward() * d.x + a.Ang:Right() * d.y + a.Ang:Up() * d.z)
+
+        DriverModel:SetLocalPos(seatpos)
+		DriverModel:SetLocalAngles(seatang)
+        DriverModel:SetSequence(anim)
+
+		DriverModel:SetNoDraw(false)
+
+		for i = 0, DriverModel:GetFlexNum() - 1 do
+		    DriverModel:SetFlexWeight(i, 0)
+		end
+		DriverModel:SetFlexScale(1)
+		
+		net.Start("UVHUDAddUV")
+		net.WriteInt(DriverModel:EntIndex(), 32)
+		net.WriteInt(DriverModel:GetCreationID(), 32)
+		net.WriteString("drivermodel")
+		net.WriteColor(color)
+		net.Broadcast()
+    end)
 end

@@ -62,12 +62,15 @@ if SERVER then
 		local name = net.ReadString()
 		local duration = net.ReadInt(32)
 		local dontunweld = net.ReadBool()
+		local disableactioncam = net.ReadBool()
 
 		local keyduration = "ActiveDuration"
 		local keydontunweld = "DontUnweldProps"
+		local keydisableactioncam = "DisableActionCam"
 
 		ply.UVPBTOOLMemory[keyduration] = duration
 		ply.UVPBTOOLMemory[keydontunweld] = dontunweld
+		ply.UVPBTOOLMemory[keydisableactioncam] = disableactioncam
 
 		local jsondata = util.TableToJSON(ply.UVPBTOOLMemory)
 		file.Write("unitvehicles/pursuitbreakers/"..game.GetMap().."/"..name..".json", jsondata)
@@ -127,7 +130,7 @@ if CLIENT then
 		local OK = vgui.Create("DButton")
 
 		PursuitBreakerAdjust:Add(OK)
-		PursuitBreakerAdjust:SetSize(400, 220)
+		PursuitBreakerAdjust:SetSize(400, 240)
 		PursuitBreakerAdjust:SetBackgroundBlur(true)
 		PursuitBreakerAdjust:Center()
 		PursuitBreakerAdjust:SetTitle("#tool.uvpursuitbreaker.name")
@@ -160,6 +163,12 @@ if CLIENT then
 		DontUnweldProps:SetValue( 0 )
 		DontUnweldProps:SetTooltip( "#tool.uvpursuitbreaker.create.keepweld.desc" )
 
+		local DisableActionCam = vgui.Create( "DCheckBoxLabel", PursuitBreakerAdjust )
+		DisableActionCam:SetPos( 20, 180 )
+		DisableActionCam:SetText( "#tool.uvpursuitbreaker.create.disableactioncam" )
+		DisableActionCam:SetValue( 0 )
+		DisableActionCam:SetTooltip( "#tool.uvpursuitbreaker.create.disableactioncam.desc" )
+
 		OK:SetText("#uv.tool.create")
 		OK:SetSize(PursuitBreakerAdjust:GetWide() * 5 / 16, 22)
 		OK:Dock(BOTTOM)
@@ -174,6 +183,7 @@ if CLIENT then
 				net.WriteString(Name)
 				net.WriteInt(ActiveDuration:GetValue(), 32)
 				net.WriteBool(DontUnweldProps:GetChecked())
+				net.WriteBool(DisableActionCam:GetChecked())
 				net.SendToServer() --Create Pursuit Breaker
 				
 				UVPursuitBreakerScrollPanel:Clear() 
@@ -208,6 +218,12 @@ if CLIENT then
 
 		local selecteditem = nil
 
+		local SearchEntry = vgui.Create("DTextEntry")
+		SearchEntry:SetTall(24)
+		SearchEntry:SetPlaceholderText(language.GetPhrase("uv.search"))
+		SearchEntry:SetUpdateOnType(true)
+		CPanel:AddItem(SearchEntry)
+
 		local Frame = vgui.Create("DPanel")
 		Frame:SetTall(320)
 		Frame.Paint = function(self, w, h)
@@ -236,7 +252,16 @@ if CLIENT then
 				return
 			end
 
+			local searchQuery = string.Trim(SearchEntry:GetValue()):lower()
+			local matchingEntries = 0
+
 			for id, filename in ipairs(files) do
+				if searchQuery ~= "" and not string.find(filename:lower(), searchQuery, 1, true) then
+					continue
+				end
+
+				matchingEntries = matchingEntries + 1
+
 				local btn = UVPursuitBreakerScrollPanel:Add("DButton")
 				btn:Dock(TOP)
 				btn:DockMargin(0, 0, 0, 4)
@@ -271,7 +296,7 @@ if CLIENT then
 						draw.RoundedBox(12, w * 0.0125, 0, w * 0.9875, h, Color(0, 138, 28))
 					end
 
-					draw.SimpleTextOutlined(filename, "UVSettingsFontSmall", w * 0.5, h * 0.5, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1.25, color_black)
+					UVDrawCursorText(self, filename, "UVSettingsFontSmall", w * 0.5, h * 0.5, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1.25, color_black, w * 0.05, w * 0.95)
 				end
 
 				btn.DoClick = function()
@@ -283,7 +308,18 @@ if CLIENT then
 					net.SendToServer()
 				end
 			end
+
+			if matchingEntries == 0 then
+				local empty = vgui.Create("DLabel", UVPursuitBreakerScrollPanel)
+				empty:SetText("#uv.search.noresults")
+				empty:SetTextColor(Color(200,200,200))
+				empty:SetContentAlignment(5)
+				empty:Dock(TOP)
+				empty:SetTall(24)
+			end
 		end
+
+		SearchEntry.OnTextChanged = RefreshPursuitBreakerList
 
 		timer.Simple(0, RefreshPursuitBreakerList)
 

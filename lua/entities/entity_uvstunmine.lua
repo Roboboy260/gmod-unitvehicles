@@ -109,23 +109,56 @@ if SERVER then
 			if object ~= car and (not table.HasValue(carchildren, object) and not table.HasValue(carconstraints, object) and IsValid(object:GetPhysicsObject()) or object.UnitVehicle or object.UVWanted or object:GetClass() == "entity_uv*" or object.uvdeployed) then
 				if not object.UnitVehicle and car and not RacerFriendlyFire:GetBool() then
 				else
-					local objectphys = object:GetPhysicsObject()
-					local vectorDifference = object:WorldSpaceCenter() - entpos
-					local angle = vectorDifference:Angle()
-					local power = UVPTStunMinePower:GetInt()
+					local force = UVPTStunMinePower:GetInt() / 10000
 					local damage = UVPTStunMineDamage:GetFloat()
-					local force = power * (1 - (vectorDifference:Length()/1000))
-					objectphys:ApplyForceCenter(angle:Forward()*force)
+					local carEntityIndex = object:EntIndex()
+					local hookIdentifier = "UVStunMine_"..carEntityIndex
+					local lastHeadlightState = UVGetHeadlight( object )
+
+					if self.upgraded then
+						damage = damage * 2
+						force = force * 2
+					end
+
 					UVRamVehicle(object)
 					damage = (table.HasValue(UVCommanders, object) and UVPTStunMineCommanderDamage:GetFloat()) or damage
 					UVDamage( object, damage )
-					
-						-- if self.racerdeployed then
-						-- 	if not UVGetDriver(self.racerdeployed) then continue end
-						-- 	if UVGetDriver(self.racerdeployed):IsPlayer() then
-						-- 		ReportPTEvent( self.racerdeployed, car, "StunMine", "Hit" )
-						-- 	end
-						-- end
+
+					UVDisableVehicleEngine(object, UVPTStunMineDisableDuration:GetFloat())
+
+                    UVDeactivateActivePursuitTechs(object)
+
+					hook.Add( "Think", hookIdentifier .. "headlight", function() 
+                        if not IsValid(object) then
+                            hook.Remove( "Think", hookIdentifier .. "headlight" )
+                            return 
+                        end
+
+                        UVSetHeadlight( 
+                            object, 
+                            math.random( 0, 2 ) 
+                        ) 
+                    end)
+                
+                    timer.Simple( 1, function()
+                        hook.Remove( "Think", hookIdentifier .. "headlight" )
+                        UVSetHeadlight( 
+                            object, 
+                            lastHeadlightState 
+                        )
+                    end)
+
+					local objectPhysObj = object:GetPhysicsObject()
+                    local objectForward = object:GetForward()
+                    local objectRight = object:GetRight()
+                
+                    local objectPos = object:WorldSpaceCenter()
+                
+                    objectPhysObj:ApplyForceOffset( 
+                        ( math.Rand( -1, 1 ) * objectRight ) * ( objectPhysObj:GetMass() * force ), -- ( force / 100 )
+                        objectPos - ( objectForward * 100 )
+                    )
+
 					local e = EffectData()
 					e:SetEntity(object)
 					util.Effect("phys_unfreeze", e)
@@ -149,6 +182,7 @@ else
 		local mat = Material("sprites/light_ignorez")
 		local model = self:GetModel()
 		local skins = self:GetSkin()
+		local color = self.upgraded and Color(125,249,255) or color_white
 	
 		self:DrawModel() 
 		self.LightPos1 = Vector(0,0,0)
@@ -158,7 +192,7 @@ else
 		if dist<10000 and math.floor(CurTime()*4)==math.Round(CurTime()*4) and util.TraceLine({start = EyePos(),endpos = lightpos1,filter = LocalPlayer(),mask = MASK_OPAQUE}).Fraction==1 then
 			mat:SetInt("$ignorez",0)
 				render.SetMaterial(mat)
-				render.DrawSprite(lightpos1,128,128,Color(255,255,255,255-dist/10000*255))
+				render.DrawSprite(lightpos1,128,128,Color(color.r,color.g,color.b,255-dist/10000*255))
 			mat:SetInt("$ignorez",1)
 		end
 	

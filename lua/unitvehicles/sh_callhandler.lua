@@ -85,12 +85,8 @@ if SERVER then
             UVCheckForSpeeders()
             UVTimeToCheckForPotentialSuspects = CurTime()
         end
-
-        if UVTargeting then 
-            uvcallexists = false
-        end
         
-        if GetConVar("ai_ignoreplayers"):GetBool() or not GetConVar("unitvehicle_callresponse"):GetBool() or UVTargeting or uvcallexists then
+        if GetConVar("ai_ignoreplayers"):GetBool() or not GetConVar("unitvehicle_callresponse"):GetBool() or UVTargeting or UVHeatZone then
             if UVCallLocation and UVTargeting then --Remove the call, allow for new calls to come in
                 UVCallLocation = nil
             end
@@ -105,6 +101,9 @@ if SERVER then
         if next(UVPotentialSuspects) == nil or next(dvd.Waypoints) == nil then return end
 
         for _, v in pairs(UVPotentialSuspects) do
+            local speed = v:GetVelocity():Length2DSqr()
+            if speed < 30976 then return end
+
             local startPos = v:GetPos()
             local endPos = startPos + (vector_up * -100) --being airborne also counts as offroading
 
@@ -116,7 +115,7 @@ if SERVER then
             })
 
             local surfaceMaterial = trace.MatType
-            if surfaceMaterial == MAT_CONCRETE or surfaceMaterial == MAT_ASPHALT then
+            if surfaceMaterial == MAT_CONCRETE or surfaceMaterial == MAT_DIRT or surfaceMaterial == MAT_SNOW or surfaceMaterial == MAT_METAL or surfaceMaterial == MAT_SAND or surfaceMaterial == MAT_WOOD or surfaceMaterial == MAT_GLASS then
                 return
             end
 
@@ -191,15 +190,13 @@ if SERVER then
     }
     
     function UVCallInitiate(suspectvehicle, infraction)
-        if not GetConVar("unitvehicle_callresponse"):GetBool() or UVTargeting or uvcallexists or not UVPassConVarFilter(suspectvehicle) then return end
+        if not GetConVar("unitvehicle_callresponse"):GetBool() or UVTargeting or UVHeatZone or not UVPassConVarFilter(suspectvehicle) then return end
 
         local calltype = CALL_TYPE[infraction] or 1
 
         UVAddInfraction(suspectvehicle, infraction, true)
         
         UVPreInfractionCount = 0
-        
-        uvcallexists = true
         
         local calllocation = suspectvehicle:GetPos()+(vector_up * 50)
         
@@ -230,12 +227,7 @@ if SERVER then
         timecheck = 5
         
         timer.Simple(0.5, function()
-            UVApplyHeatLevel()
-            UVUpdateHeatLevel()
-            UVAutoSpawn()
-            uvIdleSpawning = CurTime()
-            UVPresenceMode = true
-            UVRestoreResourcePoints()
+            UVStartHeatZone()
         end)
         
         timer.Simple(timecheck, function()
@@ -251,10 +243,8 @@ if SERVER then
     
     function UVCallReportDescription(suspectvehicle, calllocation)
         if UVTargeting then return end
-
         
         local timecheck = 5
-
         
         if next(ents.FindByClass("npc_uv*" )) ~= nil and GetConVar("unitvehicle_chatter"):GetBool() then
             local units = ents.FindByClass("npc_uv*" )
@@ -297,11 +287,6 @@ if SERVER then
     end
     
     function UVCallRespond(suspectvehicle, unknown)
-
-        timer.Simple(20, function()
-            uvcallexists = nil
-        end)
-        
         if UVTargeting then return end
         
         if next(ents.FindByClass("npc_uv*" )) == nil then return end

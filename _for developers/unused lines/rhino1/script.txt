@@ -1,0 +1,118 @@
+#------ rhino1 (talon)
+uvsub.default.rhino1.aggressive.agro1=I'm gonna try and ram him - maybe take him out.
+uvsub.default.rhino1.aggressive.agro2=I'm gonna try and ram this guy off the road. Watch out.
+uvsub.default.rhino1.aggressive.agro3=I'm really getting sick of this shit. Let's take this guy out now.
+uvsub.default.rhino1.aggressive.agro4=Everyone, let's try and box 'em in - maybe we could get a chance here.
+uvsub.default.rhino1.aggressive.agro5=Let's perform a rolling block on this guy.
+
+uvsub.default.rhino1.airdown.down1=Dispatch, we got our chopper down here. We need EMS immediately.
+uvsub.default.rhino1.airdown.down2=Dispatch, Air Unit down! I repeat, Air Unit down! I need EMS immediately!
+uvsub.default.rhino1.airdown.down3=Dispatch, we got an Air Unit down here! We gotta bring EMS immediately!
+uvsub.default.rhino1.airdown.down4=Air Unit is down! I repeat, Air Unit is down! Requesting EMS.
+uvsub.default.rhino1.airdown.down5=Air cover is down! I repeat, Air cover is down! We need EMS here ASAP.
+uvsub.default.rhino1.airdown.down6=Air cover is down! I repeat, Air cover is down! Requesting EMS here ASAP.
+
+uvsub.default.rhino1.arrest.arrest1=Target under arrest - moving into custody.
+uvsub.default.rhino1.arrest.arrest2=Vehicle's stopped. We got him.
+uvsub.default.rhino1.arrest.arrest3=Code 6 is under arrest. Code 4.
+uvsub.default.rhino1.arrest.arrest4=Vehicle's stopped. Target under arrest.
+uvsub.default.rhino1.arrest.arrest5=Target is Code 4. We got him.
+
+uvsub.default.rhino1.callrequestdescription.callrequestdescription1=Got any information on our target?
+uvsub.default.rhino1.callrequestdescription.callrequestdescription2=Dispatch, I'll need more details.
+uvsub.default.rhino1.callrequestdescription.callrequestdescription3=Dispatch, requesting more details on the driver.
+
+uvsub.default.rhino1.closetoenemy.close1=I'm gonna try and close on him.
+uvsub.default.rhino1.closetoenemy.close2=Closing in on the target.
+uvsub.default.rhino1.closetoenemy.close3=Alright everyone! I think this is the best opportunity to close in on him.
+uvsub.default.rhino1.closetoenemy.close4=Let's close on this guy.
+uvsub.default.rhino1.closetoenemy.close5=Let's pressure this guy - we might be able to stop him.
+uvsub.default.rhino1.closetoenemy.close6=Hold on. Let's close on him.
+
+uvsub.default.rhino1.foundenemy.foundenemy1=Dispatch, this is Rhino Unit. We just located the suspect. Code 3.
+uvsub.default.rhino1.foundenemy.foundenemy2=Visual reestablished. I see the suspect.
+uvsub.default.rhino1.foundenemy.foundenemy3=I got visual of the suspect. I'm gonna try and run after him.
+uvsub.default.rhino1.foundenemy.foundenemy4=Visual contact reestablished. I see the suspect.
+uvsub.default.rhino1.foundenemy.foundenemy5=I got visual back on the suspect. All Units, get on him now.
+
+uvsub.default.rhino1.heat5acknowledge.agree1=Copy that, Dispatch. All pursuing Units, let's fall back. Federal Units are taking over.
+uvsub.default.rhino1.heat5acknowledge.agree2=Copy that, Dispatch. We're gonna fall back as soon as the federal Units are here.
+uvsub.default.rhino1.heat5acknowledge.agree3=Roger that, Dispatch. All pursuing Units, we'll have to fall back - federal Units are taking over.
+
+uvsub.default.rhino1.heat5argue.disagree1=10-10 on this one, Dispatch. We don't need federal Units. We can do this all by ourselves.
+uvsub.default.rhino1.heat5argue.disagree2=Negative on that one, Dispatch. We don't need federal Units. We can do this all by ourselves.
+uvsub.default.rhino1.heat5argue.disagree3=Negative, Dispatch. We don't need any federal Units here - they're gonna make things worse. We can do this work all by ourselves.
+uvsub.default.rhino1.heat5argue.disagree4=Dispatch, there's no need for federal Units. We can do this by ourselves - just bring more Units over here.
+
+uvsub.default.rhino1.leftpursuit.left1=This is Rhino Unit, I'm gonna have to fall back.
+uvsub.default.rhino1.leftpursuit.left2=This is Rhino Unit, we're gonna have to abort the pursuit.
+uvsub.default.rhino1.leftpursuit.left3=Rhino Unit is leaving the pursuit.
+uvsub.default.rhino1.leftpursuit.left4=I'm gonna have to abort the pursuit.
+
+uvsub.default.rhino1.lost.lost1=Dispatch, target lost. Also, our Units are leaving - can we cancel the search?
+uvsub.default.rhino1.lost.lost2=Dispatch, target is long gone. We would've found him by now. Requesting to cancel search.
+uvsub.default.rhino1.lost.lost3=Dispatch, I can't believe that I am saying this, but... I think we should call the search off. I don't think we'll find this guy again.
+uvsub.default.rhino1.lost.lost4=Dispatch, I don't see any reason to really continue the search - suspect is long gone. Can we cancel the search?
+uvsub.default.rhino1.lost.lost5=How long does IC wants us out here? Nothing has been happening um... suspect's probably long gone. Requesting to cancel search.
+uvsub.default.rhino1.lost.lost6=Dispatch, target is long gone. I don't see any reason in continuing the search - maybe we should call it off.
+
+uvsub.default.rhino1.multipleunitsdown.mu1=Dispatch, we got multiple Units down! I repeat, multiple Units down! Send EMS and a wrecker!
+uvsub.default.rhino1.multipleunitsdown.mu2=Dispatch, send EMS right now, we got injuries here!
+uvsub.default.rhino1.multipleunitsdown.mu3=Dispatch, requesting 10-38. We got multiple Units down, we got a lot of injuries as well.
+uvsub.default.rhino1.multipleunitsdown.mu4=Dispatch, nothing is looking good so far. Our Units are down... a lot of 'em. Send EMS right now.
+uvsub.default.rhino1.multipleunitsdown.mu5=Dispatch, multiple Units down! I repeat, multiple Units down! Send EMS! We got injuries here.
+
+uvsub.default.rhino1.onscene.onscene-01=This is Rhino Unit, we're up ahead of the suspect.
+uvsub.default.rhino1.onscene.onscene-02=This is Rhino Unit, we're up ahead of the target.
+uvsub.default.rhino1.onscene.onscene-03=Armored 25, we're up ahead of the suspect.
+uvsub.default.rhino1.onscene.onscene-04=This is Rhino Unit, we're up ahead of the suspect.
+uvsub.default.rhino1.onscene.onscene-05=Rhino 25, we're on scene.
+uvsub.default.rhino1.onscene.onscene-06=Rhino 8, we're on scene.
+uvsub.default.rhino1.onscene.onscene-07=Rhino 5, we're on scene.
+uvsub.default.rhino1.onscene.onscene-08=Control, we're up ahead of the target.
+
+uvsub.default.rhino1.pursuitbreaker.pb1=Got a structure down. Watch out everyone!
+uvsub.default.rhino1.pursuitbreaker.pb2=Shit! Watch out for debris, we got a structure down!
+uvsub.default.rhino1.pursuitbreaker.pb3=Got a structure down. I repeat, we got a structure down! Watch out everyone!
+uvsub.default.rhino1.pursuitbreaker.pb4=Structure going down! I repeat, structure is going down! Watch out for debris!
+
+uvsub.default.rhino1.rhinohit.rhinohit-1=This is Rhino Unit, we just hit the suspect.
+uvsub.default.rhino1.rhinohit.rhinohit-2=Rhino Unit, we just got a successful ram on the suspect.
+uvsub.default.rhino1.rhinohit.rhinohit-3=Successful hit on the target.
+uvsub.default.rhino1.rhinohit.rhinohit-4=Control, we just hit the suspect.
+uvsub.default.rhino1.rhinohit.rhinohit-5=Dispatch, this is Rhino Unit. We're reporting a hit on the target.
+uvsub.default.rhino1.rhinohit.rhinohit-6=We hit the target! I repeat, we hit the target! He's taking damage!
+
+uvsub.default.rhino1.rhinomiss.miss-1=We missed him.
+uvsub.default.rhino1.rhinomiss.miss-2=We missed the target.
+uvsub.default.rhino1.rhinomiss.miss-3=Suspect avoided our Rhino.
+uvsub.default.rhino1.rhinomiss.miss-4=Target missed! Target missed! He is still mobile.
+uvsub.default.rhino1.rhinomiss.miss-5=Rhino Unit, we just missed the target.
+
+uvsub.default.rhino1.roadblockdeployed.deployed1=This is Rhino Unit, we just set up a roadblock up ahead of the target.
+uvsub.default.rhino1.roadblockdeployed.deployed2=All hot pursuit Units be advised, a roadblock has been set up ahead of the suspect.
+uvsub.default.rhino1.roadblockdeployed.deployed3=We set up a roadblock up ahead of the suspect. Watch your speed, guys.
+uvsub.default.rhino1.roadblockdeployed.deployed4=Hot pursuit Units be advised, we got a roadblock up ahead of the suspect. Be careful.
+uvsub.default.rhino1.roadblockdeployed.deployed5=Armored Unit, we just set up a roadblock up ahead of the suspect.
+
+uvsub.default.rhino1.roadblockhit.hit1=Roadblock hit! Suspect is still mobile.
+uvsub.default.rhino1.roadblockhit.hit2=Runner just took out the roadblock! All mobile Units, get on him.
+uvsub.default.rhino1.roadblockhit.hit3=Target hit! Target hit! Suspect is still mobile.
+uvsub.default.rhino1.roadblockhit.hit4=Rhino Unit reporting: Suspect just hit the roadblock.
+uvsub.default.rhino1.roadblockhit.hit5=Roadblock hit. Suspect is still mobile.
+
+uvsub.default.rhino1.roadblockmissed.miss1=Roadblock missed. Suspect is still going.
+uvsub.default.rhino1.roadblockmissed.miss2=Roadblock unsuccessful. Suspect is still mobile.
+uvsub.default.rhino1.roadblockmissed.miss3=Roadblock missed! I repeat, roadblock missed!
+uvsub.default.rhino1.roadblockmissed.miss4=Rhino Unit reporting: Suspect just went around the roadblock.
+
+uvsub.default.rhino1.trafficstopspeeding.trafficstop1=Dispatch, I'm pulling over a vehicle here. Stand by.
+uvsub.default.rhino1.trafficstopspeeding.trafficstop2=Dispatch, I just caught a reckless driver here. Hold on - I'm gonna pull him over.
+
+uvsub.default.rhino1.wreck.wreck1=Target just took out my vehicle. I'm unable to continue pursuit.
+uvsub.default.rhino1.wreck.wreck2=My vehicle is taken out. Can't continue pursuit.
+uvsub.default.rhino1.wreck.wreck3=This is Rhino Unit, my vehicle's taken out. Engine is smoking.
+uvsub.default.rhino1.wreck.wreck4=Dispatch, call a wrecker. My vehicle is taken down - I repeat, my vehicle's taken out.
+uvsub.default.rhino1.wreck.wreck5=Dispatch, requesting EMS and a wrecker. My vehicle's taken out, and I got some injuries here.
+uvsub.default.rhino1.wreck.wreck6=Rhino going down!
+uvsub.default.rhino1.wreck.wreck7=Unable to continue pursuit. My vehicle's taken down.

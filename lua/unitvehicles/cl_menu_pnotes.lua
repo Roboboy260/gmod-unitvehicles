@@ -8,6 +8,14 @@ UV = UV or {}
 -- },
 
 UV.PNotes = {
+["1.9.1"] = {
+Date = { year = 2026, month = 11, day = 10 },
+Text = [[
+**Fixes**
+- Fixed an issue that caused Glide aircraft to no longer work after UV's 1.9.0 update.
+]],
+},
+
 ["1.9.0"] = {
 Date = { year = 2026, month = 11, day = 5 },
 Type = "Minor",

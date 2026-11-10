@@ -1169,8 +1169,17 @@ hook.Add("OnEntityCreated", "UVCollisionGlide", function(glidevehicle) --Overrid
 
 	if ( glidevehicle.IsGlideVehicle ) then
 		local oldturnOn = glidevehicle.TurnOn
-		glidevehicle.TurnOn = function( car )
-			if not car.isEngineEnabled or car.enginedisabledbyuv then return end
+		glidevehicle.TurnOn = function( car, ... )
+			if car.enginedisabledbyuv then return end
+
+			local vehicleTypes = Glide.VEHICLE_TYPE
+			local isCarType = vehicleTypes and ( car.VehicleType == vehicleTypes.CAR or car.VehicleType == vehicleTypes.MOTORCYCLE )
+			if not isCarType then
+				if oldturnOn then return oldturnOn( car, ... ) end
+				return
+			end
+
+			if not car.isEngineEnabled then return end
 
     		local state = car:GetEngineState()
 
